@@ -1,0 +1,933 @@
+module rv_branch_predictor #(
+  parameter int unsigned XLEN = 32,
+  parameter int unsigned BTB_ENTRIES = 256,
+  parameter int unsigned BTB_WAYS = 4,
+  parameter int unsigned PHT_ENTRIES = 2048,
+  parameter int unsigned RAS_DEPTH = 16,
+  // Tightly coupled queue supplies lane1=lane0+length0 even when invalid.
+  // General standalone callers keep zero and may query unrelated PCs.
+  parameter bit SEQUENTIAL_QUERIES = 1'b0
+) (
+  input  logic                                  clk_i,
+  input  logic                                  rst_ni,
+  input  logic [1:0]                            query_valid_i,
+  input  logic [1:0][XLEN-1:0]                  query_pc_i,
+  input  logic [1:0][31:0]                      query_instruction_i,
+  input  rv_ooo_pkg::inst_len_e [1:0]           query_inst_len_i,
+  output logic [1:0]                            prediction_taken_o,
+  output logic [1:0][XLEN-1:0]                  prediction_target_o,
+  output logic [1:0][XLEN-1:0]                  prediction_lookup_target_o,
+  output rv_ooo_pkg::prediction_meta_t [1:0]    prediction_meta_o,
+  input  logic [1:0]                            prediction_fire_i,
+
+  input  logic                                  redirect_valid_i,
+  input  logic                                  resolve_valid_i,
+  input  logic [XLEN-1:0]                       resolve_pc_i,
+  input  logic [31:0]                           resolve_instruction_i,
+  input  rv_ooo_pkg::inst_len_e                 resolve_inst_len_i,
+  input  logic                                  resolve_taken_i,
+  input  logic [XLEN-1:0]                       resolve_target_i,
+  input  logic                                  resolve_mispredict_i,
+  input  rv_ooo_pkg::prediction_meta_t          resolve_prediction_i,
+
+  input  logic [1:0]                            commit_valid_i,
+  input  logic [1:0][XLEN-1:0]                  commit_pc_i,
+  input  logic [1:0][31:0]                      commit_instruction_i,
+  input  rv_ooo_pkg::inst_len_e [1:0]           commit_inst_len_i,
+  input  logic [1:0]                            commit_taken_i
+);
+
+  import rv_ooo_pkg::*;
+
+  localparam int unsigned BTB_SETS = BTB_ENTRIES / BTB_WAYS;
+  localparam int unsigned BTB_SET_BITS = $clog2(BTB_SETS);
+  localparam int unsigned BTB_TAG_BITS = XLEN - BTB_SET_BITS - 1;
+  localparam int unsigned PHT_BITS = $clog2(PHT_ENTRIES);
+  localparam int unsigned RAS_PTR_BITS = $clog2(RAS_DEPTH);
+
+  typedef struct packed {
+    logic                    valid;
+    logic [BTB_TAG_BITS-1:0] tag;
+    logic [XLEN-1:0]         target;
+  } btb_entry_t;
+  typedef struct packed {
+    logic hit;
+    logic [XLEN-1:0] target;
+    logic [$clog2(BTB_WAYS)-1:0] way;
+  } btb_lookup_t;
+
+  btb_entry_t btb_q [0:BTB_SETS-1][0:BTB_WAYS-1];
+  logic [$clog2(BTB_WAYS)-1:0] btb_replace_q [0:BTB_SETS-1];
+  logic [1:0] pht_q [0:PHT_ENTRIES-1];
+  logic [1:0] global_pht_q [0:PHT_ENTRIES-1];
+  logic [1:0] chooser_q [0:PHT_ENTRIES-1];
+  // Two-level, shared decoded direction read. The MSBs are the same stored
+  // two-bit saturating counters; neither capacity nor training is changed.
+  // Index bits drive a small row decoder, not thousands of mux select pins.
+  localparam int unsigned PHT_ROW_BITS = (PHT_BITS < 5) ? PHT_BITS : 5;
+  localparam int unsigned PHT_ROWS = 1 << PHT_ROW_BITS;
+  localparam int unsigned PHT_BANKS = PHT_ENTRIES / PHT_ROWS;
+  logic [PHT_ENTRIES-1:0] bimodal_direction, global_direction, chooser_direction;
+  for (genvar entry=0; entry<PHT_ENTRIES; entry++) begin : g_direction_bits
+    assign bimodal_direction[entry] = pht_q[entry][1];
+    assign global_direction[entry] = global_pht_q[entry][1];
+    assign chooser_direction[entry] = chooser_q[entry][1];
+  end
+  function automatic logic lookup_direction(
+    input logic [PHT_ENTRIES-1:0] directions,
+    input logic [PHT_BITS-1:0] index
+  );
+    logic [PHT_ROWS-1:0] row_select;
+    logic [PHT_BANKS-1:0] bank_taken;
+    for (int row=0; row<PHT_ROWS; row++)
+      row_select[row] = index[PHT_ROW_BITS-1:0] == PHT_ROW_BITS'(row);
+    for (int bank=0; bank<PHT_BANKS; bank++) begin
+      bank_taken[bank] = (|(directions[bank*PHT_ROWS +: PHT_ROWS] & row_select)) &&
+        ((index >> PHT_ROW_BITS) == PHT_BITS'(bank));
+    end
+    return |bank_taken;
+  endfunction
+  logic [PHT_BITS-1:0] speculative_history_q, committed_history_q;
+  logic [XLEN-1:0] speculative_ras_q [0:RAS_DEPTH-1];
+  logic [XLEN-1:0] committed_ras_q [0:RAS_DEPTH-1];
+  logic [RAS_PTR_BITS-1:0] speculative_ras_pointer_q,
+                           committed_ras_pointer_q;
+  logic [RAS_PTR_BITS:0] speculative_ras_count_q, committed_ras_count_q;
+  // Derived resident words: [0]=pointer-1, [1]=pointer-2, [2]=pointer.
+  // These registers mirror the EXISTING speculative RAS after each edge.
+  // No prediction stage/latency or same-cycle call write-through is added.
+  logic [XLEN-1:0] ras_read_cache_q [0:2], ras_read_cache_d [0:2];
+
+  logic [1:0] query_conditional, query_direct_jump, query_indirect_jump;
+  logic [1:0] query_call, query_return;
+  logic [1:0][XLEN-1:0] query_sequential_pc, query_direct_target;
+  logic [1:0][PHT_BITS-1:0] query_pht_index;
+  logic [1:0][PHT_BITS-1:0] query_global_pht_index;
+  logic [1:0] query_bimodal_taken, query_global_taken, query_use_global;
+  logic [1:0][BTB_SET_BITS-1:0] query_btb_set;
+  logic [1:0][BTB_TAG_BITS-1:0] query_btb_tag;
+  logic [1:0] query_btb_hit;
+  logic [1:0][XLEN-1:0] query_btb_target;
+  logic [1:0][$clog2(BTB_WAYS)-1:0] query_btb_way;
+  btb_lookup_t [1:0] sequential_btb_lookup;
+
+  function automatic btb_lookup_t lookup_btb(input logic [XLEN-1:0] pc);
+    btb_lookup_t found;
+    logic [BTB_SET_BITS-1:0] set_index;
+    logic [BTB_TAG_BITS-1:0] tag;
+    logic [BTB_SETS-1:0] set_select;
+    logic [BTB_WAYS-1:0] way_hit, winning_way;
+    logic [BTB_WAYS-1:0][XLEN-1:0] way_target;
+    found='0;
+    set_index=pc[BTB_SET_BITS:1];
+    tag=pc[XLEN-1:BTB_SET_BITS+1];
+    // Compare static words in parallel with the shared set decoder. Avoid
+    // placing an address-controlled tag-array mux BEFORE the tag comparator.
+    for (int set_word=0; set_word<BTB_SETS; set_word++)
+      set_select[set_word] = set_index == BTB_SET_BITS'(set_word);
+    for (int way=0; way<BTB_WAYS; way++) begin
+      logic [BTB_SETS-1:0] entry_hits;
+      logic [XLEN-1:0] target_tree [0:2*BTB_SETS-2];
+      for (int set_word=0; set_word<BTB_SETS; set_word++)
+        entry_hits[set_word] = set_select[set_word] &&
+          btb_q[set_word][way].valid && btb_q[set_word][way].tag==tag;
+      way_hit[way] = |entry_hits;
+      for (int set_word=0; set_word<BTB_SETS; set_word++)
+        target_tree[BTB_SETS-1+set_word] = btb_q[set_word][way].target &
+          {XLEN{set_select[set_word]}};
+      for (int node=BTB_SETS-2; node>=0; node--)
+        target_tree[node] = target_tree[2*node+1] | target_tree[2*node+2];
+      way_target[way] = target_tree[0];
+    end
+    found.hit=|way_hit;
+    for (int way=0; way<BTB_WAYS; way++) begin
+      // Preserve the highest matching way even for duplicate valid tags.
+      winning_way[way] = way_hit[way] && !(|(way_hit >> (way+1)));
+      found.target |= way_target[way] & {XLEN{winning_way[way]}};
+      found.way |= $clog2(BTB_WAYS)'(way) & {$clog2(BTB_WAYS){winning_way[way]}};
+    end
+    return found;
+  endfunction
+
+  function automatic btb_lookup_t lookup_btb_sequential(
+    input logic [XLEN-1:0] pc, input logic [1:0] parcels
+  );
+    btb_lookup_t found;
+    logic [BTB_SET_BITS:0] set_sum;
+    logic [BTB_TAG_BITS-1:0] base_tag, following_tag;
+    logic [BTB_SETS-1:0] set_select;
+    logic [BTB_WAYS-1:0] way_hit, winning_way;
+    logic [BTB_WAYS-1:0][XLEN-1:0] way_target;
+    found='0;
+    set_sum={1'b0,pc[BTB_SET_BITS:1]} + (BTB_SET_BITS+1)'(parcels);
+    base_tag=pc[XLEN-1:BTB_SET_BITS+1];
+    following_tag=base_tag + BTB_TAG_BITS'(1);
+    for (int set_word=0; set_word<BTB_SETS; set_word++)
+      set_select[set_word] = set_sum[BTB_SET_BITS-1:0] == BTB_SET_BITS'(set_word);
+    for (int way=0; way<BTB_WAYS; way++) begin
+      logic [BTB_SETS-1:0] entry_hits;
+      logic [XLEN-1:0] target_tree [0:2*BTB_SETS-2];
+      for (int set_word=0; set_word<BTB_SETS; set_word++)
+        entry_hits[set_word] = set_select[set_word] && btb_q[set_word][way].valid &&
+          (set_sum[BTB_SET_BITS] ? btb_q[set_word][way].tag==following_tag :
+                                  btb_q[set_word][way].tag==base_tag);
+      way_hit[way] = |entry_hits;
+      for (int set_word=0; set_word<BTB_SETS; set_word++)
+        target_tree[BTB_SETS-1+set_word] = btb_q[set_word][way].target &
+          {XLEN{set_select[set_word]}};
+      for (int node=BTB_SETS-2; node>=0; node--)
+        target_tree[node] = target_tree[2*node+1] | target_tree[2*node+2];
+      way_target[way] = target_tree[0];
+    end
+    found.hit=|way_hit;
+    for (int way=0; way<BTB_WAYS; way++) begin
+      winning_way[way] = way_hit[way] && !(|(way_hit >> (way+1)));
+      found.target |= way_target[way] & {XLEN{winning_way[way]}};
+      found.way |= $clog2(BTB_WAYS)'(way) & {$clog2(BTB_WAYS){winning_way[way]}};
+    end
+    return found;
+  endfunction
+
+  if (SEQUENTIAL_QUERIES) begin : g_sequential_btb
+    // Decode/address/table compare run before length0; select only a completed
+    // result afterward. No state, prediction policy, training or cycle changes.
+    assign sequential_btb_lookup[0]=lookup_btb_sequential(query_pc_i[0],2'd1);
+    assign sequential_btb_lookup[1]=lookup_btb_sequential(query_pc_i[0],2'd2);
+`ifndef SYNTHESIS
+    // Existing SEQUENTIAL_QUERIES contract includes invalid payloads. The
+    // tightly coupled UNGATED_PAYLOAD queue drives sequential PCs every cycle.
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+      query_pc_i[1] == query_pc_i[0] +
+        ((query_inst_len_i[0]==INST_LEN_16) ? XLEN'(2) : XLEN'(4)));
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+      query_valid_i[1] |-> query_pc_i[1] ==
+        query_pc_i[0]+((query_inst_len_i[0]==INST_LEN_16) ? XLEN'(2) : XLEN'(4)));
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+      query_valid_i[1] |->
+        {query_btb_hit[1],query_btb_target[1],query_btb_way[1]} ==
+        lookup_btb(query_pc_i[1]));
+`endif
+  end else begin : g_general_btb
+    assign sequential_btb_lookup='0;
+  end
+
+  function automatic logic [XLEN-1:0] sign_extend_imm(
+    input logic [31:0] immediate,
+    input integer width
+  );
+    logic [XLEN-1:0] extended;
+    extended = XLEN'(immediate);
+    for (integer bit_index = width; bit_index < XLEN; bit_index++)
+      extended[bit_index] = immediate[width-1];
+    return extended;
+  endfunction
+
+  function automatic logic is_conditional_branch(
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    if (length == INST_LEN_16)
+      return (instruction[1:0] == 2'b01) &&
+             ((instruction[15:13] == 3'b110) ||
+              (instruction[15:13] == 3'b111));
+    return instruction[6:0] == 7'b1100011;
+  endfunction
+
+  function automatic logic is_direct_jump(
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    if (length == INST_LEN_16)
+      return (instruction[1:0] == 2'b01) &&
+             ((instruction[15:13] == 3'b101) ||
+              ((XLEN == 32) && (instruction[15:13] == 3'b001)));
+    return instruction[6:0] == 7'b1101111;
+  endfunction
+
+  function automatic logic is_indirect_jump(
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    if (length == INST_LEN_16)
+      return (instruction[1:0] == 2'b10) &&
+             ((instruction[15:12] == 4'b1000) ||
+              (instruction[15:12] == 4'b1001)) &&
+             (instruction[6:2] == 0) && (instruction[11:7] != 0);
+    return (instruction[6:0] == 7'b1100111) &&
+           (instruction[14:12] == 0);
+  endfunction
+
+  function automatic logic is_call_instruction(
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    logic [4:0] destination;
+    if (length == INST_LEN_16)
+      return ((XLEN == 32) && (instruction[1:0] == 2'b01) &&
+              (instruction[15:13] == 3'b001)) ||
+             ((instruction[1:0] == 2'b10) &&
+              (instruction[15:12] == 4'b1001) &&
+              (instruction[6:2] == 0) && (instruction[11:7] != 0));
+    destination = instruction[11:7];
+    return ((instruction[6:0] == 7'b1101111) ||
+            (instruction[6:0] == 7'b1100111)) &&
+           ((destination == 5'd1) || (destination == 5'd5));
+  endfunction
+
+  function automatic logic is_return_instruction(
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    logic [4:0] source;
+    if (length == INST_LEN_16)
+      return (instruction[1:0] == 2'b10) &&
+             (instruction[15:12] == 4'b1000) &&
+             (instruction[6:2] == 0) &&
+             ((instruction[11:7] == 5'd1) ||
+              (instruction[11:7] == 5'd5));
+    source = instruction[19:15];
+    return (instruction[6:0] == 7'b1100111) &&
+           (instruction[14:12] == 0) &&
+           (instruction[11:7] == 0) &&
+           ((source == 5'd1) || (source == 5'd5)) &&
+           (instruction[31:20] == 0);
+  endfunction
+
+  function automatic logic [XLEN-1:0] sequential_pc(
+    input logic [XLEN-1:0] pc,
+    input inst_len_e length
+  );
+    // The late instruction length selects completed constant increments;
+    // it must not enter the carry chain of the successor-PC addition.
+    logic [XLEN-1:0] plus2, plus4;
+    plus2 = pc + XLEN'(2);
+    plus4 = pc + XLEN'(4);
+    return (length == INST_LEN_16) ? plus2 : plus4;
+  endfunction
+
+  function automatic logic [XLEN-1:0] sequential_pair_pc(
+    input logic [XLEN-1:0] first_pc,
+    input inst_len_e first_length, second_length
+  );
+    // Do not add length1 after a late length0-selected lane1 PC. All sums
+    // begin at the resident first PC; the two lengths select completed sums.
+    // NONE/reserved enum encodings keep the original non-16 => four rule.
+    logic [XLEN-1:0] plus4, plus6, plus8;
+    plus4 = first_pc + XLEN'(4);
+    plus6 = first_pc + XLEN'(6);
+    plus8 = first_pc + XLEN'(8);
+    return (first_length == INST_LEN_16) ?
+      ((second_length == INST_LEN_16) ? plus4 : plus6) :
+      ((second_length == INST_LEN_16) ? plus6 : plus8);
+  endfunction
+
+  // Shared target add: decode immediate first, then one 4-bit carry-select
+  // prefix adder. Prediction policy/history/BTB/RAS and cycle latency are
+  // unchanged. The generic native-add helper remains the simulation oracle.
+  function automatic logic [XLEN-1:0] target_add(
+    input logic [XLEN-1:0] lhs, input logic [XLEN-1:0] rhs
+  );
+    localparam int GROUPS = XLEN/4;
+    logic [GROUPS-1:0] propagate, generate_carry, carry;
+    logic [4:0] sum0 [0:GROUPS-1], sum1 [0:GROUPS-1];
+    logic term;
+    for (int group=0; group<GROUPS; group++) begin
+      sum0[group] = {1'b0,lhs[group*4 +: 4]} + {1'b0,rhs[group*4 +: 4]};
+      sum1[group] = sum0[group] + 5'd1;
+      propagate[group] = &(lhs[group*4 +: 4] ^ rhs[group*4 +: 4]);
+      generate_carry[group] = sum0[group][4];
+    end
+    for (int group=0; group<GROUPS; group++) begin
+      carry[group] = 1'b0;
+      for (int source=0; source<group; source++) begin
+        term = generate_carry[source];
+        for (int between=source+1; between<group; between++)
+          term &= propagate[between];
+        carry[group] |= term;
+      end
+      target_add[group*4 +: 4] = carry[group] ? sum1[group][3:0] : sum0[group][3:0];
+    end
+  endfunction
+
+  function automatic logic [XLEN-1:0] calculate_direct_target(
+    input logic [XLEN-1:0] pc,
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    logic [31:0] immediate;
+    logic [XLEN-1:0] delta;
+    immediate = '0;
+    delta = '0;
+    if (length == INST_LEN_16) begin
+      if ((instruction[15:13] == 3'b110) ||
+          (instruction[15:13] == 3'b111)) begin
+        immediate[8] = instruction[12];
+        immediate[7:6] = instruction[6:5];
+        immediate[5] = instruction[2];
+        immediate[4:3] = instruction[11:10];
+        immediate[2:1] = instruction[4:3];
+        delta = sign_extend_imm(immediate, 9);
+      end else begin
+        immediate[11] = instruction[12];
+        immediate[10] = instruction[8];
+        immediate[9:8] = instruction[10:9];
+        immediate[7] = instruction[6];
+        immediate[6] = instruction[7];
+        immediate[5] = instruction[2];
+        immediate[4] = instruction[11];
+        immediate[3:1] = instruction[5:3];
+        delta = sign_extend_imm(immediate, 12);
+      end
+    end else if (instruction[6:0] == 7'b1100011) begin
+      immediate[12] = instruction[31];
+      immediate[11] = instruction[7];
+      immediate[10:5] = instruction[30:25];
+      immediate[4:1] = instruction[11:8];
+      delta = sign_extend_imm(immediate, 13);
+    end else begin
+      immediate[20] = instruction[31];
+      immediate[19:12] = instruction[19:12];
+      immediate[11] = instruction[20];
+      immediate[10:1] = instruction[30:21];
+      delta = sign_extend_imm(immediate, 21);
+    end
+    return target_add(pc, delta);
+  endfunction
+
+`ifndef SYNTHESIS
+  function automatic logic [XLEN-1:0] calculate_direct_target_legacy(
+    input logic [XLEN-1:0] pc,
+    input logic [31:0] instruction,
+    input inst_len_e length
+  );
+    logic [31:0] immediate;
+    immediate = '0;
+    if (length == INST_LEN_16) begin
+      if ((instruction[15:13] == 3'b110) ||
+          (instruction[15:13] == 3'b111)) begin
+        immediate[8] = instruction[12];
+        immediate[7:6] = instruction[6:5];
+        immediate[5] = instruction[2];
+        immediate[4:3] = instruction[11:10];
+        immediate[2:1] = instruction[4:3];
+        immediate[0] = 1'b0;
+        return pc + sign_extend_imm(immediate, 9);
+      end
+      immediate[11] = instruction[12];
+      immediate[10] = instruction[8];
+      immediate[9:8] = instruction[10:9];
+      immediate[7] = instruction[6];
+      immediate[6] = instruction[7];
+      immediate[5] = instruction[2];
+      immediate[4] = instruction[11];
+      immediate[3:1] = instruction[5:3];
+      immediate[0] = 1'b0;
+      return pc + sign_extend_imm(immediate, 12);
+    end
+    if (instruction[6:0] == 7'b1100011) begin
+      immediate[12] = instruction[31];
+      immediate[11] = instruction[7];
+      immediate[10:5] = instruction[30:25];
+      immediate[4:1] = instruction[11:8];
+      return pc + sign_extend_imm(immediate, 13);
+    end
+    immediate[20] = instruction[31];
+    immediate[19:12] = instruction[19:12];
+    immediate[11] = instruction[20];
+    immediate[10:1] = instruction[30:21];
+    return pc + sign_extend_imm(immediate, 21);
+  endfunction
+  for (genvar lane=0; lane<2; lane++) begin : g_target_add_equal
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+      query_valid_i[lane] |->
+        calculate_direct_target(query_pc_i[lane], query_instruction_i[lane], query_inst_len_i[lane]) ==
+        calculate_direct_target_legacy(query_pc_i[lane], query_instruction_i[lane], query_inst_len_i[lane]));
+  end
+`endif
+
+  function automatic logic [PHT_BITS-1:0] history_shift(
+    input logic [PHT_BITS-1:0] history,
+    input logic taken
+  );
+    return {history[PHT_BITS-2:0], taken};
+  endfunction
+
+  always_comb begin
+    logic [PHT_BITS-1:0] history_work;
+    logic [RAS_PTR_BITS-1:0] ras_pointer_work;
+    logic [RAS_PTR_BITS:0] ras_count_work;
+    logic [RAS_PTR_BITS-1:0] ras_pointer_before_return;
+    logic [XLEN-1:0] ras_target_unchanged, ras_target_after_call,
+                     ras_target_after_return;
+    // Read the three possible lane1 RAS words from resident state BEFORE
+    // lane0's late instruction classification. Select a completed word;
+    // do not put call/return -> pointer arithmetic -> array mux in series.
+    // A same-cycle call deliberately reads the OLD stored word, matching
+    // the original predictor (no new speculative write-through policy).
+    ras_pointer_before_return = speculative_ras_pointer_q - 1'b1;
+    ras_target_unchanged = ras_read_cache_q[0];
+    ras_target_after_call = ras_read_cache_q[2];
+    ras_target_after_return = ras_read_cache_q[1];
+    history_work = speculative_history_q;
+    ras_pointer_work = speculative_ras_pointer_q;
+    ras_count_work = speculative_ras_count_q;
+    prediction_taken_o = '0;
+    prediction_target_o = '0;
+    prediction_lookup_target_o = '0;
+    prediction_meta_o = '0;
+    query_btb_hit = '0;
+    query_btb_target = '0;
+    query_btb_way = '0;
+
+    for (integer lane = 0; lane < 2; lane++) begin
+      logic ras_available;
+      ras_available = (ras_count_work != 0);
+      if (lane == 1) begin
+        // Call always leaves a nonempty stack; return leaves it nonempty
+        // exactly when the resident count exceeds one. Keep the work-count
+        // itself for snapshots/state updates, but bypass its late add/sub.
+        // Decode directly from inputs: no read of a vector bit assigned
+        // later by another iteration of this same combinational loop.
+        ras_available = (query_valid_i[0] && is_call_instruction(
+          query_instruction_i[0], query_inst_len_i[0])) ? 1'b1 :
+          ((query_valid_i[0] && is_return_instruction(
+            query_instruction_i[0], query_inst_len_i[0])) ?
+            (speculative_ras_count_q > 1) : (speculative_ras_count_q != 0));
+      end
+      query_conditional[lane] = is_conditional_branch(
+        query_instruction_i[lane], query_inst_len_i[lane]);
+      query_direct_jump[lane] = is_direct_jump(
+        query_instruction_i[lane], query_inst_len_i[lane]);
+      query_indirect_jump[lane] = is_indirect_jump(
+        query_instruction_i[lane], query_inst_len_i[lane]);
+      query_call[lane] = is_call_instruction(
+        query_instruction_i[lane], query_inst_len_i[lane]);
+      query_return[lane] = is_return_instruction(
+        query_instruction_i[lane], query_inst_len_i[lane]);
+      query_sequential_pc[lane] = (SEQUENTIAL_QUERIES && lane==1) ?
+        sequential_pair_pc(query_pc_i[0],query_inst_len_i[0],query_inst_len_i[1]) :
+        sequential_pc(query_pc_i[lane],query_inst_len_i[lane]);
+      query_direct_target[lane] = calculate_direct_target(
+        query_pc_i[lane], query_instruction_i[lane], query_inst_len_i[lane]);
+      query_pht_index[lane] = query_pc_i[lane][PHT_BITS:1];
+      query_global_pht_index[lane] =
+        query_pc_i[lane][PHT_BITS:1] ^ history_work;
+      query_bimodal_taken[lane] = lookup_direction(bimodal_direction,query_pht_index[lane]);
+      query_global_taken[lane] =
+        lookup_direction(global_direction,query_global_pht_index[lane]);
+      if (lane == 1) begin
+        logic [PHT_BITS-1:0] unshifted_index, shifted_zero_index, shifted_one_index;
+        logic unshifted_taken, shifted_zero_taken, shifted_one_taken;
+        // Lane0 changes GH only for a valid conditional branch. Read all
+        // possible lane1 histories ahead of that late classification/direction
+        // decision, then select ONE BIT. Table contents, history snapshots,
+        // recovery, training and prediction latency are exactly unchanged.
+        unshifted_index = query_pc_i[lane][PHT_BITS:1] ^ speculative_history_q;
+        shifted_zero_index = query_pc_i[lane][PHT_BITS:1] ^
+                             history_shift(speculative_history_q, 1'b0);
+        shifted_one_index = query_pc_i[lane][PHT_BITS:1] ^
+                            history_shift(speculative_history_q, 1'b1);
+        unshifted_taken = lookup_direction(global_direction,unshifted_index);
+        shifted_zero_taken = lookup_direction(global_direction,shifted_zero_index);
+        shifted_one_taken = lookup_direction(global_direction,shifted_one_index);
+        query_global_taken[lane] = (query_valid_i[0] && query_conditional[0]) ?
+          (prediction_taken_o[0] ? shifted_one_taken : shifted_zero_taken) :
+          unshifted_taken;
+      end
+      query_use_global[lane] = lookup_direction(chooser_direction,query_pht_index[lane]);
+      query_btb_set[lane] = query_pc_i[lane][BTB_SET_BITS:1];
+      query_btb_tag[lane] = query_pc_i[lane][XLEN-1:BTB_SET_BITS+1];
+      begin
+        btb_lookup_t general_lookup;
+        general_lookup=lookup_btb(query_pc_i[lane]);
+        query_btb_hit[lane]=general_lookup.hit;
+        query_btb_target[lane]=general_lookup.target;
+        query_btb_way[lane]=general_lookup.way;
+      end
+      if (SEQUENTIAL_QUERIES && lane==1) begin
+        btb_lookup_t selected;
+        selected=sequential_btb_lookup[query_inst_len_i[0]!=INST_LEN_16];
+        query_btb_hit[lane]=selected.hit;
+        query_btb_target[lane]=selected.target;
+        query_btb_way[lane]=selected.way;
+      end
+
+      prediction_meta_o[lane].valid = query_valid_i[lane] &&
+        (query_conditional[lane] || query_direct_jump[lane] ||
+         query_indirect_jump[lane]);
+      prediction_meta_o[lane].global_history = 11'(history_work);
+      prediction_meta_o[lane].bimodal_taken = query_bimodal_taken[lane];
+      prediction_meta_o[lane].global_taken = query_global_taken[lane];
+      prediction_meta_o[lane].use_global = query_use_global[lane];
+      prediction_meta_o[lane].btb_index =
+        8'({query_btb_set[lane], query_btb_way[lane]});
+      prediction_meta_o[lane].ras_pointer = 4'(ras_pointer_work);
+      prediction_meta_o[lane].ras_count = 5'(ras_count_work);
+      prediction_meta_o[lane].is_call = query_call[lane];
+      prediction_meta_o[lane].is_return = query_return[lane];
+
+      prediction_target_o[lane] = query_sequential_pc[lane];
+      // Direction has no target-data dependency. Preserve classification
+      // priority explicitly while avoiding nested default/override muxes
+      // after the late BTB hit on the fetch-consumption feedback path.
+      prediction_taken_o[lane] = query_valid_i[lane] &&
+        ((query_conditional[lane] && (query_use_global[lane] ?
+            query_global_taken[lane] : query_bimodal_taken[lane])) ||
+         (!query_conditional[lane] && query_direct_jump[lane]) ||
+         (!query_conditional[lane] && !query_direct_jump[lane] &&
+          query_indirect_jump[lane] &&
+          ((query_return[lane] && ras_available) || query_btb_hit[lane])));
+      if (query_valid_i[lane] && query_conditional[lane]) begin
+        if (prediction_taken_o[lane])
+          prediction_target_o[lane] = query_direct_target[lane];
+      end else if (query_valid_i[lane] && query_direct_jump[lane]) begin
+        prediction_target_o[lane] = query_direct_target[lane];
+      end else if (query_valid_i[lane] && query_indirect_jump[lane]) begin
+        if (query_return[lane] && ras_available) begin
+          if (((2**RAS_PTR_BITS) == RAS_DEPTH) && (lane == 1)) begin
+            // Same call-first priority/count guard as the original work
+            // pointer. Non-power-of-two depths retain the old read below.
+            prediction_target_o[lane] =
+              (query_valid_i[0] && query_call[0]) ? ras_target_after_call :
+              ((query_valid_i[0] && query_return[0] &&
+                (speculative_ras_count_q != 0)) ? ras_target_after_return :
+                ras_target_unchanged);
+          end else begin
+            prediction_target_o[lane] =
+              (((RAS_DEPTH & (RAS_DEPTH-1)) == 0) && (lane == 0)) ?
+                ras_read_cache_q[0] : speculative_ras_q[
+              (ras_pointer_work == 0) ? RAS_DEPTH-1 : ras_pointer_work-1'b1];
+          end
+        end else if (query_btb_hit[lane]) begin
+          prediction_target_o[lane] = query_btb_target[lane];
+        end
+      end
+      prediction_meta_o[lane].taken = prediction_taken_o[lane];
+      prediction_meta_o[lane].target = 64'(prediction_target_o[lane]);
+      // Direct branch/JAL targets do not depend on the direction tables.
+      // Export them independently so FTB address formation can run in
+      // parallel with the bimodal/gshare direction decision.  Indirects
+      // retain their RAS/BTB predicted target.
+      prediction_lookup_target_o[lane] =
+        (query_conditional[lane] || query_direct_jump[lane]) ?
+        query_direct_target[lane] : prediction_target_o[lane];
+
+      // Build the second lane's prediction from the first lane's predicted
+      // path, independent of downstream ready. Architectural speculative
+      // state is still updated only by prediction_fire_i in always_ff below.
+      // Keeping the query cone ready-independent avoids a frontend
+      // valid->ready->prediction combinational loop.
+      if (query_valid_i[lane]) begin
+        if (query_conditional[lane])
+          history_work = history_shift(history_work, prediction_taken_o[lane]);
+        if (query_call[lane]) begin
+          ras_pointer_work = ras_pointer_work + 1'b1;
+          if (ras_count_work < RAS_DEPTH) ras_count_work = ras_count_work + 1'b1;
+        end else if (query_return[lane] && (ras_count_work != 0)) begin
+          ras_pointer_work = ras_pointer_work - 1'b1;
+          ras_count_work = ras_count_work - 1'b1;
+        end
+      end
+    end
+  end
+
+  // Resolve trains the same entry on the same edge as before. Decode the
+  // selected set/way into static word enables; do not build temporary packed
+  // array versions for a dynamic partial write of valid/tag/target.
+  logic [BTB_SET_BITS-1:0] training_set;
+  logic [BTB_TAG_BITS-1:0] training_tag;
+  logic [$clog2(BTB_WAYS)-1:0] training_way;
+  assign training_set = resolve_pc_i[BTB_SET_BITS:1];
+  assign training_tag = resolve_pc_i[XLEN-1:BTB_SET_BITS+1];
+  always_comb begin
+    training_way = btb_replace_q[training_set];
+    // Preserve the original highest-matching-way priority, including
+    // duplicated tags. A miss uses the stored round-robin replacement way.
+    for (int way = 0; way < BTB_WAYS; way++)
+      if (btb_q[training_set][way].valid &&
+          (btb_q[training_set][way].tag == training_tag))
+        training_way = $clog2(BTB_WAYS)'(way);
+  end
+  for (genvar set_index = 0; set_index < BTB_SETS; set_index++) begin : g_btb_training_set
+    wire set_write = resolve_valid_i && resolve_taken_i &&
+                     (training_set == BTB_SET_BITS'(set_index));
+    always_ff @(posedge clk_i) begin
+      if (!rst_ni)
+        btb_replace_q[set_index] <= '0;
+      else if (set_write)
+        btb_replace_q[set_index] <= training_way + 1'b1;
+    end
+    for (genvar way = 0; way < BTB_WAYS; way++) begin : g_way
+      always_ff @(posedge clk_i) begin
+        if (!rst_ni)
+          btb_q[set_index][way] <= '0;
+        else if (set_write && (training_way == $clog2(BTB_WAYS)'(way))) begin
+          btb_q[set_index][way].valid <= 1'b1;
+          btb_q[set_index][way].tag <= training_tag;
+          btb_q[set_index][way].target <= resolve_target_i;
+        end
+      end
+    end
+  end
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      speculative_history_q <= '0;
+      committed_history_q <= '0;
+      speculative_ras_pointer_q <= '0;
+      committed_ras_pointer_q <= '0;
+      speculative_ras_count_q <= '0;
+      committed_ras_count_q <= '0;
+      for (integer index = 0; index < PHT_ENTRIES; index++) begin
+        pht_q[index] <= 2'b01;
+        global_pht_q[index] <= 2'b01;
+        // Weakly prefer bimodal until the global predictor proves better for
+        // this branch PC.  This retains the strong CoreMark baseline while
+        // allowing correlated branches to opt into gshare independently.
+        chooser_q[index] <= 2'b01;
+      end
+      for (integer index = 0; index < RAS_DEPTH; index++) begin
+        speculative_ras_q[index] <= '0;
+        committed_ras_q[index] <= '0;
+      end
+    end else begin
+      // Resolution trains direction and target state.  A mispredict restores
+      // speculative history/RAS to the snapshot carried by that instruction.
+      if (resolve_valid_i) begin
+        logic [PHT_BITS-1:0] resolve_pht_index;
+        logic [PHT_BITS-1:0] resolve_global_pht_index;
+        resolve_pht_index = resolve_pc_i[PHT_BITS:1];
+        resolve_global_pht_index = resolve_pc_i[PHT_BITS:1] ^
+          PHT_BITS'(resolve_prediction_i.global_history);
+        if (is_conditional_branch(resolve_instruction_i,
+                                  resolve_inst_len_i)) begin
+          if (resolve_taken_i && (pht_q[resolve_pht_index] != 2'b11))
+            pht_q[resolve_pht_index] <= pht_q[resolve_pht_index] + 1'b1;
+          else if (!resolve_taken_i && (pht_q[resolve_pht_index] != 2'b00))
+            pht_q[resolve_pht_index] <= pht_q[resolve_pht_index] - 1'b1;
+          if (resolve_taken_i &&
+              (global_pht_q[resolve_global_pht_index] != 2'b11))
+            global_pht_q[resolve_global_pht_index] <=
+              global_pht_q[resolve_global_pht_index] + 1'b1;
+          else if (!resolve_taken_i &&
+                   (global_pht_q[resolve_global_pht_index] != 2'b00))
+            global_pht_q[resolve_global_pht_index] <=
+              global_pht_q[resolve_global_pht_index] - 1'b1;
+          if (resolve_prediction_i.bimodal_taken !=
+              resolve_prediction_i.global_taken) begin
+            if ((resolve_prediction_i.global_taken == resolve_taken_i) &&
+                (chooser_q[resolve_pht_index] != 2'b11))
+              chooser_q[resolve_pht_index] <=
+                chooser_q[resolve_pht_index] + 1'b1;
+            else if ((resolve_prediction_i.bimodal_taken == resolve_taken_i) &&
+                     (chooser_q[resolve_pht_index] != 2'b00))
+              chooser_q[resolve_pht_index] <=
+                chooser_q[resolve_pht_index] - 1'b1;
+          end
+        end
+        if (resolve_mispredict_i) begin
+          speculative_history_q <=
+            PHT_BITS'(resolve_prediction_i.global_history);
+          if (is_conditional_branch(resolve_instruction_i,
+                                    resolve_inst_len_i))
+            speculative_history_q <= history_shift(
+              PHT_BITS'(resolve_prediction_i.global_history), resolve_taken_i);
+          speculative_ras_pointer_q <=
+            RAS_PTR_BITS'(resolve_prediction_i.ras_pointer);
+          speculative_ras_count_q <=
+            (RAS_PTR_BITS+1)'(resolve_prediction_i.ras_count);
+          if (is_call_instruction(resolve_instruction_i,
+                                  resolve_inst_len_i)) begin
+            speculative_ras_q[RAS_PTR_BITS'(
+              resolve_prediction_i.ras_pointer)] <=
+              sequential_pc(resolve_pc_i, resolve_inst_len_i);
+            speculative_ras_pointer_q <= RAS_PTR_BITS'(
+              resolve_prediction_i.ras_pointer) + 1'b1;
+            if (resolve_prediction_i.ras_count < RAS_DEPTH)
+              speculative_ras_count_q <= (RAS_PTR_BITS+1)'(
+                resolve_prediction_i.ras_count) + 1'b1;
+          end else if (is_return_instruction(resolve_instruction_i,
+                                             resolve_inst_len_i) &&
+                       (resolve_prediction_i.ras_count != 0)) begin
+            speculative_ras_pointer_q <= RAS_PTR_BITS'(
+              resolve_prediction_i.ras_pointer) - 1'b1;
+            speculative_ras_count_q <= (RAS_PTR_BITS+1)'(
+              resolve_prediction_i.ras_count) - 1'b1;
+          end
+        end
+      end else if (redirect_valid_i) begin
+        speculative_history_q <= committed_history_q;
+        speculative_ras_pointer_q <= committed_ras_pointer_q;
+        speculative_ras_count_q <= committed_ras_count_q;
+        for (integer index = 0; index < RAS_DEPTH; index++)
+          speculative_ras_q[index] <= committed_ras_q[index];
+      end else begin
+        logic [PHT_BITS-1:0] history_work;
+        logic [RAS_PTR_BITS-1:0] pointer_work;
+        logic [RAS_PTR_BITS:0] count_work;
+        history_work = speculative_history_q;
+        pointer_work = speculative_ras_pointer_q;
+        count_work = speculative_ras_count_q;
+        for (integer lane = 0; lane < 2; lane++) begin
+          if (prediction_fire_i[lane] && query_conditional[lane])
+            history_work = history_shift(history_work,
+                                         prediction_taken_o[lane]);
+          if (prediction_fire_i[lane] && query_call[lane]) begin
+            speculative_ras_q[pointer_work] <= query_sequential_pc[lane];
+            pointer_work = pointer_work + 1'b1;
+            if (count_work < RAS_DEPTH) count_work = count_work + 1'b1;
+          end else if (prediction_fire_i[lane] && query_return[lane] &&
+                       (count_work != 0)) begin
+            pointer_work = pointer_work - 1'b1;
+            count_work = count_work - 1'b1;
+          end
+        end
+        speculative_history_q <= history_work;
+        speculative_ras_pointer_q <= pointer_work;
+        speculative_ras_count_q <= count_work;
+      end
+
+      // Commit state is the precise fallback used by traps and interrupts.
+      begin
+        logic [PHT_BITS-1:0] committed_history_work;
+        logic [RAS_PTR_BITS-1:0] committed_pointer_work;
+        logic [RAS_PTR_BITS:0] committed_count_work;
+        committed_history_work = committed_history_q;
+        committed_pointer_work = committed_ras_pointer_q;
+        committed_count_work = committed_ras_count_q;
+        for (integer lane = 0; lane < 2; lane++) begin
+          if (commit_valid_i[lane] && is_conditional_branch(
+              commit_instruction_i[lane], commit_inst_len_i[lane]))
+            committed_history_work = history_shift(committed_history_work,
+                                                   commit_taken_i[lane]);
+          if (commit_valid_i[lane] && is_call_instruction(
+              commit_instruction_i[lane], commit_inst_len_i[lane])) begin
+            committed_ras_q[committed_pointer_work] <=
+              sequential_pc(commit_pc_i[lane], commit_inst_len_i[lane]);
+            committed_pointer_work = committed_pointer_work + 1'b1;
+            if (committed_count_work < RAS_DEPTH)
+              committed_count_work = committed_count_work + 1'b1;
+          end else if (commit_valid_i[lane] && is_return_instruction(
+              commit_instruction_i[lane], commit_inst_len_i[lane]) &&
+              (committed_count_work != 0)) begin
+            committed_pointer_work = committed_pointer_work - 1'b1;
+            committed_count_work = committed_count_work - 1'b1;
+          end
+        end
+        committed_history_q <= committed_history_work;
+        committed_ras_pointer_q <= committed_pointer_work;
+        committed_ras_count_q <= committed_count_work;
+      end
+    end
+  end
+
+  // Compute the post-edge RAS view independently of the old RAS FF process.
+  // Resolution has priority over redirect, which has priority over prediction.
+  // Redirect copies OLD committed state, including when commit also occurs.
+  // The two write descriptors model original NBA last-writer-wins semantics.
+  always_comb begin : p_ras_read_cache_next
+    logic [RAS_PTR_BITS-1:0] next_pointer;
+    logic [RAS_PTR_BITS:0] next_count;
+    logic use_committed;
+    logic [1:0] write_valid;
+    logic [1:0][RAS_PTR_BITS-1:0] write_address;
+    logic [1:0][XLEN-1:0] write_data;
+    next_pointer = speculative_ras_pointer_q;
+    next_count = speculative_ras_count_q;
+    use_committed = 1'b0;
+    write_valid = '0;
+    write_address = '0;
+    write_data = '0;
+    if (resolve_valid_i) begin
+      if (resolve_mispredict_i) begin
+        next_pointer = RAS_PTR_BITS'(resolve_prediction_i.ras_pointer);
+        if (is_call_instruction(resolve_instruction_i, resolve_inst_len_i)) begin
+          write_valid[0] = 1'b1;
+          write_address[0] = next_pointer;
+          write_data[0] = sequential_pc(resolve_pc_i, resolve_inst_len_i);
+          next_pointer = next_pointer + 1'b1;
+        end else if (is_return_instruction(resolve_instruction_i, resolve_inst_len_i) &&
+                     (resolve_prediction_i.ras_count != 0)) begin
+          next_pointer = next_pointer - 1'b1;
+        end
+      end
+    end else if (redirect_valid_i) begin
+      use_committed = 1'b1;
+      next_pointer = committed_ras_pointer_q;
+    end else begin
+      for (int lane = 0; lane < 2; lane++) begin
+        if (prediction_fire_i[lane] && query_call[lane]) begin
+          write_valid[lane] = 1'b1;
+          write_address[lane] = next_pointer;
+          write_data[lane] = query_sequential_pc[lane];
+          next_pointer = next_pointer + 1'b1;
+          if (next_count < RAS_DEPTH) next_count = next_count + 1'b1;
+        end else if (prediction_fire_i[lane] && query_return[lane] &&
+                     (next_count != 0)) begin
+          next_pointer = next_pointer - 1'b1;
+          next_count = next_count - 1'b1;
+        end
+      end
+    end
+    for (int word = 0; word < 3; word++) begin
+      logic [RAS_PTR_BITS-1:0] read_address;
+      read_address = next_pointer - RAS_PTR_BITS'((word == 0) ? 1 :
+                                                 (word == 1) ? 2 : 0);
+      ras_read_cache_d[word] = use_committed ? committed_ras_q[read_address] :
+                                              speculative_ras_q[read_address];
+      for (int writer = 0; writer < 2; writer++) begin
+        if (write_valid[writer] && (write_address[writer] == read_address))
+          ras_read_cache_d[word] = write_data[writer];
+      end
+    end
+  end
+
+  always_ff @(posedge clk_i) begin : p_ras_read_cache
+    for (int word = 0; word < 3; word++) begin
+      if (!rst_ni) ras_read_cache_q[word] <= '0;
+      else ras_read_cache_q[word] <= ras_read_cache_d[word];
+    end
+  end
+
+`ifndef SYNTHESIS
+  for (genvar word = 0; word < 3; word++) begin : g_ras_read_cache_equal
+    wire [RAS_PTR_BITS-1:0] resident_address = speculative_ras_pointer_q -
+      RAS_PTR_BITS'((word == 0) ? 1 : (word == 1) ? 2 : 0);
+    assert property (@(posedge clk_i) disable iff (!rst_ni)
+      ras_read_cache_q[word] == speculative_ras_q[resident_address]);
+  end
+  // Sample cross-block handshakes at the clock boundary.  A separate
+  // immediate-assertion always_comb can otherwise compare a newly changed
+  // prediction_fire_i against the previous delta's prediction_taken_o in a
+  // four-state event simulator and report a false failure.
+  property p_lane1_never_fires_after_lane0_taken;
+    @(posedge clk_i) disable iff (!rst_ni)
+      prediction_taken_o[0] |-> !prediction_fire_i[1];
+  endproperty
+  assert property (p_lane1_never_fires_after_lane0_taken);
+
+  property p_speculative_ras_count_in_range;
+    @(posedge clk_i) disable iff (!rst_ni)
+      speculative_ras_count_q <= RAS_DEPTH;
+  endproperty
+  assert property (p_speculative_ras_count_in_range);
+
+  property p_committed_ras_count_in_range;
+    @(posedge clk_i) disable iff (!rst_ni)
+      committed_ras_count_q <= RAS_DEPTH;
+  endproperty
+  assert property (p_committed_ras_count_in_range);
+`endif
+
+  initial begin
+    if ((XLEN != 32) && (XLEN != 64))
+      $fatal(1, "Predictor XLEN must be 32 or 64");
+    if ((BTB_ENTRIES < BTB_WAYS) || ((BTB_ENTRIES % BTB_WAYS) != 0) ||
+        ((BTB_SETS & (BTB_SETS-1)) != 0))
+      $fatal(1, "BTB geometry must be power-of-two sets");
+    if ((PHT_ENTRIES < 2) || ((PHT_ENTRIES & (PHT_ENTRIES-1)) != 0))
+      $fatal(1, "PHT_ENTRIES must be a power of two");
+    if ((RAS_DEPTH != 16) || ((RAS_DEPTH & (RAS_DEPTH-1)) != 0))
+      $fatal(1, "Baseline prediction metadata requires a 16-entry RAS");
+  end
+endmodule

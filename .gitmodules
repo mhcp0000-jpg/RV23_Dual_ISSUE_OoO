@@ -1,0 +1,15 @@
+[submodule "opensbi"]
+	path = third_party/opensbi
+	url = https://github.com/riscv-software-src/opensbi.git
+[submodule "riscv-arch-test"]
+	path = third_party/riscv-arch-test
+	url = https://github.com/riscv/riscv-arch-test.git
+[submodule "riscv-tests"]
+	path = third_party/riscv-tests
+	url = https://github.com/riscv-software-src/riscv-tests.git
+[submodule "sail-riscv"]
+	path = third_party/sail-riscv
+	url = https://github.com/riscv/sail-riscv.git
+[submodule "sail-riscv-act4"]
+	path = third_party/sail-riscv-act4
+	url = https://github.com/riscv/sail-riscv.git

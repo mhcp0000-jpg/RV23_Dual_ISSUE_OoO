@@ -1,0 +1,353 @@
+module rv_store_buffer #(
+  parameter int unsigned PADDR_WIDTH = 32,
+  parameter int unsigned DATA_WIDTH  = 64,
+  parameter int unsigned ENTRIES     = 16,
+  parameter int unsigned SEQ_WIDTH   = rv_ooo_pkg::ROB_SEQ_WIDTH,
+  localparam int unsigned DATA_BYTES = DATA_WIDTH / 8,
+  localparam int unsigned INDEX_WIDTH = $clog2(ENTRIES),
+  localparam int unsigned COUNT_WIDTH = $clog2(ENTRIES + 1),
+  localparam int unsigned BANK_BIT = $clog2(DATA_BYTES)
+) (
+  input  logic                                  clk_i,
+  input  logic                                  rst_ni,
+
+  input  logic [1:0]                            enq_valid_i,
+  output logic [1:0]                            enq_ready_o,
+  input  logic [1:0][SEQ_WIDTH-1:0]             enq_sequence_i,
+  input  logic [1:0][PADDR_WIDTH-1:0]           enq_address_i,
+  input  logic [1:0][DATA_WIDTH-1:0]            enq_data_i,
+  input  logic [1:0][DATA_BYTES-1:0]            enq_mask_i,
+  input  logic [1:0][2:0]                       enq_size_i,
+  input  logic [1:0]                            enq_device_i,
+
+  output logic [1:0]                            drain_valid_o,
+  input  logic [1:0]                            drain_ready_i,
+  output logic [1:0][INDEX_WIDTH-1:0]           drain_index_o,
+  output logic [1:0][SEQ_WIDTH-1:0]             drain_sequence_o,
+  output logic [1:0][PADDR_WIDTH-1:0]           drain_address_o,
+  output logic [1:0][DATA_WIDTH-1:0]            drain_data_o,
+  output logic [1:0][DATA_BYTES-1:0]            drain_mask_o,
+  output logic [1:0][2:0]                       drain_size_o,
+  output logic [1:0]                            drain_device_o,
+
+  input  logic [1:0]                            drain_rsp_valid_i,
+  output logic [1:0]                            drain_rsp_ready_o,
+  input  logic [1:0][INDEX_WIDTH-1:0]           drain_rsp_index_i,
+  input  logic [1:0][1:0]                       drain_rsp_resp_i,
+
+  input  logic [1:0]                            query_valid_i,
+  input  logic [1:0][PADDR_WIDTH-1:0]           query_address_i,
+  input  logic [1:0][DATA_BYTES-1:0]            query_mask_i,
+  output logic [1:0]                            query_full_cover_o,
+  output logic [1:0]                            query_partial_o,
+  output logic [1:0][DATA_WIDTH-1:0]            query_data_o,
+  output logic [1:0][INDEX_WIDTH-1:0]           query_index_o,
+
+  output logic                                  empty_o,
+  output logic                                  full_o,
+  output logic [COUNT_WIDTH-1:0]                count_o,
+  output logic [SEQ_WIDTH-1:0]                  head_sequence_o,
+  output logic                                  device_pending_o,
+  output logic                                  machine_check_o
+);
+
+  logic [ENTRIES-1:0] valid_q;
+  logic [ENTRIES-1:0] sent_q;
+  logic [ENTRIES-1:0] done_q;
+  logic [ENTRIES-1:0] device_q;
+  logic [SEQ_WIDTH-1:0] sequence_q [0:ENTRIES-1];
+  logic [PADDR_WIDTH-1:0] address_q [0:ENTRIES-1];
+  logic [DATA_WIDTH-1:0] data_q [0:ENTRIES-1];
+  logic [DATA_BYTES-1:0] mask_q [0:ENTRIES-1];
+  logic [2:0] size_q [0:ENTRIES-1];
+
+  logic [INDEX_WIDTH-1:0] head_q;
+  logic [INDEX_WIDTH-1:0] tail_q;
+  logic [COUNT_WIDTH-1:0] count_q;
+  logic machine_check_q;
+
+  logic [INDEX_WIDTH-1:0] head_next;
+  logic [1:0] pop_count;
+  logic [1:0] accepted_count;
+  logic [COUNT_WIDTH:0] available_slots;
+  logic pair_same_beat;
+  logic pair_overlaps;
+  logic pair_different_bank;
+  logic pair_can_drain;
+  localparam logic [COUNT_WIDTH:0] BUFFER_CAPACITY = ENTRIES;
+
+  function automatic logic [INDEX_WIDTH-1:0] increment_index(
+    input logic [INDEX_WIDTH-1:0] index,
+    input logic [1:0] amount
+  );
+    logic [INDEX_WIDTH:0] sum;
+    sum = {1'b0, index} + {{(INDEX_WIDTH-1){1'b0}}, amount};
+    if (sum >= ENTRIES)
+      sum = sum - ENTRIES;
+    return sum[INDEX_WIDTH-1:0];
+  endfunction
+
+  always_comb begin
+    head_next = increment_index(head_q, 1);
+    pop_count = '0;
+    if ((count_q != 0) && valid_q[head_q] && done_q[head_q]) begin
+      pop_count = 1;
+      if ((count_q > 1) && valid_q[head_next] && done_q[head_next])
+        pop_count = 2;
+    end
+
+    available_slots = BUFFER_CAPACITY - {1'b0, count_q} +
+                      {{(COUNT_WIDTH-1){1'b0}}, pop_count};
+    enq_ready_o[0] = (available_slots >= 1);
+    enq_ready_o[1] = (available_slots >= 2);
+    accepted_count =
+      {1'b0, enq_valid_i[0] && enq_ready_o[0]} +
+      {1'b0, enq_valid_i[1] && enq_ready_o[1]};
+  end
+
+  always_comb begin
+    pair_same_beat =
+      address_q[head_q][PADDR_WIDTH-1:BANK_BIT] ==
+      address_q[head_next][PADDR_WIDTH-1:BANK_BIT];
+    pair_overlaps = pair_same_beat &&
+                    ((mask_q[head_q] & mask_q[head_next]) != '0);
+    pair_different_bank =
+      address_q[head_q][BANK_BIT] != address_q[head_next][BANK_BIT];
+    pair_can_drain = !device_q[head_q] && !device_q[head_next] &&
+                     !pair_overlaps && pair_different_bank;
+
+    drain_valid_o = '0;
+    drain_index_o = '0;
+    drain_sequence_o = '0;
+    drain_address_o = '0;
+    drain_data_o = '0;
+    drain_mask_o = '0;
+    drain_size_o = '0;
+    drain_device_o = '0;
+
+    if (count_q != 0) begin
+      if (!sent_q[head_q] && !done_q[head_q]) begin
+        drain_valid_o[0] = 1'b1;
+        drain_index_o[0] = head_q;
+        if ((count_q > 1) && !sent_q[head_next] && !done_q[head_next] &&
+            pair_can_drain) begin
+          drain_valid_o[1] = 1'b1;
+          drain_index_o[1] = head_next;
+        end
+      end else if ((count_q > 1) && !sent_q[head_next] &&
+                   !done_q[head_next] &&
+                   (done_q[head_q] || pair_can_drain)) begin
+        drain_valid_o[0] = 1'b1;
+        drain_index_o[0] = head_next;
+      end
+    end
+
+    for (int unsigned lane = 0; lane < 2; lane++) begin
+      if (drain_valid_o[lane]) begin
+        drain_sequence_o[lane] = sequence_q[drain_index_o[lane]];
+        drain_address_o[lane] = address_q[drain_index_o[lane]];
+        drain_data_o[lane] = data_q[drain_index_o[lane]];
+        drain_mask_o[lane] = mask_q[drain_index_o[lane]];
+        drain_size_o[lane] = size_q[drain_index_o[lane]];
+        drain_device_o[lane] = device_q[drain_index_o[lane]];
+      end
+    end
+  end
+
+  localparam int unsigned QTREE_LEVELS = $clog2(ENTRIES);
+  localparam int unsigned QTREE_LEAVES = 1 << QTREE_LEVELS;
+  // Resolve FIFO age with narrow parallel one-hot predicates. Do not carry
+  // mask/data/index through dependent winner-mux levels just to decide if a
+  // load must stall. Entries below head are younger than entries above head;
+  // in either zone, the highest physical index is youngest. ROB sequence
+  // arithmetic is intentionally not used: committed stores may outlive wrap.
+  localparam int unsigned QUERY_PAYLOAD_WIDTH = DATA_WIDTH + INDEX_WIDTH;
+  for (genvar lane = 0; lane < 2; lane++) begin : g_query
+    logic [ENTRIES-1:0] hit, below_hit, above_hit, winner, cover_hit;
+    logic any_below, any_hit, full_cover;
+    logic [QUERY_PAYLOAD_WIDTH-1:0] payload_tree [1:2*QTREE_LEAVES-1];
+    assign any_below = |below_hit;
+    assign any_hit = |hit;
+    assign full_cover = |cover_hit;
+    for (genvar leaf = 0; leaf < QTREE_LEAVES; leaf++) begin : g_leaf
+      if (leaf < ENTRIES) begin : g_real
+        localparam logic [ENTRIES-1:0] HIGHER = {ENTRIES{1'b1}} << (leaf+1);
+        logic choose_payload;
+        assign hit[leaf] = valid_q[leaf] &&
+          address_q[leaf][PADDR_WIDTH-1:BANK_BIT] == query_address_i[lane][PADDR_WIDTH-1:BANK_BIT] &&
+          ((mask_q[leaf] & query_mask_i[lane]) != '0);
+        assign below_hit[leaf] = hit[leaf] && (INDEX_WIDTH'(leaf) < head_q);
+        assign above_hit[leaf] = hit[leaf] && !(INDEX_WIDTH'(leaf) < head_q);
+        assign winner[leaf] =
+          (below_hit[leaf] && !(|(below_hit & HIGHER))) ||
+          (!any_below && above_hit[leaf] && !(|(above_hit & HIGHER)));
+        assign cover_hit[leaf] = winner[leaf] &&
+          ((mask_q[leaf] & query_mask_i[lane]) == query_mask_i[lane]);
+        // Preserve the old padded-tree's invalid-query payload as well as
+        // all architecturally meaningful outputs. No new storage or stage.
+        assign choose_payload = (query_valid_i[lane] && winner[leaf]) ||
+          ((!query_valid_i[lane] || !any_hit) && (leaf == QTREE_LEAVES-1));
+        assign payload_tree[QTREE_LEAVES+leaf] =
+          {data_q[leaf], INDEX_WIDTH'(leaf)} & {QUERY_PAYLOAD_WIDTH{choose_payload}};
+      end else begin : g_padding
+        assign payload_tree[QTREE_LEAVES+leaf] = '0;
+      end
+    end
+    for (genvar node = 1; node < QTREE_LEAVES; node++) begin : g_reduce
+      assign payload_tree[node] = payload_tree[2*node] | payload_tree[2*node+1];
+    end
+    assign query_full_cover_o[lane] = query_valid_i[lane] && full_cover;
+    assign query_partial_o[lane] = query_valid_i[lane] && any_hit && !full_cover;
+    assign {query_data_o[lane], query_index_o[lane]} = payload_tree[1];
+  end
+
+  assign drain_rsp_ready_o = 2'b11;
+  assign empty_o = (count_q == 0);
+  assign full_o = (count_q == ENTRIES);
+  assign count_o = count_q;
+  assign head_sequence_o = (count_q != 0) ? sequence_q[head_q] : '0;
+  assign device_pending_o = |(valid_q & device_q);
+  assign machine_check_o = machine_check_q;
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      valid_q <= '0;
+      sent_q <= '0;
+      done_q <= '0;
+      device_q <= '0;
+      head_q <= '0;
+      tail_q <= '0;
+      count_q <= '0;
+      machine_check_q <= 1'b0;
+      for (int unsigned entry = 0; entry < ENTRIES; entry++) begin
+        sequence_q[entry] <= '0;
+        address_q[entry] <= '0;
+        data_q[entry] <= '0;
+        mask_q[entry] <= '0;
+        size_q[entry] <= '0;
+      end
+    end else begin
+      for (int unsigned lane = 0; lane < 2; lane++) begin
+        if (drain_rsp_valid_i[lane] && drain_rsp_ready_o[lane] &&
+            valid_q[drain_rsp_index_i[lane]] &&
+            sent_q[drain_rsp_index_i[lane]]) begin
+          done_q[drain_rsp_index_i[lane]] <= 1'b1;
+          if (drain_rsp_resp_i[lane] != 2'b00)
+            machine_check_q <= 1'b1;
+        end
+        if (drain_valid_o[lane] && drain_ready_i[lane])
+          sent_q[drain_index_o[lane]] <= 1'b1;
+      end
+
+      if (pop_count != 0) begin
+        valid_q[head_q] <= 1'b0;
+        sent_q[head_q] <= 1'b0;
+        done_q[head_q] <= 1'b0;
+        if (pop_count == 2) begin
+          valid_q[head_next] <= 1'b0;
+          sent_q[head_next] <= 1'b0;
+          done_q[head_next] <= 1'b0;
+        end
+        head_q <= increment_index(head_q, pop_count);
+      end
+
+      for (int unsigned lane = 0; lane < 2; lane++) begin
+        if (enq_valid_i[lane] && enq_ready_o[lane]) begin
+          logic [INDEX_WIDTH-1:0] write_index;
+          write_index = increment_index(tail_q, 2'(lane));
+          valid_q[write_index] <= 1'b1;
+          sent_q[write_index] <= 1'b0;
+          done_q[write_index] <= 1'b0;
+          sequence_q[write_index] <= enq_sequence_i[lane];
+          address_q[write_index] <= enq_address_i[lane];
+          data_q[write_index] <= enq_data_i[lane];
+          mask_q[write_index] <= enq_mask_i[lane];
+          size_q[write_index] <= enq_size_i[lane];
+          device_q[write_index] <= enq_device_i[lane];
+        end
+      end
+      if (accepted_count != 0)
+        tail_q <= increment_index(tail_q, accepted_count);
+
+      count_q <= count_q + COUNT_WIDTH'(accepted_count) -
+                 COUNT_WIDTH'(pop_count);
+    end
+  end
+
+`ifndef SYNTHESIS
+  // Independent simulation oracle: scan the ring in FIFO age order rather
+  // than reusing the balanced selector's wrap-zone rule. No timestamp-range
+  // assumption is valid here: these stores have already retired from ROB.
+  always_ff @(posedge clk_i) begin : p_fifo_forwarding_invariants
+    if (rst_ni) begin
+      assert (count_q <= ENTRIES);
+      for (int unsigned age=0; age<ENTRIES; age++) begin
+        logic [INDEX_WIDTH-1:0] index;
+        index=head_q + INDEX_WIDTH'(age);
+        assert (valid_q[index] == (age < count_q));
+      end
+      for (int unsigned lane=0; lane<2; lane++) begin
+        logic hit;
+        logic [DATA_BYTES-1:0] overlap;
+        logic [DATA_WIDTH-1:0] value;
+        logic [INDEX_WIDTH-1:0] chosen;
+        hit=1'b0; overlap='0; value='0; chosen='0;
+        for (int unsigned age=0; age<ENTRIES; age++) begin
+          logic [INDEX_WIDTH-1:0] index;
+          index=head_q + INDEX_WIDTH'(age);
+          if (query_valid_i[lane] && valid_q[index] &&
+              address_q[index][PADDR_WIDTH-1:BANK_BIT] ==
+              query_address_i[lane][PADDR_WIDTH-1:BANK_BIT] &&
+              ((mask_q[index] & query_mask_i[lane]) != '0)) begin
+            hit=1'b1; overlap=mask_q[index] & query_mask_i[lane];
+            value=data_q[index]; chosen=index;
+          end
+        end
+        assert (query_full_cover_o[lane] ==
+                (hit && (overlap == query_mask_i[lane])));
+        assert (query_partial_o[lane] ==
+                (hit && (overlap != query_mask_i[lane])));
+        if (hit) begin
+          assert (query_index_o[lane] == chosen);
+          assert (query_data_o[lane] == value);
+        end
+      end
+    end
+  end
+
+  property p_lane1_enqueue_requires_lane0;
+    @(posedge clk_i) disable iff (!rst_ni)
+      enq_valid_i[1] |-> enq_valid_i[0];
+  endproperty
+  assert property (p_lane1_enqueue_requires_lane0);
+
+  property p_lane1_drain_requires_lane0;
+    @(posedge clk_i) disable iff (!rst_ni)
+      drain_valid_o[1] |-> drain_valid_o[0];
+  endproperty
+  assert property (p_lane1_drain_requires_lane0);
+
+  property p_device_is_never_second_drain;
+    @(posedge clk_i) disable iff (!rst_ni)
+      drain_valid_o[1] |-> !drain_device_o[0] && !drain_device_o[1];
+  endproperty
+  assert property (p_device_is_never_second_drain);
+
+  property p_query_modes_are_exclusive;
+    @(posedge clk_i) disable iff (!rst_ni)
+      !(|(query_full_cover_o & query_partial_o));
+  endproperty
+  assert property (p_query_modes_are_exclusive);
+`endif
+
+  initial begin : p_parameter_checks
+    if ((ENTRIES < 2) || ((ENTRIES & (ENTRIES-1)) != 0))
+      $fatal(1, "Store buffer ENTRIES must be a power of two >= 2");
+    if ((DATA_WIDTH < 32) || ((DATA_WIDTH % 8) != 0) ||
+        ((DATA_BYTES & (DATA_BYTES-1)) != 0))
+      $fatal(1, "Store buffer DATA_WIDTH must be a power-of-two byte width");
+    if ((PADDR_WIDTH <= BANK_BIT) || (SEQ_WIDTH < 2))
+      $fatal(1, "Store buffer address/sequence widths are invalid");
+  end
+
+endmodule

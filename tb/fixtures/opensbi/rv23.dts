@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: BSD-2-Clause
+/dts-v1/;
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    compatible = "rv23,rv23-soc";
+    model = "RV23 single-hart SoC";
+
+    chosen {
+        stdout-path = "/htif";
+    };
+
+    htif {
+        compatible = "ucb,htif0";
+    };
+
+    memory@80000000 {
+        device_type = "memory";
+        reg = <0 0x80000000 0 0x100000>;
+    };
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        timebase-frequency = <10000000>;
+
+        cpu@0 {
+            device_type = "cpu";
+            reg = <0>;
+            compatible = "riscv";
+            status = "okay";
+            riscv,isa = "rv64imafdc_zicsr_zifencei_zicntr_sstc";
+            mmu-type = "riscv,sv39";
+
+            cpu_intc: interrupt-controller {
+                compatible = "riscv,cpu-intc";
+                interrupt-controller;
+                #interrupt-cells = <1>;
+                #address-cells = <0>;
+            };
+        };
+    };
+
+    soc {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "simple-bus";
+        ranges;
+
+        timer@2000000 {
+            compatible = "sifive,clint0";
+            reg = <0 0x02000000 0 0x10000>;
+            interrupts-extended = <&cpu_intc 3 &cpu_intc 7>;
+        };
+
+        interrupt-controller@c000000 {
+            compatible = "riscv,plic0";
+            reg = <0 0x0c000000 0 0x400000>;
+            interrupt-controller;
+            #interrupt-cells = <1>;
+            #address-cells = <0>;
+            riscv,ndev = <31>;
+            interrupts-extended = <&cpu_intc 11 &cpu_intc 9>;
+        };
+    };
+};

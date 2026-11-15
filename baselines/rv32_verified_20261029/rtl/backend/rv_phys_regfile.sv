@@ -1,0 +1,220 @@
+module rv_phys_regfile #(
+  parameter int unsigned DATA_WIDTH = 32,
+  parameter int unsigned PHYS_REGS = 80,
+  parameter int unsigned TAG_WIDTH = 7,
+  parameter int unsigned READ_PORTS = 4,
+  parameter int unsigned QUERY_PORTS = 6,
+  parameter int unsigned WRITE_PORTS = 2,
+  parameter int unsigned ALLOC_PORTS = 2,
+  parameter int unsigned INITIAL_MAPPED_REGS = 32,
+  parameter bit ZERO_REGISTER = 1'b0,
+  parameter logic [TAG_WIDTH-1:0] ZERO_TAG = '0,
+  // 1: a same-cycle write is visible to reads/queries (original behavior).
+  // 0: reads/queries see only the registered array.  Valid when every
+  //    consumer of a not-yet-written value is served by an external bypass
+  //    and woken by the producer itself, which removes the writeback
+  //    arbiter -> PRF -> operand combinational path.
+  parameter bit WRITE_BYPASS = 1'b1
+) (
+  input  logic                                  clk_i,
+  input  logic                                  rst_ni,
+
+  input  logic [READ_PORTS-1:0][TAG_WIDTH-1:0]  read_addr_i,
+  output logic [READ_PORTS-1:0][DATA_WIDTH-1:0] read_data_o,
+  output logic [READ_PORTS-1:0]                 read_ready_o,
+
+  // Query-only ports let rename/dispatch sample producer readiness without
+  // consuming the data-read ports reserved for issued execution operands.
+  input  logic [QUERY_PORTS-1:0][TAG_WIDTH-1:0] query_addr_i,
+  output logic [QUERY_PORTS-1:0]                query_ready_o,
+
+  input  logic [WRITE_PORTS-1:0]                write_valid_i,
+  input  logic [WRITE_PORTS-1:0][TAG_WIDTH-1:0] write_addr_i,
+  input  logic [WRITE_PORTS-1:0][DATA_WIDTH-1:0] write_data_i,
+
+  input  logic [ALLOC_PORTS-1:0]                allocate_valid_i,
+  input  logic [ALLOC_PORTS-1:0][TAG_WIDTH-1:0] allocate_addr_i,
+
+  input  logic [TAG_WIDTH-1:0]                  probe_addr_i,
+  output logic                                  probe_ready_o
+);
+
+  logic [DATA_WIDTH-1:0] data_q [0:PHYS_REGS-1];
+  logic [PHYS_REGS-1:0] ready_q;
+
+  // Decode a read tag once, then select data/readiness with the same balanced
+  // masked-OR tree. The decoder is shared by all DATA_WIDTH bits; there is no
+  // late binary address controlling a wide cascaded register-array mux.
+  localparam int READ_LEVELS = $clog2(PHYS_REGS);
+  localparam int READ_LEAVES = 1 << READ_LEVELS;
+  logic [READ_PORTS-1:0][DATA_WIDTH:0] stored_read;
+  for (genvar port = 0; port < READ_PORTS; port++) begin : g_read_tree
+    logic [PHYS_REGS-1:0] row_hit;
+    wire [DATA_WIDTH:0] tree [0:READ_LEVELS][0:READ_LEAVES-1] /* verilator split_var */;
+    for (genvar row = 0; row < READ_LEAVES; row++) begin : g_leaf
+      if (row < PHYS_REGS) begin : g_present
+        assign row_hit[row] = read_addr_i[port] == TAG_WIDTH'(row);
+        assign tree[0][row] = {ready_q[row], data_q[row]} &
+                             {(DATA_WIDTH+1){row_hit[row]}};
+      end else begin : g_padding
+        assign tree[0][row] = '0;
+      end
+    end
+    for (genvar level = 1; level <= READ_LEVELS; level++) begin : g_level
+      for (genvar node = 0; node < READ_LEAVES; node++) begin : g_node
+        if (node < (READ_LEAVES >> level)) begin : g_used
+          assign tree[level][node] = tree[level-1][2*node] |
+                                     tree[level-1][2*node+1];
+        end else begin : g_unused
+          assign tree[level][node] = '0;
+        end
+      end
+    end
+    // Retain the original native-array undefined result for an invalid tag.
+    // This is a combinational don't-care, NOT unreset storage. Legal tags
+    // select exactly one row; allocation/write-bypass/x0 priority stays below.
+    assign stored_read[port] = ($unsigned(read_addr_i[port]) < PHYS_REGS) ?
+                                tree[READ_LEVELS][0] : 'x;
+  end
+
+  function automatic logic tag_is_allocated_this_cycle(
+    input logic [TAG_WIDTH-1:0] tag
+  );
+    logic allocated;
+    allocated = 1'b0;
+    for (int unsigned port = 0; port < ALLOC_PORTS; port++)
+      allocated |= allocate_valid_i[port] && (allocate_addr_i[port] == tag);
+    return allocated;
+  endfunction
+
+  always_comb begin
+    for (int unsigned read_port = 0;
+         read_port < READ_PORTS; read_port++) begin
+      read_data_o[read_port]  = stored_read[read_port][DATA_WIDTH-1:0];
+      read_ready_o[read_port] = stored_read[read_port][DATA_WIDTH];
+
+      // Higher-numbered write port wins only if the producer arbitration
+      // intentionally presents duplicate tags. An assertion rejects that case
+      // in the baseline, but deterministic priority avoids X propagation.
+      for (int unsigned write_port = 0;
+           write_port < WRITE_PORTS; write_port++) begin
+        if (WRITE_BYPASS && write_valid_i[write_port] &&
+            (write_addr_i[write_port] == read_addr_i[read_port])) begin
+          read_data_o[read_port]  = write_data_i[write_port];
+          read_ready_o[read_port] = 1'b1;
+        end
+      end
+
+      // A tag recycled by rename belongs to a new generation. Allocation wins
+      // over a same-cycle stale writeback and therefore keeps it not-ready.
+      if (tag_is_allocated_this_cycle(read_addr_i[read_port]))
+        read_ready_o[read_port] = 1'b0;
+
+      if (ZERO_REGISTER && (read_addr_i[read_port] == ZERO_TAG)) begin
+        read_data_o[read_port]  = '0;
+        read_ready_o[read_port] = 1'b1;
+      end
+    end
+
+    for (int unsigned query_port = 0;
+         query_port < QUERY_PORTS; query_port++) begin
+      query_ready_o[query_port] = ready_q[query_addr_i[query_port]];
+      for (int unsigned write_port = 0;
+           write_port < WRITE_PORTS; write_port++) begin
+        if (WRITE_BYPASS && write_valid_i[write_port] &&
+            (write_addr_i[write_port] == query_addr_i[query_port]))
+          query_ready_o[query_port] = 1'b1;
+      end
+      if (tag_is_allocated_this_cycle(query_addr_i[query_port]))
+        query_ready_o[query_port] = 1'b0;
+      if (ZERO_REGISTER && (query_addr_i[query_port] == ZERO_TAG))
+        query_ready_o[query_port] = 1'b1;
+    end
+
+    probe_ready_o = ready_q[probe_addr_i];
+    for (int unsigned write_port = 0;
+         write_port < WRITE_PORTS; write_port++) begin
+      if (WRITE_BYPASS && write_valid_i[write_port] &&
+          (write_addr_i[write_port] == probe_addr_i))
+        probe_ready_o = 1'b1;
+    end
+    if (tag_is_allocated_this_cycle(probe_addr_i))
+      probe_ready_o = 1'b0;
+    if (ZERO_REGISTER && (probe_addr_i == ZERO_TAG))
+      probe_ready_o = 1'b1;
+  end
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      ready_q <= '0;
+      for (int unsigned tag = 0; tag < PHYS_REGS; tag++)
+        data_q[tag] <= '0;
+      for (int unsigned tag = 0; tag < INITIAL_MAPPED_REGS; tag++)
+        ready_q[tag] <= 1'b1;
+      if (ZERO_REGISTER) begin
+        ready_q[ZERO_TAG] <= 1'b1;
+        data_q[ZERO_TAG]  <= '0;
+      end
+    end else begin
+      for (int unsigned write_port = 0;
+           write_port < WRITE_PORTS; write_port++) begin
+        if (write_valid_i[write_port] &&
+            !(ZERO_REGISTER && (write_addr_i[write_port] == ZERO_TAG))) begin
+          data_q[write_addr_i[write_port]]  <= write_data_i[write_port];
+          ready_q[write_addr_i[write_port]] <= 1'b1;
+        end
+      end
+
+      // Allocation is later in this block so it has priority over a stale
+      // writeback if integration violates generation filtering.
+      for (int unsigned alloc_port = 0;
+           alloc_port < ALLOC_PORTS; alloc_port++) begin
+        if (allocate_valid_i[alloc_port] &&
+            !(ZERO_REGISTER && (allocate_addr_i[alloc_port] == ZERO_TAG)))
+          ready_q[allocate_addr_i[alloc_port]] <= 1'b0;
+      end
+
+      if (ZERO_REGISTER) begin
+        ready_q[ZERO_TAG] <= 1'b1;
+        data_q[ZERO_TAG]  <= '0;
+      end
+    end
+  end
+
+`ifndef SYNTHESIS
+  for (genvar lhs = 0; lhs < WRITE_PORTS; lhs++) begin : g_write_unique_lhs
+    for (genvar rhs = lhs + 1; rhs < WRITE_PORTS; rhs++) begin : g_write_unique_rhs
+      property p_no_duplicate_write_tag;
+        @(posedge clk_i) disable iff (!rst_ni)
+          write_valid_i[lhs] && write_valid_i[rhs]
+          |-> write_addr_i[lhs] != write_addr_i[rhs];
+      endproperty
+      assert property (p_no_duplicate_write_tag);
+    end
+  end
+
+  for (genvar lhs = 0; lhs < ALLOC_PORTS; lhs++) begin : g_alloc_unique_lhs
+    for (genvar rhs = lhs + 1; rhs < ALLOC_PORTS; rhs++) begin : g_alloc_unique_rhs
+      property p_no_duplicate_allocation_tag;
+        @(posedge clk_i) disable iff (!rst_ni)
+          allocate_valid_i[lhs] && allocate_valid_i[rhs]
+          |-> allocate_addr_i[lhs] != allocate_addr_i[rhs];
+      endproperty
+      assert property (p_no_duplicate_allocation_tag);
+    end
+  end
+`endif
+
+  initial begin : p_parameter_checks
+    if ((DATA_WIDTH == 0) || (PHYS_REGS < INITIAL_MAPPED_REGS))
+      $fatal(1, "Physical register file dimensions are invalid");
+    if (PHYS_REGS > (1 << TAG_WIDTH))
+      $fatal(1, "TAG_WIDTH cannot represent all physical registers");
+    if ((READ_PORTS == 0) || (QUERY_PORTS == 0) ||
+        (WRITE_PORTS == 0) || (ALLOC_PORTS == 0))
+      $fatal(1, "Physical register file port counts must be nonzero");
+    if (ZERO_REGISTER && (ZERO_TAG >= PHYS_REGS))
+      $fatal(1, "ZERO_TAG lies outside the physical register file");
+  end
+
+endmodule

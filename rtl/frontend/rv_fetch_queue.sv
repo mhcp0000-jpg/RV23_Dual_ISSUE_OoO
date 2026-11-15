@@ -1,0 +1,521 @@
+module rv_fetch_queue #(
+  parameter int unsigned XLEN        = 32,
+  parameter int unsigned PADDR_WIDTH = 32,
+  parameter int unsigned FETCH_BYTES = 16,
+  parameter int unsigned QUEUE_BYTES = 64,
+  // Payload has no architectural meaning when out_valid_o is zero. Allow
+  // a tightly coupled predictor to read bytes/PC without a validity mux.
+  parameter bit UNGATED_PAYLOAD = 1'b0,
+  parameter bit SEPARATE_NORMAL_FILL_ADDRESS = 1'b0,
+  parameter logic [XLEN-1:0] RESET_VECTOR = 'h8000_0000,
+  localparam int unsigned COUNT_WIDTH = $clog2(QUEUE_BYTES + 1),
+  localparam int unsigned FETCH_ADDR_LSB = $clog2(FETCH_BYTES)
+) (
+  input  logic                               clk_i,
+  input  logic                               rst_ni,
+  input  logic                               fill_valid_i,
+  output logic                               fill_ready_o,
+  input  logic [PADDR_WIDTH-1:0]             fill_addr_i,
+  // With SEPARATE_NORMAL_FILL_ADDRESS, normal response address/valid bypass
+  // the predicted-target/FTB mux. The frontend supplies its outstanding
+  // address register and current-epoch response valid. fill_addr_i still
+  // describes the actual block for redirect/metadata assertions. Both normal
+  // inputs are ignored on redirect; without redirect both valids must agree.
+  input  logic [PADDR_WIDTH-1:0]             normal_fill_addr_i,
+  input  logic                               normal_fill_valid_i,
+  input  logic [3:0]                         fill_id_i,
+  input  logic [3:0]                         fill_epoch_i,
+  input  logic [FETCH_BYTES*8-1:0]           fill_data_i,
+  input  logic [1:0]                         fill_resp_i,
+  input logic [5:0]                          fill_fault_cause_i=6'd1,
+  input logic [63:0] fill_guest_address_i=0,
+  input logic fill_implicit_guest_access_i=0,
+  input  logic [FETCH_BYTES/2-1:0]           fill_pmp_allow_i,
+  input  logic                               redirect_valid_i,
+  input  logic [XLEN-1:0]                    redirect_pc_i,
+  input  logic [3:0]                         new_epoch_i,
+  output logic [1:0]                         out_valid_o,
+  input  logic [1:0]                         out_ready_i,
+  output logic [1:0][XLEN-1:0]               out_pc_o,
+  output logic [1:0][31:0]                   out_instruction_o,
+  output rv_ooo_pkg::inst_len_e [1:0]        out_inst_len_o,
+  output logic [1:0]                         out_fault_o,
+  output logic [1:0][5:0]                    out_fault_cause_o,
+  output logic [1:0][XLEN-1:0]               out_fault_address_o,
+  output logic [1:0][63:0] out_guest_address_o,
+  output logic [1:0] out_implicit_guest_access_o,
+  output logic                               empty_o,
+  output logic [COUNT_WIDTH-1:0]             byte_count_o
+);
+
+  import rv_ooo_pkg::*;
+
+  // Aligned fetch responses are stored as complete blocks. A four-entry block
+  // FIFO has the same 64-byte capacity as the former 32-entry parcel ring, but
+  // its read mux and write decoder are only four ways. Current and next blocks
+  // are concatenated so a 32-bit instruction may cross a block boundary.
+  localparam int unsigned FETCH_PARCELS = FETCH_BYTES / 2;
+  localparam int unsigned QUEUE_BLOCKS = QUEUE_BYTES / FETCH_BYTES;
+  localparam int unsigned BLOCK_INDEX_WIDTH = $clog2(QUEUE_BLOCKS);
+  localparam int unsigned BLOCK_COUNT_WIDTH = $clog2(QUEUE_BLOCKS + 1);
+  localparam int unsigned PARCEL_OFFSET_WIDTH = $clog2(FETCH_PARCELS);
+  localparam int unsigned ADVANCE_WIDTH = $clog2(FETCH_PARCELS + 4);
+
+  logic [FETCH_BYTES*8-1:0] block_data_q [0:QUEUE_BLOCKS-1];
+  logic [FETCH_PARCELS-1:0] block_fault_q [0:QUEUE_BLOCKS-1];
+  logic [FETCH_PARCELS-1:0][5:0] block_cause_q[QUEUE_BLOCKS];
+  logic [3:0][5:0] parcel_cause;
+  logic [FETCH_PARCELS-1:0][63:0] block_guest_q[QUEUE_BLOCKS];
+  logic [FETCH_PARCELS-1:0] block_implicit_q[QUEUE_BLOCKS];
+  logic [3:0][63:0] parcel_guest;
+  logic [3:0] parcel_implicit;
+  logic [BLOCK_INDEX_WIDTH-1:0] head_block_q, tail_block_q;
+  logic [BLOCK_COUNT_WIDTH-1:0] block_count_q;
+  logic [PARCEL_OFFSET_WIDTH-1:0] head_parcel_offset_q;
+  logic [XLEN-1:0] head_pc_q;
+
+  logic [FETCH_BYTES*8-1:0] current_block_data, next_block_data;
+  logic [FETCH_PARCELS-1:0] current_block_fault, next_block_fault;
+  logic [FETCH_BYTES*16-1:0] two_block_data, aligned_data;
+  logic [FETCH_PARCELS*2-1:0] two_block_fault, aligned_fault;
+  logic [15:0] parcel0, parcel1, parcel2, parcel3;
+  logic fault0, fault1, fault2, fault3;
+  logic [PADDR_WIDTH-1:0] head_paddr, redirect_paddr;
+  logic [PADDR_WIDTH-1:0] fill_reference_paddr, fill_address_delta;
+  logic [15:0] lane1_first_parcel;
+  logic have_one_parcel, have_two_parcels, have_three_parcels, have_four_parcels;
+  logic first_is_word, second_at_one_is_word, second_at_two_is_word;
+  logic first_complete, second_complete;
+
+  integer unsigned available_parcels;
+  integer unsigned length0_parcels, length1_parcels;
+  integer unsigned lane1_offset_parcels;
+  logic [2:0] consume_parcels;
+  logic consume_blocks;
+  logic [ADVANCE_WIDTH-1:0] next_head_offset;
+  logic consume_lane0, consume_lane1, cross_lane0, cross_pair;
+  logic [XLEN-1:0] head_pc_plus2, head_pc_plus4, head_pc_plus6, head_pc_plus8;
+  logic [XLEN-1:0] head_pc_after_lane0, head_pc_after_pair;
+  integer unsigned fill_head_offset;
+  integer unsigned byte_count_integer;
+
+  if (PADDR_WIDTH >= XLEN) begin : g_head_paddr_extend
+    assign head_paddr = {{(PADDR_WIDTH-XLEN){1'b0}}, head_pc_q};
+    assign redirect_paddr = {{(PADDR_WIDTH-XLEN){1'b0}}, redirect_pc_i};
+  end else begin : g_head_paddr_truncate
+    assign head_paddr = head_pc_q[PADDR_WIDTH-1:0];
+    assign redirect_paddr = redirect_pc_i[PADDR_WIDTH-1:0];
+  end
+
+  assign current_block_data = block_data_q[head_block_q];
+  assign current_block_fault = block_fault_q[head_block_q];
+  assign next_block_data =
+    block_data_q[head_block_q + BLOCK_INDEX_WIDTH'(1)];
+  assign next_block_fault =
+    block_fault_q[head_block_q + BLOCK_INDEX_WIDTH'(1)];
+  assign two_block_data = {next_block_data, current_block_data};
+  assign two_block_fault = {next_block_fault, current_block_fault};
+  // Decode block and parcel position together, before selecting any data.
+  // Every leaf is a CONSTANT physical parcel address, including wraparound.
+  // This removes the serial block-read mux -> variable barrel shifter cone.
+  // These are wires only: queue state, fill/consume timing and reset remain
+  // identical, including stale payload when out_valid_o is zero.
+  localparam int unsigned PARCEL_CHOICES = QUEUE_BLOCKS * FETCH_PARCELS;
+  logic [PARCEL_CHOICES-1:0] parcel_position_select;
+  logic [PARCEL_CHOICES-1:0] parcel_position_q;
+  logic [PARCEL_CHOICES-1:0] position_plus1,position_plus2,position_plus3,position_plus4;
+  assign parcel_position_select = parcel_position_q;
+  // Shadow encoding of the SAME resident head address, not an added fetch
+  // stage. Constant rotations are available before late consumption arrives.
+  assign position_plus1 = {parcel_position_q[PARCEL_CHOICES-2:0],parcel_position_q[PARCEL_CHOICES-1]};
+  assign position_plus2 = {parcel_position_q[PARCEL_CHOICES-3:0],parcel_position_q[PARCEL_CHOICES-1 -: 2]};
+  assign position_plus3 = {parcel_position_q[PARCEL_CHOICES-4:0],parcel_position_q[PARCEL_CHOICES-1 -: 3]};
+  assign position_plus4 = {parcel_position_q[PARCEL_CHOICES-5:0],parcel_position_q[PARCEL_CHOICES-1 -: 4]};
+  for (genvar output_parcel = 0; output_parcel < 2*FETCH_PARCELS; output_parcel++) begin : g_parallel_parcel
+    wire [15:0] data_tree [0:2*PARCEL_CHOICES-2];
+    wire fault_tree [0:2*PARCEL_CHOICES-2];
+    for (genvar block = 0; block < QUEUE_BLOCKS; block++) begin : g_block
+      for (genvar offset = 0; offset < FETCH_PARCELS; offset++) begin : g_offset
+        localparam int CHOICE = block*FETCH_PARCELS+offset;
+        localparam int PHYSICAL = (CHOICE+output_parcel) % PARCEL_CHOICES;
+        if (offset+output_parcel < 2*FETCH_PARCELS) begin : g_in_window
+          assign data_tree[PARCEL_CHOICES-1+CHOICE] =
+            block_data_q[PHYSICAL/FETCH_PARCELS][(PHYSICAL%FETCH_PARCELS)*16 +: 16] &
+            {16{parcel_position_select[CHOICE]}};
+          assign fault_tree[PARCEL_CHOICES-1+CHOICE] =
+            block_fault_q[PHYSICAL/FETCH_PARCELS][PHYSICAL%FETCH_PARCELS] &&
+            parcel_position_select[CHOICE];
+        end else begin : g_shifted_zero
+          assign data_tree[PARCEL_CHOICES-1+CHOICE] = '0;
+          assign fault_tree[PARCEL_CHOICES-1+CHOICE] = 1'b0;
+        end
+      end
+    end
+    for (genvar node = 0; node < PARCEL_CHOICES-1; node++) begin : g_reduce
+      assign data_tree[node] = data_tree[2*node+1] | data_tree[2*node+2];
+      assign fault_tree[node] = fault_tree[2*node+1] | fault_tree[2*node+2];
+    end
+    assign aligned_data[output_parcel*16 +: 16] = data_tree[0];
+    assign aligned_fault[output_parcel] = fault_tree[0];
+  end
+  assign parcel0 = aligned_data[15:0];
+  assign parcel1 = aligned_data[31:16];
+  assign parcel2 = aligned_data[47:32];
+  assign parcel3 = aligned_data[63:48];
+  assign fault0 = aligned_fault[0];
+  assign fault1 = aligned_fault[1];
+  assign fault2 = aligned_fault[2];
+  assign fault3 = aligned_fault[3];
+
+  // Two resident blocks always supply at least FETCH_PARCELS+1 parcels,
+  // hence all four needed by dual RV32/64 instructions (FETCH_BYTES>=8).
+  // Compare the retained offset to CONSTANT limits before instruction length
+  // arrives, rather than serial length addition -> availability comparison.
+  assign have_one_parcel = (block_count_q != 0);
+  assign have_two_parcels = (block_count_q > 1) ||
+    ((block_count_q == 1) && (head_parcel_offset_q <= FETCH_PARCELS-2));
+  assign have_three_parcels = (block_count_q > 1) ||
+    ((block_count_q == 1) && (head_parcel_offset_q <= FETCH_PARCELS-3));
+  assign have_four_parcels = (block_count_q > 1) ||
+    ((block_count_q == 1) && (head_parcel_offset_q <= FETCH_PARCELS-4));
+  assign first_is_word = (parcel0[1:0] == 2'b11);
+  assign second_at_one_is_word = (parcel1[1:0] == 2'b11);
+  assign second_at_two_is_word = (parcel2[1:0] == 2'b11);
+  assign first_complete = first_is_word ? have_two_parcels : have_one_parcel;
+  assign second_complete = first_is_word ?
+    (second_at_two_is_word ? have_four_parcels : have_three_parcels) :
+    (second_at_one_is_word ? have_three_parcels : have_two_parcels);
+
+  always_comb begin
+    // A redirect records its within-block offset before the replacement block
+    // arrives.  With no resident blocks that offset is only metadata, not
+    // consumable data; saturate availability at zero to prevent stale array
+    // contents from appearing as valid instructions.
+    if (block_count_q == 0)
+      available_parcels = 0;
+    else
+      available_parcels = (block_count_q * FETCH_PARCELS) -
+                          head_parcel_offset_q;
+    length0_parcels = 0;
+    length1_parcels = 0;
+    lane1_offset_parcels = 0;
+    lane1_first_parcel = '0;
+    out_valid_o = '0;
+    out_pc_o = '0;
+    out_instruction_o = '0;
+    out_inst_len_o[0] = INST_LEN_NONE;
+    out_inst_len_o[1] = INST_LEN_NONE;
+    out_fault_o = '0;
+
+    if (have_one_parcel) begin
+      length0_parcels = (parcel0[1:0] == 2'b11) ? 2 : 1;
+      if (first_complete) begin
+        out_valid_o[0] = 1'b1;
+        out_pc_o[0] = head_pc_q;
+        out_instruction_o[0][15:0] = parcel0;
+        out_inst_len_o[0] = (length0_parcels == 1) ?
+          INST_LEN_16 : INST_LEN_32;
+        out_fault_o[0] = fault0;
+        if (length0_parcels == 2) begin
+          out_instruction_o[0][31:16] = parcel1;
+          out_fault_o[0] |= fault1;
+        end
+      end
+    end
+
+    lane1_offset_parcels = length0_parcels;
+    if (first_is_word ? have_three_parcels : have_two_parcels) begin
+      lane1_first_parcel = (lane1_offset_parcels == 1) ? parcel1 : parcel2;
+      length1_parcels = (lane1_first_parcel[1:0] == 2'b11) ? 2 : 1;
+      if (second_complete) begin
+        out_valid_o[1] = 1'b1;
+        out_pc_o[1] = head_pc_after_lane0;
+        if (lane1_offset_parcels == 1) begin
+          out_instruction_o[1][15:0] = parcel1;
+          out_fault_o[1] = fault1;
+          if (length1_parcels == 2) begin
+            out_instruction_o[1][31:16] = parcel2;
+            out_fault_o[1] |= fault2;
+          end
+        end else begin
+          out_instruction_o[1][15:0] = parcel2;
+          out_fault_o[1] = fault2;
+          if (length1_parcels == 2) begin
+            out_instruction_o[1][31:16] = parcel3;
+            out_fault_o[1] |= fault3;
+          end
+        end
+        out_inst_len_o[1] = (length1_parcels == 1) ?
+          INST_LEN_16 : INST_LEN_32;
+      end
+    end
+    if (UNGATED_PAYLOAD) begin
+      out_pc_o[0] = head_pc_q;
+      out_pc_o[1] = first_is_word ? head_pc_plus4 : head_pc_plus2;
+      out_instruction_o[0] = (parcel0[1:0] == 2'b11) ? {parcel1,parcel0} : {16'b0,parcel0};
+      if (parcel0[1:0] != 2'b11) begin
+        out_instruction_o[1] = (parcel1[1:0] == 2'b11) ? {parcel2,parcel1} : {16'b0,parcel1};
+        out_inst_len_o[1] = (parcel1[1:0] == 2'b11) ? INST_LEN_32 : INST_LEN_16;
+      end else begin
+        out_instruction_o[1] = (parcel2[1:0] == 2'b11) ? {parcel3,parcel2} : {16'b0,parcel2};
+        out_inst_len_o[1] = (parcel2[1:0] == 2'b11) ? INST_LEN_32 : INST_LEN_16;
+      end
+      out_inst_len_o[0] = (parcel0[1:0] == 2'b11) ? INST_LEN_32 : INST_LEN_16;
+    end
+  end
+
+  for(genvar p=0;p<4;p++) begin:g_fault_cause
+    assign parcel_cause[p]=block_cause_q[
+      BLOCK_INDEX_WIDTH'(int'(head_block_q)+(int'(head_parcel_offset_q)+p)/FETCH_PARCELS)]
+      [(int'(head_parcel_offset_q)+p)%FETCH_PARCELS];
+    assign parcel_guest[p]=block_guest_q[
+      BLOCK_INDEX_WIDTH'(int'(head_block_q)+(int'(head_parcel_offset_q)+p)/FETCH_PARCELS)]
+      [(int'(head_parcel_offset_q)+p)%FETCH_PARCELS];
+    assign parcel_implicit[p]=block_implicit_q[
+      BLOCK_INDEX_WIDTH'(int'(head_block_q)+(int'(head_parcel_offset_q)+p)/FETCH_PARCELS)]
+      [(int'(head_parcel_offset_q)+p)%FETCH_PARCELS];
+  end
+  always_comb begin
+    out_fault_cause_o=0;out_fault_address_o=out_pc_o;
+    out_guest_address_o=0;out_implicit_guest_access_o=0;
+    for(int lane=0;lane<2;lane++) begin
+      int selected_parcel;
+      selected_parcel=0;
+      if(out_fault_o[lane]) begin
+        if(lane==0) begin
+          selected_parcel=fault0?0:1;
+          out_fault_cause_o[lane]=fault0 ? parcel_cause[0]:parcel_cause[1];
+          if(!fault0) out_fault_address_o[lane]=out_pc_o[lane]+XLEN'(2);
+        end else if(length0_parcels==1) begin
+          selected_parcel=fault1?1:2;
+          out_fault_cause_o[lane]=fault1 ? parcel_cause[1]:parcel_cause[2];
+          if(!fault1) out_fault_address_o[lane]=out_pc_o[lane]+XLEN'(2);
+        end else begin
+          selected_parcel=fault2?2:3;
+          out_fault_cause_o[lane]=fault2 ? parcel_cause[2]:parcel_cause[3];
+          if(!fault2) out_fault_address_o[lane]=out_pc_o[lane]+XLEN'(2);
+        end
+        out_guest_address_o[lane]=parcel_guest[selected_parcel];
+        out_implicit_guest_access_o[lane]=parcel_implicit[selected_parcel];
+      end
+    end
+  end
+
+  // Compute the two possible block crossings before downstream ready and
+  // prediction arrive. A late lane acceptance selects a one-bit result, not
+  // a 32-bit add/compare/subtract chain on the response/request feedback path.
+  assign consume_lane0 = out_valid_o[0] && out_ready_i[0];
+  assign consume_lane1 = out_valid_o[1] && out_ready_i[1];
+  assign cross_lane0 = first_is_word ?
+    (head_parcel_offset_q >= FETCH_PARCELS-2) :
+    (head_parcel_offset_q >= FETCH_PARCELS-1);
+  assign cross_pair = first_is_word ?
+    (second_at_two_is_word ? (head_parcel_offset_q >= FETCH_PARCELS-4) :
+                            (head_parcel_offset_q >= FETCH_PARCELS-3)) :
+    (second_at_one_is_word ? (head_parcel_offset_q >= FETCH_PARCELS-3) :
+                            (head_parcel_offset_q >= FETCH_PARCELS-2));
+  assign consume_blocks = consume_lane0 &&
+                          (cross_lane0 || (consume_lane1 && cross_pair));
+  // Ready/prediction are late: select already-computed successor PCs rather
+  // than injecting late consumption bits into an XLEN carry chain.
+  assign head_pc_plus2 = head_pc_q + XLEN'(2);
+  assign head_pc_plus4 = head_pc_q + XLEN'(4);
+  assign head_pc_plus6 = head_pc_q + XLEN'(6);
+  assign head_pc_plus8 = head_pc_q + XLEN'(8);
+  assign head_pc_after_lane0 = first_is_word ? head_pc_plus4 : head_pc_plus2;
+  assign head_pc_after_pair = first_is_word ?
+    (second_at_two_is_word ? head_pc_plus8 : head_pc_plus6) :
+    (second_at_one_is_word ? head_pc_plus6 : head_pc_plus4);
+
+  always_comb begin
+    consume_parcels = 0;
+    if (consume_lane0) begin
+      consume_parcels = 3'(length0_parcels);
+      if (consume_lane1)
+        consume_parcels += 3'(length1_parcels);
+    end
+    next_head_offset = ADVANCE_WIDTH'(head_parcel_offset_q) +
+                       ADVANCE_WIDTH'(consume_parcels);
+    if (consume_blocks != 0)
+      next_head_offset -= ADVANCE_WIDTH'(FETCH_PARCELS);
+  end
+
+  always_comb begin
+    // A normal response arriving to an empty queue is positioned relative to
+    // the retained head PC.  Atomic redirect+FTB fills use redirect_pc_i's
+    // low bits directly in the sequential block below, keeping address
+    // subtract/compare logic out of the prediction feedback path.
+    fill_reference_paddr = head_paddr;
+    fill_address_delta = fill_reference_paddr - fill_addr_i;
+    fill_head_offset = 0;
+    if (SEPARATE_NORMAL_FILL_ADDRESS) begin
+      // Transport blocks are aligned. Equal block tags imply the retained
+      // PC's low bits are the offset; neither an add nor subtract is needed.
+      // Crucially this cone never consumes predicted target/FTB hit signals.
+      if ((block_count_q == 0) &&
+          (fill_reference_paddr[PADDR_WIDTH-1:FETCH_ADDR_LSB] ==
+           normal_fill_addr_i[PADDR_WIDTH-1:FETCH_ADDR_LSB]))
+        fill_head_offset = fill_reference_paddr[FETCH_ADDR_LSB-1:1];
+    end else if ((block_count_q == 0) &&
+        (fill_reference_paddr >= fill_addr_i) &&
+        (fill_reference_paddr <
+         (fill_addr_i + PADDR_WIDTH'(FETCH_BYTES)))) begin
+      fill_head_offset = fill_address_delta[FETCH_ADDR_LSB-1:1];
+    end
+    fill_ready_o = redirect_valid_i || (block_count_q < QUEUE_BLOCKS) ||
+                   (consume_blocks != 0);
+  end
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      for (int unsigned block = 0; block < QUEUE_BLOCKS; block++) begin
+        block_data_q[block] <= '0;
+        block_fault_q[block] <= '0;
+      end
+      head_block_q <= '0;
+      tail_block_q <= '0;
+      block_count_q <= '0;
+      head_parcel_offset_q <= '0;
+      head_pc_q <= RESET_VECTOR;
+    end else if (redirect_valid_i) begin
+      head_block_q <= '0;
+      tail_block_q <= '0;
+      block_count_q <= '0;
+      head_parcel_offset_q <= PARCEL_OFFSET_WIDTH'(
+        redirect_pc_i[FETCH_ADDR_LSB-1:1]);
+      head_pc_q <= redirect_pc_i;
+      if (fill_valid_i && fill_ready_o) begin
+        block_data_q[0] <= fill_data_i;
+        for (int unsigned parcel = 0; parcel < FETCH_PARCELS; parcel++) begin
+          block_fault_q[0][parcel] <= (fill_resp_i != 2'b00) ||
+                                              !fill_pmp_allow_i[parcel];
+          block_cause_q[0][parcel]<=fill_resp_i!=0 ? fill_fault_cause_i:6'd1;
+        end
+        tail_block_q <= BLOCK_INDEX_WIDTH'(1);
+        block_count_q <= BLOCK_COUNT_WIDTH'(1);
+      end
+    end else begin
+      if (consume_parcels != 0) begin
+        head_parcel_offset_q <= PARCEL_OFFSET_WIDTH'(next_head_offset);
+        head_pc_q <= consume_lane1 ? head_pc_after_pair : head_pc_after_lane0;
+        if (consume_blocks != 0)
+          head_block_q <= head_block_q + BLOCK_INDEX_WIDTH'(1);
+      end
+
+      block_count_q <= block_count_q -
+                       BLOCK_COUNT_WIDTH'(consume_blocks);
+      if ((SEPARATE_NORMAL_FILL_ADDRESS ? normal_fill_valid_i : fill_valid_i) &&
+          fill_ready_o) begin
+        block_data_q[tail_block_q] <= fill_data_i;
+        for (int unsigned parcel = 0; parcel < FETCH_PARCELS; parcel++) begin
+          block_fault_q[tail_block_q][parcel] <=
+            (fill_resp_i != 2'b00) || !fill_pmp_allow_i[parcel];
+          block_cause_q[tail_block_q][parcel]<=fill_resp_i!=0 ? fill_fault_cause_i:6'd1;
+          block_guest_q[tail_block_q][parcel]<=fill_guest_address_i+
+            (fill_implicit_guest_access_i?64'b0:64'(parcel*2));
+          block_implicit_q[tail_block_q][parcel]<=fill_implicit_guest_access_i;
+        end
+        tail_block_q <= tail_block_q + BLOCK_INDEX_WIDTH'(1);
+        block_count_q <= block_count_q -
+                         BLOCK_COUNT_WIDTH'(consume_blocks) +
+                         BLOCK_COUNT_WIDTH'(1);
+        if (block_count_q == 0) begin
+          head_block_q <= tail_block_q;
+          head_parcel_offset_q <= PARCEL_OFFSET_WIDTH'(fill_head_offset);
+        end
+      end
+    end
+  end
+
+  always_comb begin
+    // The retained head offset describes where the next response starts when
+    // the FIFO is empty; it must not turn the externally visible occupancy
+    // into an unsigned underflow while that response is still in flight.
+    if (block_count_q == 0)
+      byte_count_integer = 0;
+    else
+      byte_count_integer = (block_count_q * FETCH_BYTES) -
+                           (head_parcel_offset_q * 2);
+    byte_count_o = COUNT_WIDTH'(byte_count_integer);
+  end
+  assign empty_o = (block_count_q == 0);
+
+  // Retain all original binary state updates above for the queue contract.
+  // This redundant read encoding must track them on reset, atomic redirect,
+  // normal consume, and the empty-queue fill special case (last writer wins).
+  always_ff @(posedge clk_i) begin : p_parcel_position
+    if (!rst_ni) begin
+      parcel_position_q <= PARCEL_CHOICES'(1);
+    end else if (redirect_valid_i) begin
+      parcel_position_q <= PARCEL_CHOICES'(1) << redirect_pc_i[FETCH_ADDR_LSB-1:1];
+    end else begin
+      if (consume_parcels != 0) begin
+        case (consume_parcels)
+          3'd1: parcel_position_q <= position_plus1;
+          3'd2: parcel_position_q <= position_plus2;
+          3'd3: parcel_position_q <= position_plus3;
+          3'd4: parcel_position_q <= position_plus4;
+          default: parcel_position_q <= parcel_position_q;
+        endcase
+      end
+      if ((SEPARATE_NORMAL_FILL_ADDRESS ? normal_fill_valid_i : fill_valid_i) &&
+          fill_ready_o && (block_count_q == 0)) begin
+        parcel_position_q <= PARCEL_CHOICES'(1) <<
+          (int'(tail_block_q)*FETCH_PARCELS+fill_head_offset);
+      end
+    end
+  end
+
+`ifndef SYNTHESIS
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    parcel_position_q == (PARCEL_CHOICES'(1) <<
+      (int'(head_block_q)*FETCH_PARCELS+int'(head_parcel_offset_q))));
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    consume_blocks == ((int'(head_parcel_offset_q) + int'(consume_parcels)) >= FETCH_PARCELS));
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    (SEPARATE_NORMAL_FILL_ADDRESS && !redirect_valid_i) |->
+      normal_fill_valid_i == fill_valid_i);
+  // Sample the independent count-minus-offset specification at the clock,
+  // not in an immediate cross-cone assertion (which can see delta glitches).
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    first_complete == (available_parcels >= (first_is_word ? 2 : 1)));
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    second_complete == (available_parcels >=
+      (first_is_word ? (second_at_two_is_word ? 4 : 3) :
+                       (second_at_one_is_word ? 3 : 2))));
+  always_comb begin
+    if (rst_ni === 1'b1) begin
+      assert (!out_valid_o[1] || out_valid_o[0]);
+      assert (block_count_q <= QUEUE_BLOCKS);
+      assert (!redirect_valid_i || !redirect_pc_i[0]);
+      if (redirect_valid_i && fill_valid_i) begin
+        assert (fill_ready_o);
+        assert ((redirect_paddr >= fill_addr_i) &&
+                (redirect_paddr <
+                 (fill_addr_i + PADDR_WIDTH'(FETCH_BYTES))));
+      end
+      if (SEPARATE_NORMAL_FILL_ADDRESS && fill_valid_i && !redirect_valid_i)
+        assert (normal_fill_addr_i[FETCH_ADDR_LSB-1:0] == '0);
+    end
+  end
+`endif
+
+  logic unused_metadata;
+  always_comb begin
+    unused_metadata = (^fill_id_i) ^ (^fill_epoch_i) ^ (^new_epoch_i);
+  end
+
+  initial begin : p_parameter_checks
+    if ((XLEN != 32) && (XLEN != 64))
+      $fatal(1, "Fetch queue XLEN must be 32 or 64");
+    if ((FETCH_BYTES < 8) || ((FETCH_BYTES & (FETCH_BYTES-1)) != 0))
+      $fatal(1, "FETCH_BYTES must be a power of two and at least 8");
+    if ((FETCH_BYTES % 2) != 0)
+      $fatal(1, "FETCH_BYTES must contain whole 2-byte instruction parcels");
+    if ((QUEUE_BYTES < (2*FETCH_BYTES)) ||
+        ((QUEUE_BYTES % FETCH_BYTES) != 0))
+      $fatal(1, "Fetch queue must contain an integer number of blocks");
+    if ((QUEUE_BLOCKS & (QUEUE_BLOCKS-1)) != 0)
+      $fatal(1, "Fetch queue block count must be a power of two");
+  end
+endmodule

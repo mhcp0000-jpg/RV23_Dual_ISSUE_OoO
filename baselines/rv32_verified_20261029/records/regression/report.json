@@ -1,0 +1,2784 @@
+{
+  "passed": true,
+  "state": "finished",
+  "target": "RV32IMFC_Zicsr_Zifencei",
+  "expected_cases": [
+    "rv_rename2_tb",
+    "rv_phys_regfile_tb",
+    "rv_execute_units_tb",
+    "rv_decode2_tb",
+    "rv_divider_tb",
+    "rv_fpu_tb",
+    "rv_fpu_diff_tb",
+    "rv_fetch_queue_tb",
+    "rv_fetch_target_buffer_tb",
+    "rv_lsu_pipe_tb",
+    "rv_lsu_pipe_depth2_tb",
+    "rv_issue_arbiter_age_tb",
+    "rv_store_buffer_tb",
+    "rv_lsq_tb",
+    "rv_writeback_arbiter_tb",
+    "rv_branch_recovery_tb",
+    "rv_trap_controller_tb",
+    "rv_exec_result_buffer_tb",
+    "rv_exec_result_buffer_depth2_tb",
+    "rv_csr_file_tb",
+    "rv_pmp_tb",
+    "rv_branch_arithmetic_tb",
+    "rv_rob_tb",
+    "rv_issue_queue_tb",
+    "rv_issue_arbiter_tb",
+    "rv_issue_arbiter_equiv_tb",
+    "rv_issue_queue_tb__GCompatiblePairSelect_1",
+    "rv_lsq_tb__GEarlyLoadSelect_1",
+    "rv_multiplier_tb",
+    "rv_branch_predictor_tb",
+    "rv_branch_target_arithmetic_tb",
+    "rv_axi_bridge_tb",
+    "rv_axi_to_local_burst_tb",
+    "rv_soc_peripheral_tb",
+    "rv_plic_tb",
+    "rv_clint_tb",
+    "rv_lsu_pipe_widths_tb",
+    "rv_frontend_cross_block_tb",
+    "rv_lsu_base_cache_tb",
+    "rv_lsu_base_cache64_tb",
+    "rv_fpu_tb_latency2",
+    "rv_fpu_tb_latency5",
+    "rv_fpu_tb_latency6",
+    "rv_pmp_tb_pa32",
+    "rv_exec_result_buffer_depth2_tb_xlen32",
+    "rv_pmp_tb_pa64",
+    "rv_exec_result_buffer_depth2_tb_xlen64",
+    "rv_issue_arbiter_equiv_tb_ports2",
+    "rv_issue_arbiter_equiv_tb_ports3",
+    "rv_issue_arbiter_equiv_tb_ports4",
+    "rv_issue_arbiter_equiv_tb_ports6",
+    "rv_lsq_tb_early0_agu1",
+    "rv_lsq_tb_early1_agu1",
+    "rv_backend_int_tb",
+    "rv_backend_int_tb_div_stress",
+    "rv_frontend_cross_block_tb_xlen64",
+    "rv_frontend_cross_block_tb_xlen64_pa32",
+    "rv_backend_seq_admission_tb"
+  ],
+  "cases": [
+    {
+      "name": "rv_rename2_tb",
+      "top": "rv_rename2_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+        "tb/unit/backend/rv_rename2_tb.sv": "da3118bd8747c6901c074b5d62698e59576a0c2190ef5527b0572938e80c6ea5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.285,
+        "log": "out/regression/rv_rename2_tb/compile.log",
+        "log_sha256": "f00e6cf669898d1916bdcc4c3f52663cba3f15bede49303f2146d47e443e389d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.781,
+        "log": "out/regression/rv_rename2_tb/build.log",
+        "log_sha256": "20b7b1854f2ddedec99eb712ec02d58c2b534e6cd012d1f3ade18d4ae89fa8a9",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_rename2_tb/Vrv_rename2_tb.exe",
+      "binary_sha256": "920fabaefaef662068ffefe21cbd15e96a5278d644ff7a645f34e0bf9243b4a1",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.53,
+          "log": "out/regression/rv_rename2_tb/simulation.log",
+          "log_sha256": "9341107ffabc538edc47fd5e1c50f56bbcfd7bbc149a9243bc0b8a8ee17c44d5",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_rename2_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_phys_regfile_tb",
+      "top": "rv_phys_regfile_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+        "tb/unit/backend/rv_phys_regfile_tb.sv": "19021f7b4ec64fce6dd74c155aad409b9c5bb266e96282d409d1698cefb6b33d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.617,
+        "log": "out/regression/rv_phys_regfile_tb/compile.log",
+        "log_sha256": "37ea5de933f7022728f8cd1cacfcbc5c52905da414389ded6996a632f2fc94e4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 10.862,
+        "log": "out/regression/rv_phys_regfile_tb/build.log",
+        "log_sha256": "75123abdba658424359c48c22e12a2d9fc04039fed5105794155f5c3f8129b59",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_phys_regfile_tb/Vrv_phys_regfile_tb.exe",
+      "binary_sha256": "779d59620f8f77cb1b96108a49b483528352349c972fa6c377d43318f4d2508e",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.405,
+          "log": "out/regression/rv_phys_regfile_tb/simulation.log",
+          "log_sha256": "89dc217366715b37f47599d0c7f30bbae5c05ab33f3fbae270d1063064236ac5",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_phys_regfile_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_execute_units_tb",
+      "top": "rv_execute_units_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+        "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+        "tb/unit/backend/rv_execute_units_tb.sv": "8b1c86afa738bd8c50dce658d659da61c6ae3d373131f4391617f778d7bdeaae"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.119,
+        "log": "out/regression/rv_execute_units_tb/compile.log",
+        "log_sha256": "c41fe12b1bb8194458bb7aeb1b884400acbc6584b7e8dbecb0d2459fa42af13e",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 10.476,
+        "log": "out/regression/rv_execute_units_tb/build.log",
+        "log_sha256": "dacef3f1737f9d10ce4c7859aacac735bf7001252f6ed4590f987689ae5aa6e4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_execute_units_tb/Vrv_execute_units_tb.exe",
+      "binary_sha256": "68caf553a29e7543c151a84c1b25f52770e35ca2366b1333ebc89bf3ca857cb0",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.351,
+          "log": "out/regression/rv_execute_units_tb/simulation.log",
+          "log_sha256": "d7504f064457d857a62ad633a2ec6fe0636a623d4b6fe1a2bb6bf951c8e417f6",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_execute_units_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_decode2_tb",
+      "top": "rv_decode2_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+        "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+        "tb/unit/backend/rv_decode2_tb.sv": "c6a5a46a2d07cc64778bd75b1725009ece373f307fa0af1bd1710686ffa59544"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.192,
+        "log": "out/regression/rv_decode2_tb/compile.log",
+        "log_sha256": "d1348a6228770bf48019da11022ff9880e0ab40fbf2093cc0b72d71a139ae1f0",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.169,
+        "log": "out/regression/rv_decode2_tb/build.log",
+        "log_sha256": "1895c26ee349625403a59fed5187fb3f62de5c3196245f1ae7cf0a6c31990356",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_decode2_tb/Vrv_decode2_tb.exe",
+      "binary_sha256": "0ef2a0cd06e4447457b9160dc10c6b0070fcb0e25fccb15ba9f0c6f1aa111d0c",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.334,
+          "log": "out/regression/rv_decode2_tb/simulation.log",
+          "log_sha256": "d481ccb8aeec67e1d1a3aa871bece8f1a5fcf4f43da74b45098ead30dbcbcaac",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_decode2_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_divider_tb",
+      "top": "rv_divider_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+        "tb/unit/backend/rv_divider_tb.sv": "bbf4e1e421670bd7f4f3929c83c2be40846dfe596f30d02603782dbccef52d86"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.102,
+        "log": "out/regression/rv_divider_tb/compile.log",
+        "log_sha256": "4a286f885ce3fdfb825c1ffed12a84d571531e932839a4681793af03530dfb33",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.704,
+        "log": "out/regression/rv_divider_tb/build.log",
+        "log_sha256": "2f3b0217ce73cf2cf2a4defda7fe59c9c263968b4430793eeac30eaaa86ea332",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_divider_tb/Vrv_divider_tb.exe",
+      "binary_sha256": "1ce27f655c0797d5acc9e3620152247f1f2507b5905774a8f0629f5f4a652403",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.384,
+          "log": "out/regression/rv_divider_tb/simulation.log",
+          "log_sha256": "dd4a90e020cd290b42f09f355aadbf0fee8a97805f06ca60e6f1a6bda5e10f65",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "DIV/REM corners: zero divisor, overflow, remainder sign and magnitude boundaries PASS",
+            "rv_divider_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fpu_tb",
+      "top": "rv_fpu_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "tb/unit/backend/rv_fpu_tb.sv": "8043492ecb31a9274f669b40bcbb7441b5f0dfe07c2ef1fed9cd7bf003cc0335"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.303,
+        "log": "out/regression/rv_fpu_tb/compile.log",
+        "log_sha256": "a2b66aec01c77280a8317841b37395a12a6ab5a83532074627e16d1efcb70d55",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 23.302,
+        "log": "out/regression/rv_fpu_tb/build.log",
+        "log_sha256": "96dd6f1b57701cce17da927f9bc156b57bc66ab9e4892c229720e49319029982",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fpu_tb/Vrv_fpu_tb.exe",
+      "binary_sha256": "f3b15499fd7ce070da973ae36fa4b19e701a6ca5f87b1bd043995537e5d61996",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.997,
+          "log": "out/regression/rv_fpu_tb/simulation.log",
+          "log_sha256": "242e6f253850f0f5bd7179e81806746bf62abf798fe2648095ab7f4eaa2889d3",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "FPU transport: back-to-back, stall stability, selective/wrap/full flush and restart PASS",
+            "rv_fpu_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fpu_diff_tb",
+      "top": "rv_fpu_diff_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "tb/unit/backend/rv_fpu_diff_tb.sv": "9d0512c8e79b74a00b34a8b717df5f4b38764752c9eb7899305de4c78d94705e",
+        "out/regression/fpu_vectors.hex": "a4c618d7a9ad93ca64df1af9007fe2b5056f4a6d89a32ca4e1af7c885a036c59",
+        "scripts/gen_fpu_diff_vectors.py": "0ed57b247e21e46c4b870ef9c012b80e49f5dbe215f6b08c9913418281f07233"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.242,
+        "log": "out/regression/rv_fpu_diff_tb/compile.log",
+        "log_sha256": "257f4e90d7d75baa74e4eaba82c9dcec77863fecc28a999cd0ee46310d4c264f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 20.711,
+        "log": "out/regression/rv_fpu_diff_tb/build.log",
+        "log_sha256": "658e6001195feac92b9bb55af32b53b334e6a4237393fc5af6b6826ad3b90ca3",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fpu_diff_tb/Vrv_fpu_diff_tb.exe",
+      "binary_sha256": "1dc0248ea74f40e848629182c58483eb8f020f19362ca1f4f67d80eeec014ace",
+      "passed": true,
+      "vector_sha256": "a4c618d7a9ad93ca64df1af9007fe2b5056f4a6d89a32ca4e1af7c885a036c59",
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 15.635,
+          "log": "out/regression/rv_fpu_diff_tb/static.log",
+          "log_sha256": "e7809dfd4334a172de352616dfed363f933f1f0aa7b000557ef530dbd7add905",
+          "expected_failure": null,
+          "passed": true,
+          "args": [
+            "+fpu_vectors=out/regression/fpu_vectors.hex"
+          ],
+          "witnesses": [
+            "rv_fpu_diff_tb PASS vectors=113600 dynamic_rm=0"
+          ]
+        },
+        {
+          "exit_code": 0,
+          "seconds": 15.103,
+          "log": "out/regression/rv_fpu_diff_tb/dynamic.log",
+          "log_sha256": "c9a9dd5e69fdb7eaedca6ec5ad8895a35750a3472072c2c87b4af25f1dfd7fc5",
+          "expected_failure": null,
+          "passed": true,
+          "args": [
+            "+fpu_vectors=out/regression/fpu_vectors.hex",
+            "+fpu_dynamic_rm"
+          ],
+          "witnesses": [
+            "rv_fpu_diff_tb PASS vectors=113600 dynamic_rm=1"
+          ]
+        }
+      ],
+      "oracle_negative_control": {
+        "exit_code": 1,
+        "seconds": 0.081,
+        "log": "out/regression/rv_fpu_diff_tb/wrong_expected.log",
+        "log_sha256": "970b28f95d31569f08f80809a579a2428d9afa289d9c7622f4a546ff359401b8",
+        "expected_failure": "FPU differential mismatch",
+        "passed": true,
+        "args": [
+          "+fpu_vectors=out/regression/fpu_wrong_expected.hex"
+        ],
+        "witnesses": []
+      }
+    },
+    {
+      "name": "rv_fetch_queue_tb",
+      "top": "rv_fetch_queue_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+        "tb/unit/frontend/rv_fetch_queue_tb.sv": "533296cff530b1619131f95efef20f9550feae661518f6986a1730dbe9817cd1"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.549,
+        "log": "out/regression/rv_fetch_queue_tb/compile.log",
+        "log_sha256": "f3870a80f1c44c3e2133433a75b6084f11f6ecc47238a9fce919633669b6b481",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 10.512,
+        "log": "out/regression/rv_fetch_queue_tb/build.log",
+        "log_sha256": "9b5350fb731903dff282c8b1ab87a5b6d127c8d1fc8ca5fbc40b2c37b1409a5b",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fetch_queue_tb/Vrv_fetch_queue_tb.exe",
+      "binary_sha256": "9ecd68a1010c2b0d50e2afc2a8b6f8c4b60d745a7507d21ac7fd3083540be011",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.404,
+          "log": "out/regression/rv_fetch_queue_tb/simulation.log",
+          "log_sha256": "9d729478fe1bca3931b0d7058342fa6c2bb097f5ad138b7714887c5785b97f80",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_fetch_queue_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fetch_target_buffer_tb",
+      "top": "rv_fetch_target_buffer_tb",
+      "params": [],
+      "inputs": {
+        "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+        "tb/unit/frontend/rv_fetch_target_buffer_tb.sv": "f8fb78f4ab3d0b1f7ba5e22b179333b336cd0be72295e56f857fb9bc31fb9ad8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.093,
+        "log": "out/regression/rv_fetch_target_buffer_tb/compile.log",
+        "log_sha256": "9173f69014bfeac2c8a76b79e97335a7c5e29847352f245d4be2785ede5f60b0",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.887,
+        "log": "out/regression/rv_fetch_target_buffer_tb/build.log",
+        "log_sha256": "cc5b76b0630e16264b0a4b8b37d6ac22738ff5f9ca04ecc0a5c7ff689850ed05",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fetch_target_buffer_tb/Vrv_fetch_target_buffer_tb.exe",
+      "binary_sha256": "6c1fceda11c3a61bf3fb8f356f2df5d031d64612c13a514f0e987420cd19b401",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.711,
+          "log": "out/regression/rv_fetch_target_buffer_tb/simulation.log",
+          "log_sha256": "475d0415cb9b10e3dd009e194045a723eb8c9d13c14315def66b757f10cf048b",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_fetch_target_buffer_tb PASS (25000 randomized cycles)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsu_pipe_tb",
+      "top": "rv_lsu_pipe_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "tb/unit/backend/rv_lsu_pipe_tb.sv": "ce11dbf939f73bafb6e4c7d9fc246281fb5491baa39094e6a6a19ce0329f9f9b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.112,
+        "log": "out/regression/rv_lsu_pipe_tb/compile.log",
+        "log_sha256": "1f2e74b73b5e4030accf115480d4b797bdf5677675269d7f3fde9c93b2f901b9",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 7.967,
+        "log": "out/regression/rv_lsu_pipe_tb/build.log",
+        "log_sha256": "f299c0c0ba76c2879c7da533b1cac229e423fd125b9fbbca91a99dddb971b844",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsu_pipe_tb/Vrv_lsu_pipe_tb.exe",
+      "binary_sha256": "2401237fbf035b0d75f55ce97218f670a5f107a3bfae1b35ff0b222893df0f12",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.319,
+          "log": "out/regression/rv_lsu_pipe_tb/simulation.log",
+          "log_sha256": "bf6863ce74f4373dd783f15fdbf12dc6d83d45edd83e9027569e0ec1e4e9cc20",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_lsu_pipe_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsu_pipe_depth2_tb",
+      "top": "rv_lsu_pipe_depth2_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "tb/unit/backend/rv_lsu_pipe_depth2_tb.sv": "8b5278b9b95773d0926134666226389316696c5d3025466f8fda0c7879efe4cd"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.116,
+        "log": "out/regression/rv_lsu_pipe_depth2_tb/compile.log",
+        "log_sha256": "f8462bc0b3072b9aae7a70340dac0d0a02ffcd6cd03d94c702014e2c423d78b4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 7.343,
+        "log": "out/regression/rv_lsu_pipe_depth2_tb/build.log",
+        "log_sha256": "0fbe5d6a425d70c42017aa57c045aecdef7d18c1e609ab12d59bc37c21fc4aa7",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsu_pipe_depth2_tb/Vrv_lsu_pipe_depth2_tb.exe",
+      "binary_sha256": "bda24a8636d3349145110d5c0600c48711059bc7e6416368caabaca482db1aa1",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.918,
+          "log": "out/regression/rv_lsu_pipe_depth2_tb/simulation.log",
+          "log_sha256": "a7a53096ffdda675de53258711676a9f1c1b959bd7586c9082fbe3b53d910828",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_lsu_pipe_depth2_tb PASS pushes=104158 pops=100807 flushes=6880 full=38128"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_age_tb",
+      "top": "rv_issue_arbiter_age_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_age_tb.sv": "4b714e2fa8b52f34f518e19373d20af667b1ef8ed51f8f3d12c5c85b076777e8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.126,
+        "log": "out/regression/rv_issue_arbiter_age_tb/compile.log",
+        "log_sha256": "3e049d58e899d28ca6942204082195cfdabd7eba26bb06d9867951a259796482",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.662,
+        "log": "out/regression/rv_issue_arbiter_age_tb/build.log",
+        "log_sha256": "7efde123334e6d81c2f1bf45f8eed6d5ef58b0232f888060f39d2c9621987a38",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_age_tb/Vrv_issue_arbiter_age_tb.exe",
+      "binary_sha256": "a33dd7772903dde83e7d9f896e40b72e86a804f675395540e381b7116325e7c5",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.739,
+          "log": "out/regression/rv_issue_arbiter_age_tb/simulation.log",
+          "log_sha256": "1326fb7aee69f7a8204d72322c01958816c60b6fd4c8ad60806d68edb90a0b20",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_issue_arbiter_age_tb PASS vectors=200000 dual_issue=37112"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_store_buffer_tb",
+      "top": "rv_store_buffer_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+        "tb/unit/backend/rv_store_buffer_tb.sv": "e6ab65d30392e2dec3dd81e8996c8cc10416c52d4b798ce07ce71260db2a2c6d"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.125,
+        "log": "out/regression/rv_store_buffer_tb/compile.log",
+        "log_sha256": "346f4d48cceacf77eeb0653cc144a0b8f5a1db2bfe1cf5978abc94cfa039f2e8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 7.158,
+        "log": "out/regression/rv_store_buffer_tb/build.log",
+        "log_sha256": "a49f19fe390b77fa5e7f36a60038c2dd362ba2dfe39c16383e47aef92744fa8d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_store_buffer_tb/Vrv_store_buffer_tb.exe",
+      "binary_sha256": "e2c0656221f01bcb4e8dfc35f40ea9d9492ab77808b1253134d674d952379f66",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.389,
+          "log": "out/regression/rv_store_buffer_tb/simulation.log",
+          "log_sha256": "827a24406fb1a9eb3696e6fc20393fabe892fc18b6be03da05e8797bfce8b6f6",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Store buffer forwarding across half-sequence-space gap PASS",
+            "Store buffer FIFO physical wrap, timestamp wrap and dual-query PASS",
+            "rv_store_buffer_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsq_tb",
+      "top": "rv_lsq_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "tb/unit/backend/rv_lsq_tb.sv": "497b576122b0d463771562e79ffdcbe450db50cb42ec0d212074f4965e8970e9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.227,
+        "log": "out/regression/rv_lsq_tb/compile.log",
+        "log_sha256": "9d827af4d23116bb55f50263fb0960c15b491c8ed05e43bfd3ddb367a13deed4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.662,
+        "log": "out/regression/rv_lsq_tb/build.log",
+        "log_sha256": "ed78b8bd06ffbceecc88a2a619d21bedb34748978c2ce8b1369af59542e14bc1",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsq_tb/Vrv_lsq_tb.exe",
+      "binary_sha256": "b5196786a5fc62fa47b1ba32c64286d02a894273c297a040ba12dde5f3923318",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.462,
+          "log": "out/regression/rv_lsq_tb/simulation.log",
+          "log_sha256": "b5ac38c130d5fc9576907d70daa6dd68f15ef82aabbf83c9190e5a05b01116d1",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "LSQ resolved older-store / competing-candidate backpressure PASS",
+            "rv_lsq_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_writeback_arbiter_tb",
+      "top": "rv_writeback_arbiter_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+        "tb/unit/backend/rv_writeback_arbiter_tb.sv": "413442ebf61bcaab700b5eede703d2cfabf548e6ed5cb26fc6ca9adbdbac8b44"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.233,
+        "log": "out/regression/rv_writeback_arbiter_tb/compile.log",
+        "log_sha256": "b7d7ff4dae477edb0b18976f40720397e22891597b828e8fc9084d96415ec46e",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 10.934,
+        "log": "out/regression/rv_writeback_arbiter_tb/build.log",
+        "log_sha256": "c5f2f785932cd5aa508742d54a78f2cbe002315103d92da14ef7fece57535ebc",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_writeback_arbiter_tb/Vrv_writeback_arbiter_tb.exe",
+      "binary_sha256": "7c0e48ad1f3853c330f56cf2355e3d2ed5ed579702424403d4bfd935bddedef9",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.341,
+          "log": "out/regression/rv_writeback_arbiter_tb/simulation.log",
+          "log_sha256": "eb5df41899960ad7078a4bc45ffaebb7e39d84135d13b428679b28dcb3cf52e5",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_writeback_arbiter_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_branch_recovery_tb",
+      "top": "rv_branch_recovery_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+        "tb/unit/backend/rv_branch_recovery_tb.sv": "a436d9d17372475c353f627067b62fc7cc30131c6309da4d5efab7ef7f9b7c77"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.077,
+        "log": "out/regression/rv_branch_recovery_tb/compile.log",
+        "log_sha256": "0e47413397d165f5640dd6c1b35fd84f74c4e8cb52a08c95f9ae6257c0ed41a0",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.718,
+        "log": "out/regression/rv_branch_recovery_tb/build.log",
+        "log_sha256": "2902d6dae334350184fa3051d2ca3dc180bf372e8972403a2a9f68f6cd904812",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_branch_recovery_tb/Vrv_branch_recovery_tb.exe",
+      "binary_sha256": "50d2227f8c219768c071f48e2dfc673403de8270aa785c19b2824737a48ec8bc",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.327,
+          "log": "out/regression/rv_branch_recovery_tb/simulation.log",
+          "log_sha256": "5f36ca4b18b13ef2415afcaa0c45ede9439e7ddf9afceff07f89b72c8c9fec06",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_branch_recovery_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_trap_controller_tb",
+      "top": "rv_trap_controller_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+        "tb/unit/backend/rv_trap_controller_tb.sv": "1fa75aa9b2e9fd5c8d70c5e4b5434dfd34414a86a518ecbb63dec1dd41e6f8a9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.096,
+        "log": "out/regression/rv_trap_controller_tb/compile.log",
+        "log_sha256": "10d123f48516cbb68d3f384d758f79f32f431ea745d9c2dc7750524387a764e6",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.463,
+        "log": "out/regression/rv_trap_controller_tb/build.log",
+        "log_sha256": "f0bb9792f9e68f03792c04e6574813ac3737f36d90148f370a016e8fbaf9a63d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_trap_controller_tb/Vrv_trap_controller_tb.exe",
+      "binary_sha256": "9f89cd3cd9febecde54e26b0fe215f21c3dbdcea872bc615a4732b7adeb8cf58",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.297,
+          "log": "out/regression/rv_trap_controller_tb/simulation.log",
+          "log_sha256": "cf67847fd0b815a81b185ec07adfe6a9f36d4ad44349047ac069dbaff6bdd675",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_trap_controller_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_tb",
+      "top": "rv_exec_result_buffer_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "tb/unit/backend/rv_exec_result_buffer_tb.sv": "cd237ae719090b0c7f469ee5469a3ff43f2e351b1ad51a2d4f0cb3062e3f0c83"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.09,
+        "log": "out/regression/rv_exec_result_buffer_tb/compile.log",
+        "log_sha256": "abf714011fcfba5f8ba39f20f8eaac514edcdeca9eccf3fee97e5b5e4f443904",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.583,
+        "log": "out/regression/rv_exec_result_buffer_tb/build.log",
+        "log_sha256": "65d79f59e06496ea302b073a1bc327b45787fe64afedae9f36fd20e758b79628",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_exec_result_buffer_tb/Vrv_exec_result_buffer_tb.exe",
+      "binary_sha256": "f2a80d85c0ce57ed0ac52371309f75181c844ecdff2dd9db067b21990df67f87",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.305,
+          "log": "out/regression/rv_exec_result_buffer_tb/simulation.log",
+          "log_sha256": "954e89c405a7b9133ed23847c1d48dedcfc7f35dbbc4f65a5f6dc49d9fbd472a",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_exec_result_buffer_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv": "55643418cb4e6d66997d396ecfb758a51156c6017b3c4869da36e156345becbf"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.091,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb/compile.log",
+        "log_sha256": "f1b2fa36b94a4c78cc919a1ab89b69f6f19cc677945231d2a773bbc1c19d78f4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.998,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb/build.log",
+        "log_sha256": "5fe2e37a03595297305b61d960affa95fed721f5958fe935ac2f918f184cccd4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_exec_result_buffer_depth2_tb/Vrv_exec_result_buffer_depth2_tb.exe",
+      "binary_sha256": "1ad6c8123c0ba81fbc80d041a20c7e234989cb450844a623dbc6a1305350649d",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.044,
+          "log": "out/regression/rv_exec_result_buffer_depth2_tb/simulation.log",
+          "log_sha256": "70ed1ec24962ce0cea6e175e0ed8c8fed8f9281330b6b3f1724984747a3745ab",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_exec_result_buffer_depth2_tb PASS pushes=110733 pops=106821 flushes=8669"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_csr_file_tb",
+      "top": "rv_csr_file_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+        "tb/unit/backend/rv_csr_file_tb.sv": "8de87fa08aec544deeed19cb30a797790d6c8a31f275597c1289566e9667d3d3"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.3,
+        "log": "out/regression/rv_csr_file_tb/compile.log",
+        "log_sha256": "9a545da324b798e331c809a7329fdc97b7636baddb80cd61583b77628557541c",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 13.321,
+        "log": "out/regression/rv_csr_file_tb/build.log",
+        "log_sha256": "41afd5d99334cd8cd18c60661b2e9b1dc1d9d7f8bd1d8e8a3b257ff66f492d74",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_csr_file_tb/Vrv_csr_file_tb.exe",
+      "binary_sha256": "ee352d8728bdac76c2fb9ae8ebde9f2565dbb137265470a0d1e39d11e5058c2a",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.562,
+          "log": "out/regression/rv_csr_file_tb/simulation.log",
+          "log_sha256": "6f149cbced2ccc39ed8fc41a860f75206b999ab0eadc213e329c5ce0ce221799",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "CSR counter 400032 arithmetic vectors PASS",
+            "CSR corners: RMW old-value, x0 suppression, captured payload PASS",
+            "CSR corners: read-only access, unknown address, flush cancellation PASS",
+            "CSR corners: WARL masks, mepc halfword, FCSR aliases/SD PASS",
+            "CSR corners: counters, nested trap, MRET/MPRV PASS",
+            "CSR corners: PMP reserved bits, WARL, TOR neighbor lock PASS",
+            "CSR corners: WFI/TW and U-mode interrupt eligibility PASS",
+            "CSR corners: trap/MRET/CSR-write/FP-accrual edge priority PASS",
+            "CSR counters: 64 low/high-write/count/trap/MRET/flush priority cases PASS",
+            "rv_csr_file_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_pmp_tb",
+      "top": "rv_pmp_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "tb/unit/backend/rv_pmp_tb.sv": "d0f6be9456b536d4dea4ee2be018f13a728250e3340ac2d782d94af01cda9b78"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.138,
+        "log": "out/regression/rv_pmp_tb/compile.log",
+        "log_sha256": "2c38a80f4c899611c6837792aa8c28b3aca8b6693f7b619f8aa2bba11e3abe1b",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.928,
+        "log": "out/regression/rv_pmp_tb/build.log",
+        "log_sha256": "c6be4cde7bdcc117cfb60064a1c12846511d4291ed72016e9d5bcd294d1909a4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_pmp_tb/Vrv_pmp_tb.exe",
+      "binary_sha256": "04f954c5fbff503456de1acf41d927e205ea5aafc19e5343dea7e6406126d860",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.49,
+          "log": "out/regression/rv_pmp_tb/simulation.log",
+          "log_sha256": "5779d31bd6996b2401da3b103707498a39722e472ec731275bd63907fe7d3876",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_pmp_tb PASS PADDR=32"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_branch_arithmetic_tb",
+      "top": "rv_branch_arithmetic_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+        "tb/unit/backend/rv_branch_arithmetic_tb.sv": "5a8f9c5cbba7020818adf9f5d12c6194914326f283ca189e554a70a194d54fff"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.291,
+        "log": "out/regression/rv_branch_arithmetic_tb/compile.log",
+        "log_sha256": "a77c2253d03922b132cfdb4ef6fbcf1150d0b4b0e5d96b013e5a18b722dd3897",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.829,
+        "log": "out/regression/rv_branch_arithmetic_tb/build.log",
+        "log_sha256": "f18eeedecd6a6bec54bddadee8dbe5703dbddfcd3b887eb86467a43321d35bda",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_branch_arithmetic_tb/Vrv_branch_arithmetic_tb.exe",
+      "binary_sha256": "df3b31762cc94c44ef61c97020058317cd78a64866a15079172f6b198a835164",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.81,
+          "log": "out/regression/rv_branch_arithmetic_tb/simulation.log",
+          "log_sha256": "f9f5281019f2cf22852d83ebb3b627a3d8559f37ea2a1f4134f9b452d6b60831",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "BRU arithmetic PASS XLEN=64 (231072 vectors)",
+            "BRU arithmetic PASS XLEN=32 (231072 vectors)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_rob_tb",
+      "top": "rv_rob_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+        "tb/unit/backend/rv_rob_tb.sv": "2cc013780cc911136212fb5d0b27a6a53cf1eab5d692a7393c1313b36fa6dfb4"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.002,
+        "log": "out/regression/rv_rob_tb/compile.log",
+        "log_sha256": "ce2c05b26977ae44aa7294bf8d5aef0232cd698f21bc1328b5603cc923f869a8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 23.843,
+        "log": "out/regression/rv_rob_tb/build.log",
+        "log_sha256": "bb3f9675d8e86de47d44edf64678cb7bf02d9e2c68023007acbaa2d6bc427c83",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_rob_tb/Vrv_rob_tb.exe",
+      "binary_sha256": "20a9ea02969d1556446c7fe6301fbd4458a7dc6083f6fb4133e11775e8efaf31",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.658,
+          "log": "out/regression/rv_rob_tb/simulation.log",
+          "log_sha256": "5dc569e3f14e8119a42da811a02bafe083374e23740801d3653e7bb58224f945",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_rob_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_queue_tb",
+      "top": "rv_issue_queue_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "tb/unit/backend/rv_issue_queue_tb.sv": "6f5a4964cc91030389e5199d8b4e2fa36918d661739c32728fc1e9a9a7b23749"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.214,
+        "log": "out/regression/rv_issue_queue_tb/compile.log",
+        "log_sha256": "01f287b40a112a192e441054f51ceb598e8431831b0e25bb205d60153f13647f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.805,
+        "log": "out/regression/rv_issue_queue_tb/build.log",
+        "log_sha256": "70adfcafca31f1a5992ed8f20cc25d4ad8518266f4dfed6844db5d8fbf1562bf",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_queue_tb/Vrv_issue_queue_tb.exe",
+      "binary_sha256": "d67679c5035bc1c7f68552f3be461cfe2ae624d25879ddb4c81a536b47c529db",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.436,
+          "log": "out/regression/rv_issue_queue_tb/simulation.log",
+          "log_sha256": "3d43093b02b6a7db235e12b63ddaf4b3be0aafcddbd574e96246595c1c83c8a2",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_issue_queue_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_tb",
+      "top": "rv_issue_arbiter_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_tb.sv": "15fa1872254b079bb6cc39a7d37a64ba76aff34bea4bfc2f4cff0622118e7d78"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.106,
+        "log": "out/regression/rv_issue_arbiter_tb/compile.log",
+        "log_sha256": "228aee5436211daca75f1dd6165a93fbd5875ebecd5acc600629b702e3054034",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 7.168,
+        "log": "out/regression/rv_issue_arbiter_tb/build.log",
+        "log_sha256": "de11a455c9e52eaefbded8ae7b002cab4a9a02e5e42e1696e5fa31e012813340",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_tb/Vrv_issue_arbiter_tb.exe",
+      "binary_sha256": "6711e93983a9bc6598ffb4845f42eae46d83b1dcdd1666ae86648f2cb00924f4",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.305,
+          "log": "out/regression/rv_issue_arbiter_tb/simulation.log",
+          "log_sha256": "1abe52ef13bce7162d995fbc35de7b2d3389cce5c6751c0037a0a6c995b24c0f",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_issue_arbiter_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.131,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb/compile.log",
+        "log_sha256": "843769e32b3a0d68ba35861ad76d13bd9f627e70b3898743587f65fce4e04cf8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.891,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb/build.log",
+        "log_sha256": "8b4622710743f0a8342c6a0b2ac45bc532b771079116d4ad49f67f279d8f4003",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_equiv_tb/Vrv_issue_arbiter_equiv_tb.exe",
+      "binary_sha256": "5fd3fc96eb72a8b1b91fc3698997b0c45759bf386b35f60c455f9819ad875b3c",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.686,
+          "log": "out/regression/rv_issue_arbiter_equiv_tb/simulation.log",
+          "log_sha256": "e54ce6aefa28d42816d42aaff2380923bce44d20dbf11bef3dcd83bd7890e267",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Issue arbiter parallel fast path vs generic PASS ports=5 (262144 exhaustive cases)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_queue_tb__GCompatiblePairSelect_1",
+      "top": "rv_issue_queue_tb",
+      "params": [
+        "-GCompatiblePairSelect=1"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "tb/unit/backend/rv_issue_queue_tb.sv": "6f5a4964cc91030389e5199d8b4e2fa36918d661739c32728fc1e9a9a7b23749"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.23,
+        "log": "out/regression/rv_issue_queue_tb__GCompatiblePairSelect_1/compile.log",
+        "log_sha256": "e77f1523adc42d64386abc8c730a9e739613a51f79717111bd2f30b517575247",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 12.002,
+        "log": "out/regression/rv_issue_queue_tb__GCompatiblePairSelect_1/build.log",
+        "log_sha256": "b5aa43c695a3079c8fe8a2b65d187666d500e2b0aca6ca4ace6101d4f8cc3758",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_queue_tb__GCompatiblePairSelect_1/Vrv_issue_queue_tb.exe",
+      "binary_sha256": "9b76a8d471586daeb46f93c00805b3ce30d866306cbb7b024fbfaa6542a45552",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.428,
+          "log": "out/regression/rv_issue_queue_tb__GCompatiblePairSelect_1/simulation.log",
+          "log_sha256": "ce2a04979c6f0c4f7234855e71a576880c2adcc8688cc82988df16e3245e660c",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "IQ compatible pair wrap/skip/resident PASS",
+            "rv_issue_queue_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsq_tb__GEarlyLoadSelect_1",
+      "top": "rv_lsq_tb",
+      "params": [
+        "-GEarlyLoadSelect=1"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "tb/unit/backend/rv_lsq_tb.sv": "497b576122b0d463771562e79ffdcbe450db50cb42ec0d212074f4965e8970e9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.246,
+        "log": "out/regression/rv_lsq_tb__GEarlyLoadSelect_1/compile.log",
+        "log_sha256": "810eb7e12f6b7f761340ac2bcb38399751cabca16c75e9ed8b42783f5132e367",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 12.779,
+        "log": "out/regression/rv_lsq_tb__GEarlyLoadSelect_1/build.log",
+        "log_sha256": "2fe92f9ed6d7218ddde48d9a5003cd16c45b66a122c42c562bcdd329970f666d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsq_tb__GEarlyLoadSelect_1/Vrv_lsq_tb.exe",
+      "binary_sha256": "2ad2a0c92622a22298dbd9aa72442ac7066586be0025ca22d92ded7307b9b688",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.454,
+          "log": "out/regression/rv_lsq_tb__GEarlyLoadSelect_1/simulation.log",
+          "log_sha256": "a0439a960d17d12ae822ca30affced64812f1b8a0bc70bf92850db40a0271972",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "LSQ preview withheld-update/access-fault safety PASS",
+            "LSQ resolved older-store / competing-candidate backpressure PASS",
+            "rv_lsq_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_multiplier_tb",
+      "top": "rv_multiplier_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+        "tb/unit/backend/rv_multiplier_tb.sv": "b3721d5dfbb0ae1e2f724bce8554e2b745735aff3920d9640f5d0d9f2b4279db"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 3.016,
+        "log": "out/regression/rv_multiplier_tb/compile.log",
+        "log_sha256": "ed3da63e2c43f0dc8eb56dcc832c5f6720ba1466da979eb95c71b6d40c6d647f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 14.887,
+        "log": "out/regression/rv_multiplier_tb/build.log",
+        "log_sha256": "96c82aa46bbb34f4cc7b6f0a739bd8cad7c4e77d55e644cddca6e9d68a0df331",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_multiplier_tb/Vrv_multiplier_tb.exe",
+      "binary_sha256": "29b6790e4c2cb25b5ca1466d9fd1c0beaa826aa5421c903386c0136f244c2089",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.516,
+          "log": "out/regression/rv_multiplier_tb/simulation.log",
+          "log_sha256": "379cc4fdac4404064c4199ac0119039d252c0b526ac0e6769c32eebf8ca5354b",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_multiplier_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_branch_predictor_tb",
+      "top": "rv_branch_predictor_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+        "tb/unit/frontend/rv_branch_predictor_tb.sv": "a8789658bda86857357c307b4c9ee2b4642b3f2aa421b569928ce2d63c37e97f"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.24,
+        "log": "out/regression/rv_branch_predictor_tb/compile.log",
+        "log_sha256": "c79c990c36474178fe06839090064723b65c31ded6566a9ee6b6f523d81937f2",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 14.013,
+        "log": "out/regression/rv_branch_predictor_tb/build.log",
+        "log_sha256": "d276788133df366dbf1e807352762008e4289c669cb3ea09053608575444b5ef",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_branch_predictor_tb/Vrv_branch_predictor_tb.exe",
+      "binary_sha256": "134b0abb048fab9f843cceef341eda7070ccbd403c45a7cf39f9fa2b342a8cb0",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.458,
+          "log": "out/regression/rv_branch_predictor_tb/simulation.log",
+          "log_sha256": "3431f911c1c5caba6903278e1086665502ef02515fb67113b52fb7c0edd91035",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_branch_predictor_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_branch_target_arithmetic_tb",
+      "top": "rv_branch_target_arithmetic_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+        "tb/unit/frontend/rv_branch_target_arithmetic_tb.sv": "a89a5bad168cb1e464aa9670f9dfcde76d0cce84945f0076a3d3c6066596cfcc"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.645,
+        "log": "out/regression/rv_branch_target_arithmetic_tb/compile.log",
+        "log_sha256": "b519a351aa457c75fa59b1bef5ee59bf6587994a5bdcc879e870823df8557a92",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 13.228,
+        "log": "out/regression/rv_branch_target_arithmetic_tb/build.log",
+        "log_sha256": "423cfc860bef8fe3f11a788cd22bd6ee16e177e79288c80106341b4f3cdd824e",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_branch_target_arithmetic_tb/Vrv_branch_target_arithmetic_tb.exe",
+      "binary_sha256": "950d1c7151f56cb4dc4fd340476b972328a51d83d3f1757c792684dfed55deb9",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.527,
+          "log": "out/regression/rv_branch_target_arithmetic_tb/simulation.log",
+          "log_sha256": "196d06d545d1bbb123b28e0e1de4417e89f1e26be6f2f551f0c9244b89906378",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Branch target arithmetic PASS XLEN=64 (296608 vectors)",
+            "Branch target arithmetic PASS XLEN=32 (296608 vectors)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_axi_bridge_tb",
+      "top": "rv_axi_bridge_tb",
+      "params": [],
+      "inputs": {
+        "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/soc/rv_axi4_if.sv": "e0676106a15a058f7ce10ae89845869ab6b2e7db36a16bfa4324888810c94af4",
+        "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+        "rtl/soc/rv_local_to_axi_bridge.sv": "e3bdb8b256abfce9a8188e3ef26007c1c873da6e853ba0e31e1edba1b07f7ddf",
+        "rtl/soc/rv_axi_to_local_bridge.sv": "4274bd4459249a3ca57ebe2cdee3ada536e049ac686cce6e6a0d23ad1fe297a9",
+        "tb/unit/soc/rv_axi_bridge_tb.sv": "5d3eda1af851895cf0c1035a7dd4346393a92cca145b46b7d345ad15cbe86dea"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.119,
+        "log": "out/regression/rv_axi_bridge_tb/compile.log",
+        "log_sha256": "e31384b0bfcfbca0049770510f75b77a8cf76fe3735fc813dfbfbb2c568646eb",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.517,
+        "log": "out/regression/rv_axi_bridge_tb/build.log",
+        "log_sha256": "d7ca2a24ce756823fe3c20e1ec4583b16eacef71c1fdbbe9ac73ac5f68e8bf95",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_axi_bridge_tb/Vrv_axi_bridge_tb.exe",
+      "binary_sha256": "ff6f232dbb8eb90d9203ee568807d89fff484d7e6749354acda885b37633ac40",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.328,
+          "log": "out/regression/rv_axi_bridge_tb/simulation.log",
+          "log_sha256": "519b9f10adab30829fdf5885c5abbeaaf374b8a3f1a4052d778a48acce410556",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_axi_bridge_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_axi_to_local_burst_tb",
+      "top": "rv_axi_to_local_burst_tb",
+      "params": [],
+      "inputs": {
+        "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/soc/rv_axi4_if.sv": "e0676106a15a058f7ce10ae89845869ab6b2e7db36a16bfa4324888810c94af4",
+        "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+        "rtl/soc/rv_axi_to_local_bridge.sv": "4274bd4459249a3ca57ebe2cdee3ada536e049ac686cce6e6a0d23ad1fe297a9",
+        "tb/unit/soc/rv_axi_bridge_tb.sv": "5d3eda1af851895cf0c1035a7dd4346393a92cca145b46b7d345ad15cbe86dea"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.09,
+        "log": "out/regression/rv_axi_to_local_burst_tb/compile.log",
+        "log_sha256": "a91f02afe1e5f65ea380511c8fb9bc7a7e4ae1490fd47baf83c26c70a2982ab8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.23,
+        "log": "out/regression/rv_axi_to_local_burst_tb/build.log",
+        "log_sha256": "2891a7bb89f643e5664a9367b0aa5af2f088a01f10a35f6771b91c8a989ee8f9",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_axi_to_local_burst_tb/Vrv_axi_to_local_burst_tb.exe",
+      "binary_sha256": "b64932c8314e9df09d9aca6226aa18e2b54c6d1465b8abd2052a9e20edb61520",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.297,
+          "log": "out/regression/rv_axi_to_local_burst_tb/simulation.log",
+          "log_sha256": "c939d753c35d720f825526bfe52afd2dc13f8949ddc22aff2eaaa6abeab2e5b9",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_axi_to_local_burst_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_soc_peripheral_tb",
+      "top": "rv_soc_peripheral_tb",
+      "params": [],
+      "inputs": {
+        "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+        "rtl/soc/rv_sram_1r1w.sv": "424005d980bade9f953a275c47cb69d339cb34e6f84a3a9b42122cb5637c14f7",
+        "rtl/soc/rv_bootrom.sv": "7b3abef365043ad4ef89dd1faf4f4fc7a635a97b2ffb3ef0fe15301fdb5e173e",
+        "rtl/soc/rv_hostif.sv": "2d37827499452a756ee1914fb880751405be1f5666d274c684004961706c18e6",
+        "tb/unit/soc/rv_soc_peripheral_tb.sv": "50220b407e35d42b46d98a741cd5afcab6b7c277233ea2c3bc9cd710773896c2",
+        "tb/fixtures/bootrom/bootrom_test.hex": "c6b67c46e72e141749a4d2f13858b2a754af6d39506bd54190f6181ae0c27f98"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.106,
+        "log": "out/regression/rv_soc_peripheral_tb/compile.log",
+        "log_sha256": "5d52dc9203055c91e216834717e74f862bfd215091e7254d8af8ef1201b75c90",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.122,
+        "log": "out/regression/rv_soc_peripheral_tb/build.log",
+        "log_sha256": "2d3941ae8e6343ef1b68884756c0a8a78ff4c1d9c4eb86d5b5fe1c583efff120",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_soc_peripheral_tb/Vrv_soc_peripheral_tb.exe",
+      "binary_sha256": "ffa38af4e679b95193e26eb6b49617903bbcbf01e2b3cebf3dd8df03c3008f5b",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.319,
+          "log": "out/regression/rv_soc_peripheral_tb/simulation.log",
+          "log_sha256": "311c0eb524566ebb7526b6e53fa5ef3eeaf1dda487d5eadb8e50751904c54cdb",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_soc_peripheral_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_plic_tb",
+      "top": "rv_plic_tb",
+      "params": [],
+      "inputs": {
+        "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/soc/rv_axi4_if.sv": "e0676106a15a058f7ce10ae89845869ab6b2e7db36a16bfa4324888810c94af4",
+        "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+        "rtl/soc/rv_axi_to_local_bridge.sv": "4274bd4459249a3ca57ebe2cdee3ada536e049ac686cce6e6a0d23ad1fe297a9",
+        "rtl/soc/rv_plic.sv": "1ff739b8e4b88216fb6011dfa12ed2472a8d19455fbbd70c48fb17981c047d22",
+        "tb/unit/soc/rv_plic_tb.sv": "8af405cb7d83144ed079a0c4395268a062af051dc733df0b89d4c9ffe8b0a47e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.112,
+        "log": "out/regression/rv_plic_tb/compile.log",
+        "log_sha256": "ebd62744ad321f4cca63b6db0fa06d7303ac1b752c0bee21cceac35f1fdc86a5",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.775,
+        "log": "out/regression/rv_plic_tb/build.log",
+        "log_sha256": "9a5aa63e42e094f30164be7ed4a34a8121a1014c160765c4cda21fc85f6dba86",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_plic_tb/Vrv_plic_tb.exe",
+      "binary_sha256": "2e7149c05a54f92cfdc616a293499cba80d1aa4231180118a56150c2c5a1c5d1",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.304,
+          "log": "out/regression/rv_plic_tb/simulation.log",
+          "log_sha256": "d4e6383042a1da57d3d042e122247aae430753e01a74aa72b1c6c4ef9c22a547",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_plic_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_clint_tb",
+      "top": "rv_clint_tb",
+      "params": [],
+      "inputs": {
+        "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+        "rtl/soc/rv_clint.sv": "8949cef49637539a80e4b68fe03d6a7ae219a10f6b502edf26a3dc1d52b8bc39",
+        "tb/unit/soc/rv_clint_tb.sv": "e02aceef7a89b1029fd4d457b4a6931f2e4fb4c22138c61f43306b632d7a8f8b"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.092,
+        "log": "out/regression/rv_clint_tb/compile.log",
+        "log_sha256": "28e141222768229f21db8737dc387b038bcdc8461c30c5c52c0ce790f112fc0c",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.229,
+        "log": "out/regression/rv_clint_tb/build.log",
+        "log_sha256": "df4defe806dc177565bfae11f1806e1f2a3eed1f714c800a9f74189652b63d24",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_clint_tb/Vrv_clint_tb.exe",
+      "binary_sha256": "b1e3490ed4e99553e21f679e538d5570636193d4340cc5f93f1c75913c5db88b",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.264,
+          "log": "out/regression/rv_clint_tb/simulation.log",
+          "log_sha256": "34c87b3a2447e3cf311522dd66c85c0ca20dd2aa1ec2b8a3eb45c19f46923c13",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_clint_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsu_pipe_widths_tb",
+      "top": "rv_lsu_pipe_widths_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "tb/unit/backend/rv_lsu_pipe_widths_tb.sv": "062ee2b5cf53c3db166f3f7a20e2a6296d6dd9ef07dc708e66a4290677a805a8"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.267,
+        "log": "out/regression/rv_lsu_pipe_widths_tb/compile.log",
+        "log_sha256": "b6c5f478989f91fc06a68976a161204f92c7dd16545998b0f5233fecd2323e0f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 13.021,
+        "log": "out/regression/rv_lsu_pipe_widths_tb/build.log",
+        "log_sha256": "cc895ebb39152c1baa4d7fd3785501976a3aa6758f13c0cb9ea9b12d532dc1e4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsu_pipe_widths_tb/Vrv_lsu_pipe_widths_tb.exe",
+      "binary_sha256": "e4cb3ced63e71056193edb12265c14b072f7ee5ce74bbd88c401d38232a186d7",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.517,
+          "log": "out/regression/rv_lsu_pipe_widths_tb/simulation.log",
+          "log_sha256": "084a13350d22fe2bf860d360edc1048d87e2f3e287bddbc8cae396ed0b09319f",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "PASS LSU X64 D2 cycles100000 push52251 pop48845 flush4324 reset25",
+            "PASS LSU X64 D1 cycles100000 push48703 pop47800 flush4090 reset25",
+            "PASS LSU X32 D2 cycles100000 push52158 pop48860 flush4112 reset25",
+            "PASS LSU X32 D1 cycles100000 push48494 pop47620 flush4193 reset25"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_frontend_cross_block_tb",
+      "top": "rv_frontend_cross_block_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+        "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+        "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+        "rtl/frontend/rv_frontend.sv": "32484d8d2871eb7f591f4879205dccb2282240a352fe1cff619329b6ca48051f",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv": "529a775f9a0ba8267379cf53f0db4573ecccf03120473c4a00d327cf5745b01e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.659,
+        "log": "out/regression/rv_frontend_cross_block_tb/compile.log",
+        "log_sha256": "6fa40fb795ad2b3347e8c1f949f138007d6c5f30f944ad6416ceb367cf4500c2",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 23.128,
+        "log": "out/regression/rv_frontend_cross_block_tb/build.log",
+        "log_sha256": "3494660d1a2f4ff231388d79247ecb0259475733981fa5b3a960a51dc4f0cff4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_frontend_cross_block_tb/Vrv_frontend_cross_block_tb.exe",
+      "binary_sha256": "0b7257271b18e26b0c6c7021ca8a51898a82fd2ad5304ba357f08561630219e5",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.732,
+          "log": "out/regression/rv_frontend_cross_block_tb/simulation.log",
+          "log_sha256": "d747f0e55b9cdd03195ea979f7e4db05f93d39c422e2c435dcfd5ed2640b2734",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "frontend XLEN=32 PADDR=32 cross-block/cache/redirect/stall PASS instructions=97 cycles=72"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsu_base_cache_tb",
+      "top": "rv_lsu_base_cache_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "tb/unit/backend/rv_lsu_base_cache_tb.sv": "1242cb913ecd48537b3a0e4108bc3c637de4126cf3bb86e2644086496cbe38e5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 3.625,
+        "log": "out/regression/rv_lsu_base_cache_tb/compile.log",
+        "log_sha256": "07a9f941e2e6a8e7dbf96c1fbee6d0f70e2b684749549571d91f9f193ee879f1",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 25.224,
+        "log": "out/regression/rv_lsu_base_cache_tb/build.log",
+        "log_sha256": "769b4ab4766812ee256529564f7aa95d3d215dcb13d9de40f5a7c02bd35cba74",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsu_base_cache_tb/Vrv_lsu_base_cache_tb.exe",
+      "binary_sha256": "7c9f6fe048950c64a3187ace3d1b3a1ce4630a74e853a4a7f924f6a915961bbf",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.917,
+          "log": "out/regression/rv_lsu_base_cache_tb/simulation.log",
+          "log_sha256": "2f3de95840f3013fbe2732f6a44a45ae28f89157d80ae15cf141189b4d8fc4d5",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "PASS rv_lsu_base_cache_tb XLEN=32 ENTRIES=56 WBP=12 cases=7 checks=21"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsu_base_cache64_tb",
+      "top": "rv_lsu_base_cache64_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "tb/unit/backend/rv_lsu_base_cache_tb.sv": "1242cb913ecd48537b3a0e4108bc3c637de4126cf3bb86e2644086496cbe38e5"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 3.659,
+        "log": "out/regression/rv_lsu_base_cache64_tb/compile.log",
+        "log_sha256": "4f724e4a06280f86af21a560ce839dbf2bfcbc4df194ad95d67ecb3a034c5a25",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 26.71,
+        "log": "out/regression/rv_lsu_base_cache64_tb/build.log",
+        "log_sha256": "0bf4d1361025d76a78f913f760debec0d94ab6eac2680b37ac3a9585f86e7fe3",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsu_base_cache64_tb/Vrv_lsu_base_cache64_tb.exe",
+      "binary_sha256": "24de0550480fb6f3fd365f4e6975ade528b63858d7f14840b80f4cd30c049ba4",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.828,
+          "log": "out/regression/rv_lsu_base_cache64_tb/simulation.log",
+          "log_sha256": "bcb8cd32a99d64eb3474852fe1a93acd1908b3de5cb2f0a286e2a1215d33d6db",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "PASS rv_lsu_base_cache_tb XLEN=64 ENTRIES=56 WBP=12 cases=7 checks=21"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fpu_tb_latency2",
+      "top": "rv_fpu_tb",
+      "params": [
+        "-GFpuLatency=2"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "tb/unit/backend/rv_fpu_tb.sv": "8043492ecb31a9274f669b40bcbb7441b5f0dfe07c2ef1fed9cd7bf003cc0335"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.286,
+        "log": "out/regression/rv_fpu_tb_latency2/compile.log",
+        "log_sha256": "73d6748f335770f073197cb3b50852dcc9e14066c8d92bf7dfb22eea0c716792",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 21.688,
+        "log": "out/regression/rv_fpu_tb_latency2/build.log",
+        "log_sha256": "699331dad0db60f104f37ccf11e4b8bc27a6d6014aeca308702eb2ef9a1e139e",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fpu_tb_latency2/Vrv_fpu_tb.exe",
+      "binary_sha256": "1d74290f4070d00f4db443662bedc512bcd624fd5be7fd12d1abb3a6c7dc6e7a",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.97,
+          "log": "out/regression/rv_fpu_tb_latency2/simulation.log",
+          "log_sha256": "3f7a85094c4c74674bdc760ce1c3323201ce04b2f5a8f04b8e82aadc007ce917",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "FPU transport: back-to-back, stall stability, selective/wrap/full flush and restart PASS",
+            "rv_fpu_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fpu_tb_latency5",
+      "top": "rv_fpu_tb",
+      "params": [
+        "-GFpuLatency=5"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "tb/unit/backend/rv_fpu_tb.sv": "8043492ecb31a9274f669b40bcbb7441b5f0dfe07c2ef1fed9cd7bf003cc0335"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.305,
+        "log": "out/regression/rv_fpu_tb_latency5/compile.log",
+        "log_sha256": "77c2caaeef8603946f44002ae15fd751b15a10230f9eb6575b91173bacf571dc",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 22.099,
+        "log": "out/regression/rv_fpu_tb_latency5/build.log",
+        "log_sha256": "d124fbaa27a4d06b278628afbb972860dc01c26409a5a2d911d0cb3109c7ef04",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fpu_tb_latency5/Vrv_fpu_tb.exe",
+      "binary_sha256": "9730f5f644a09b15d8405a08cb7bc4e5d9f6b5e718dcf5c736f72ed7a11f5663",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.965,
+          "log": "out/regression/rv_fpu_tb_latency5/simulation.log",
+          "log_sha256": "2930f9bf5c05ef66e359cd7b9e3df5bb74501c7e3c6885aef90d38fb36c4c8e7",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "FPU transport: back-to-back, stall stability, selective/wrap/full flush and restart PASS",
+            "rv_fpu_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_fpu_tb_latency6",
+      "top": "rv_fpu_tb",
+      "params": [
+        "-GFpuLatency=6"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "tb/unit/backend/rv_fpu_tb.sv": "8043492ecb31a9274f669b40bcbb7441b5f0dfe07c2ef1fed9cd7bf003cc0335"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.276,
+        "log": "out/regression/rv_fpu_tb_latency6/compile.log",
+        "log_sha256": "21853834dc7e071d9c2a0fc78e2460d557514b7832eb02b9219947a76853aa54",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 21.927,
+        "log": "out/regression/rv_fpu_tb_latency6/build.log",
+        "log_sha256": "0a93c075327df540ea096670c88bd2e08b455e7e607fad034cc2280d0c79d468",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_fpu_tb_latency6/Vrv_fpu_tb.exe",
+      "binary_sha256": "f3b15499fd7ce070da973ae36fa4b19e701a6ca5f87b1bd043995537e5d61996",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.008,
+          "log": "out/regression/rv_fpu_tb_latency6/simulation.log",
+          "log_sha256": "5e4efa0264ee2605d596d370e207b46d689f2a5a40880f8fc5bbcc05fa24c202",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "FPU transport: back-to-back, stall stability, selective/wrap/full flush and restart PASS",
+            "rv_fpu_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_pmp_tb_pa32",
+      "top": "rv_pmp_tb",
+      "params": [
+        "-GPADDR_WIDTH=32"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "tb/unit/backend/rv_pmp_tb.sv": "d0f6be9456b536d4dea4ee2be018f13a728250e3340ac2d782d94af01cda9b78"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.186,
+        "log": "out/regression/rv_pmp_tb_pa32/compile.log",
+        "log_sha256": "65a62bec738c609750c01e42df336dcd7ed24ca87354c47d4d06f1f2b934e770",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 10.848,
+        "log": "out/regression/rv_pmp_tb_pa32/build.log",
+        "log_sha256": "ee8b0f672a58fbfc5a17f13fe6b6d5fed17435f3c9664b9cb79a5ec2f8f9ee29",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_pmp_tb_pa32/Vrv_pmp_tb.exe",
+      "binary_sha256": "04f954c5fbff503456de1acf41d927e205ea5aafc19e5343dea7e6406126d860",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.49,
+          "log": "out/regression/rv_pmp_tb_pa32/simulation.log",
+          "log_sha256": "aae604aef7cd58563542ff95babfda093936300973d2aca9d3be880c080b3530",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_pmp_tb PASS PADDR=32"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb_xlen32",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "params": [
+        "-GXLEN=32"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv": "55643418cb4e6d66997d396ecfb758a51156c6017b3c4869da36e156345becbf"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.093,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen32/compile.log",
+        "log_sha256": "d44e401a756edf1bf4b6e05259f98b6f32a5c180857e028ced4f6384e9c6d0a8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.407,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen32/build.log",
+        "log_sha256": "e93224d5b1de1737bbe60be7e8d5098bac637ebf8bb731dd01ce8b4ef4464de3",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_exec_result_buffer_depth2_tb_xlen32/Vrv_exec_result_buffer_depth2_tb.exe",
+      "binary_sha256": "1ad6c8123c0ba81fbc80d041a20c7e234989cb450844a623dbc6a1305350649d",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.971,
+          "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen32/simulation.log",
+          "log_sha256": "7762946d790a38e3089494a575cd8b9998c177d4705cf99956a9db00d90e681f",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_exec_result_buffer_depth2_tb PASS pushes=110733 pops=106821 flushes=8669"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_pmp_tb_pa64",
+      "top": "rv_pmp_tb",
+      "params": [
+        "-GPADDR_WIDTH=64"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "tb/unit/backend/rv_pmp_tb.sv": "d0f6be9456b536d4dea4ee2be018f13a728250e3340ac2d782d94af01cda9b78"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.169,
+        "log": "out/regression/rv_pmp_tb_pa64/compile.log",
+        "log_sha256": "7270b8bdc13478faa122972743632ecf4bf0153ec6a2a8bb99fe9294f82a3373",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 11.352,
+        "log": "out/regression/rv_pmp_tb_pa64/build.log",
+        "log_sha256": "21e28819f42ad717d3f6b64a75249c9932ea71dcb45bcc07114f0202d616f124",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_pmp_tb_pa64/Vrv_pmp_tb.exe",
+      "binary_sha256": "99545ed9a8dfad7f9023b00234d4e98495dd2802015aef8f2c761a944b61dd44",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.835,
+          "log": "out/regression/rv_pmp_tb_pa64/simulation.log",
+          "log_sha256": "11a9409dec46512aa6bef0adfe0731eb73a753093c68688b13bb845737b4d72f",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_pmp_tb PASS PADDR=64"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb_xlen64",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "params": [
+        "-GXLEN=64"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv": "55643418cb4e6d66997d396ecfb758a51156c6017b3c4869da36e156345becbf"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.096,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen64/compile.log",
+        "log_sha256": "535dd3f3b9dedbbc323e5fd68a59b99123de1ae026a0a875585e87d7187c12e0",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.525,
+        "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen64/build.log",
+        "log_sha256": "db844d1ab4ee5a7043170055bf7aeceac2aedf6749190f1a2557552c1a2faaf7",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_exec_result_buffer_depth2_tb_xlen64/Vrv_exec_result_buffer_depth2_tb.exe",
+      "binary_sha256": "e80467299b70a516891775d585e27b41939425e45313161501dc4f43a217408d",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.08,
+          "log": "out/regression/rv_exec_result_buffer_depth2_tb_xlen64/simulation.log",
+          "log_sha256": "a1ba1c09583eddc7195c56ec350fe40ca155bf7768e58c0a9fec928ed3e1072e",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "rv_exec_result_buffer_depth2_tb PASS pushes=110733 pops=106821 flushes=8669"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports2",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "params": [
+        "-GExecPorts=2"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.105,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports2/compile.log",
+        "log_sha256": "481abdbc54ebb087620b7290d029fb06252d5d796d31c58a51003061bbc68e2f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.061,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports2/build.log",
+        "log_sha256": "4ae537e4f8e01784db16d26c29ff845ccbf1bf82ae5cb8da62ef39fd6917dfd1",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_equiv_tb_ports2/Vrv_issue_arbiter_equiv_tb.exe",
+      "binary_sha256": "93fa5aafac9319a836a348e5fafa388b4ff30d4f45561e78e0f9feb79a02a944",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.315,
+          "log": "out/regression/rv_issue_arbiter_equiv_tb_ports2/simulation.log",
+          "log_sha256": "b54457391e39d885294fc77c4ef942df50cddca737912d076765f930e6780232",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Issue arbiter parallel fast path vs generic PASS ports=2 (512 exhaustive cases)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports3",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "params": [
+        "-GExecPorts=3"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.106,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports3/compile.log",
+        "log_sha256": "6dc6df5424effb8a66300f8bfb9e5e265d47d769da4f3b62eab59c57e19e42cd",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.152,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports3/build.log",
+        "log_sha256": "59c92368fe57102ea7701304477b844a3560863929e02b6d6baaf62abdd98df8",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_equiv_tb_ports3/Vrv_issue_arbiter_equiv_tb.exe",
+      "binary_sha256": "bf07928992f3981e8e15687b82a343e707e3c809464b6864e68b6b1ae2b018bb",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.487,
+          "log": "out/regression/rv_issue_arbiter_equiv_tb_ports3/simulation.log",
+          "log_sha256": "e691e7c005456a807b34bca16c4281d7f5e510316eb6d83b0ede5290e2f28cf4",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Issue arbiter parallel fast path vs generic PASS ports=3 (4096 exhaustive cases)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports4",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "params": [
+        "-GExecPorts=4"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.112,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports4/compile.log",
+        "log_sha256": "9e2117e0ba3d05d0b0e026c70c01a6b969e6ad2915c7851c0c8b5185a58da2e5",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.222,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports4/build.log",
+        "log_sha256": "e139aee30f21abe262a25db51b6fe954c6470567b4893d93f3f05111e99c0e9d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_equiv_tb_ports4/Vrv_issue_arbiter_equiv_tb.exe",
+      "binary_sha256": "23cc43d7c1978c2e002ccf8108555cadf2fed884caf87118cf8ca9f5cd2b82c4",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.531,
+          "log": "out/regression/rv_issue_arbiter_equiv_tb_ports4/simulation.log",
+          "log_sha256": "cae58fd8fd35e8e2985e9d8ad5dd4b3742b3c749a02e0c89a49b9e70c47ccf2e",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Issue arbiter parallel fast path vs generic PASS ports=4 (32768 exhaustive cases)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports6",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "params": [
+        "-GExecPorts=6"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.122,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports6/compile.log",
+        "log_sha256": "e5ef761d49335d16e3eb22190db060bccb156dd558ae395904ab21dc29f885f2",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 6.388,
+        "log": "out/regression/rv_issue_arbiter_equiv_tb_ports6/build.log",
+        "log_sha256": "3a11ea35755df053c2cadf8725c7d52b57079611864c07049a5669ac07eb1304",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_issue_arbiter_equiv_tb_ports6/Vrv_issue_arbiter_equiv_tb.exe",
+      "binary_sha256": "4b2ea921247f644c511a1e87bd7e8d2f453f2e2786f0e23cddfb8e540d92a26b",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 1.23,
+          "log": "out/regression/rv_issue_arbiter_equiv_tb_ports6/simulation.log",
+          "log_sha256": "24a55d0c34d12b13d108e7310aa0dcb1b1c06de1322993df0e8c069fe2728a5a",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Issue arbiter parallel fast path vs generic PASS ports=6 (2097152 exhaustive cases)"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsq_tb_early0_agu1",
+      "top": "rv_lsq_tb",
+      "params": [
+        "-GEarlyLoadSelect=0",
+        "-GAguLoadBypass=1"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "tb/unit/backend/rv_lsq_tb.sv": "497b576122b0d463771562e79ffdcbe450db50cb42ec0d212074f4965e8970e9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.272,
+        "log": "out/regression/rv_lsq_tb_early0_agu1/compile.log",
+        "log_sha256": "7e35b05a01132fe911399fedf34b8ddf72c6388af187e399a3a3553845e08475",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 12.03,
+        "log": "out/regression/rv_lsq_tb_early0_agu1/build.log",
+        "log_sha256": "9fd5fd9431edd49d3bb04fdea1db7b90aa6ec000a8ea7df759fe8e29c3761a5a",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsq_tb_early0_agu1/Vrv_lsq_tb.exe",
+      "binary_sha256": "141ca4b3401d8f68dd2428eb0de7b5a3f8c635f0f19890c3c65c828255b57bdd",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.62,
+          "log": "out/regression/rv_lsq_tb_early0_agu1/simulation.log",
+          "log_sha256": "d00e6a7895e4d876a68f697d518ef9a7f168bfbdf28645715a75104d5d018082",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "LSQ AGU bypass/backpressure/no-duplicate/older-store safety PASS",
+            "LSQ dual bypass/sequence-wrap/conservative ordering PASS",
+            "LSQ resolved older-store / competing-candidate backpressure PASS",
+            "rv_lsq_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_lsq_tb_early1_agu1",
+      "top": "rv_lsq_tb",
+      "params": [
+        "-GEarlyLoadSelect=1",
+        "-GAguLoadBypass=1"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "tb/unit/backend/rv_lsq_tb.sv": "497b576122b0d463771562e79ffdcbe450db50cb42ec0d212074f4965e8970e9"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 0.313,
+        "log": "out/regression/rv_lsq_tb_early1_agu1/compile.log",
+        "log_sha256": "7172b8b1e1d9b3172493bf9fb0e42e20c24ca3a08500662c0a81fc39693f5fab",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 12.696,
+        "log": "out/regression/rv_lsq_tb_early1_agu1/build.log",
+        "log_sha256": "b9d14746825c35f8281fcb3a40747bb0ed95b09d2ef5b78805fac9f74b9bd1e7",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_lsq_tb_early1_agu1/Vrv_lsq_tb.exe",
+      "binary_sha256": "de6af0ff549559941387a6a927beb921fef197416733a3c75c24cc4239079da9",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 0.58,
+          "log": "out/regression/rv_lsq_tb_early1_agu1/simulation.log",
+          "log_sha256": "5d6a0c209a0d300dce3f00ea50d1dea57d15fa689c548050aae998fb0096aa66",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "LSQ AGU bypass/backpressure/no-duplicate/older-store safety PASS",
+            "LSQ dual bypass/sequence-wrap/conservative ordering PASS",
+            "LSQ preview withheld-update/access-fault safety PASS",
+            "LSQ resolved older-store / competing-candidate backpressure PASS",
+            "rv_lsq_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_backend_int_tb",
+      "top": "rv_backend_int_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+        "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+        "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+        "rtl/backend/rv_lsu_cluster.sv": "f006120e88b133889a71e9ba4e916e4cea8592d103e37216d565fc3790c7071e",
+        "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+        "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+        "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+        "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+        "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+        "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+        "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+        "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+        "rtl/backend/rv_backend.sv": "aea59f1a5c3950770982f72fd8bb79e3f14ffae5212bb471c59d5eb23b03c469",
+        "tb/integration/backend/rv_backend_int_tb.sv": "4c47a40d7822808272340ad9934fdbc1333e8624bdb3c5e50f9d55d38e777ead"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 19.422,
+        "log": "out/regression/rv_backend_int_tb/compile.log",
+        "log_sha256": "9c350a6d4dff67bec10abb638f6294ede887cdf17d3c7b34a792c5421bc64f09",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 134.241,
+        "log": "out/regression/rv_backend_int_tb/build.log",
+        "log_sha256": "7506c07eadd28df9e665d6e8e625ead47967ee5dd3603804ab03adcfc75d3904",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_backend_int_tb/Vrv_backend_int_tb.exe",
+      "binary_sha256": "604588e0b1acbbab199a0c972fe147b01aec7561aeac1b1fe704d36a2b370c70",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 4.033,
+          "log": "out/regression/rv_backend_int_tb/simulation.log",
+          "log_sha256": "b281ca657ef3bbf16b3c43862cbc688412c7124a8052aa241ec6680cc88d28a6",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "Server 08c8 sequence: aligned SH and following LBU PASS",
+            "rv_backend_int_tb PASS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_backend_int_tb_div_stress",
+      "top": "rv_backend_int_tb",
+      "params": [
+        "-GDivStressOnly=1"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+        "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+        "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+        "rtl/backend/rv_lsu_cluster.sv": "f006120e88b133889a71e9ba4e916e4cea8592d103e37216d565fc3790c7071e",
+        "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+        "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+        "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+        "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+        "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+        "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+        "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+        "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+        "rtl/backend/rv_backend.sv": "aea59f1a5c3950770982f72fd8bb79e3f14ffae5212bb471c59d5eb23b03c469",
+        "tb/integration/backend/rv_backend_int_tb.sv": "4c47a40d7822808272340ad9934fdbc1333e8624bdb3c5e50f9d55d38e777ead"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 20.101,
+        "log": "out/regression/rv_backend_int_tb_div_stress/compile.log",
+        "log_sha256": "b53717a8a3431a9e747321bfe16edf4ac3bd92095a5fd7397c790046b44e6ace",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 96.272,
+        "log": "out/regression/rv_backend_int_tb_div_stress/build.log",
+        "log_sha256": "a32108af8fda3cd955590eb2bf515d6d6803c24306866e1565d971bda4fe8417",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_backend_int_tb_div_stress/Vrv_backend_int_tb.exe",
+      "binary_sha256": "430963801d0ddc99f5a528ad0f18f3560f034be259e7a62416b6ecbf0e9e0660",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 4.581,
+          "log": "out/regression/rv_backend_int_tb_div_stress/simulation.log",
+          "log_sha256": "c973f1c68097551c2b214fbc8445a39087b4d806f3b3e73426424e02879cc274",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "DIV raw-tag stress PASS: wait=3257 refill=145 younger-kill=1 older-keep=1 global-kill=1 wraps=1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_frontend_cross_block_tb_xlen64",
+      "top": "rv_frontend_cross_block_tb",
+      "params": [
+        "-GXLEN=64"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+        "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+        "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+        "rtl/frontend/rv_frontend.sv": "32484d8d2871eb7f591f4879205dccb2282240a352fe1cff619329b6ca48051f",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv": "529a775f9a0ba8267379cf53f0db4573ecccf03120473c4a00d327cf5745b01e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 2.058,
+        "log": "out/regression/rv_frontend_cross_block_tb_xlen64/compile.log",
+        "log_sha256": "7a094f82d750f290527b9f39080d54288914f18de0a7bbc23d66267c292b61e0",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 28.931,
+        "log": "out/regression/rv_frontend_cross_block_tb_xlen64/build.log",
+        "log_sha256": "90ff1804350bfc6c48ea44168e56044d34533d9e54bb406dd62daeff95fb0694",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_frontend_cross_block_tb_xlen64/Vrv_frontend_cross_block_tb.exe",
+      "binary_sha256": "97f51fea5c24e39b5183e89f28990edaf49b626ebf9337e89e289b33bbfb02c3",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 2.31,
+          "log": "out/regression/rv_frontend_cross_block_tb_xlen64/simulation.log",
+          "log_sha256": "b94a2da2760e2da823d4b2477e70225ce3cdad283013c8f8b35a37fe49b0b6f1",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "frontend XLEN=64 PADDR=64 cross-block/cache/redirect/stall PASS instructions=97 cycles=72"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_frontend_cross_block_tb_xlen64_pa32",
+      "top": "rv_frontend_cross_block_tb",
+      "params": [
+        "-GXLEN=64",
+        "-GPADDR_WIDTH=32"
+      ],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+        "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+        "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+        "rtl/frontend/rv_frontend.sv": "32484d8d2871eb7f591f4879205dccb2282240a352fe1cff619329b6ca48051f",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv": "529a775f9a0ba8267379cf53f0db4573ecccf03120473c4a00d327cf5745b01e"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 1.963,
+        "log": "out/regression/rv_frontend_cross_block_tb_xlen64_pa32/compile.log",
+        "log_sha256": "6779bba37fb96e4f05af4d9e48cf2330ef9f2df0879b29ed60db80d3d2865e21",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 30.677,
+        "log": "out/regression/rv_frontend_cross_block_tb_xlen64_pa32/build.log",
+        "log_sha256": "32ee5b374ef89c54e5c4548600f39a37fd74504622ec03bf66cd6f589b1ecae4",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_frontend_cross_block_tb_xlen64_pa32/Vrv_frontend_cross_block_tb.exe",
+      "binary_sha256": "07d7f1071d763d4b351811c65fd66a08f98e1f6ab3e9c20b4991e35bdaf82f30",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 2.091,
+          "log": "out/regression/rv_frontend_cross_block_tb_xlen64_pa32/simulation.log",
+          "log_sha256": "5d48c8254de7f8c4dc9b3b516c0998f1590dcbdc1073d08a537bae64f7e38584",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "frontend XLEN=64 PADDR=32 cross-block/cache/redirect/stall PASS instructions=97 cycles=72"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rv_backend_seq_admission_tb",
+      "top": "rv_backend_seq_admission_tb",
+      "params": [],
+      "inputs": {
+        "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+        "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+        "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+        "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+        "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+        "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+        "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+        "rtl/backend/rv_lsu_cluster.sv": "f006120e88b133889a71e9ba4e916e4cea8592d103e37216d565fc3790c7071e",
+        "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+        "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+        "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+        "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+        "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+        "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+        "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+        "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+        "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+        "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+        "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+        "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+        "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+        "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+        "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+        "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+        "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+        "rtl/backend/rv_backend.sv": "aea59f1a5c3950770982f72fd8bb79e3f14ffae5212bb471c59d5eb23b03c469",
+        "tb/integration/backend/rv_backend_seq_admission_tb.sv": "adb3b3912d7d955a101871de05141d7d62b7f6cb401c8b6cf72446642c495837"
+      },
+      "compile": {
+        "exit_code": 0,
+        "seconds": 14.08,
+        "log": "out/regression/rv_backend_seq_admission_tb/compile.log",
+        "log_sha256": "556feedab3b99c595a7638879b5f99d6814a430d61267dbfb4282a614b8e4d75",
+        "expected_failure": null,
+        "passed": true
+      },
+      "build": {
+        "exit_code": 0,
+        "seconds": 87.326,
+        "log": "out/regression/rv_backend_seq_admission_tb/build.log",
+        "log_sha256": "d7fdcfeada9c1ec263e4b2119cbe09642863748242debcb26e2db71be0d59b1e",
+        "expected_failure": null,
+        "passed": true
+      },
+      "binary": "out/regression/rv_backend_seq_admission_tb/Vrv_backend_seq_admission_tb.exe",
+      "binary_sha256": "bbd10f17e8413f2031bbfb953e63e46a0a9838be4ca9c9731ac9b6e3e336c9bd",
+      "passed": true,
+      "runs": [
+        {
+          "exit_code": 0,
+          "seconds": 4.141,
+          "log": "out/regression/rv_backend_seq_admission_tb/simulation.log",
+          "log_sha256": "9cdb3877120cadc8269558fc040d72a024211c1e56bdb7437cbbcd73a056a2ab",
+          "expected_failure": null,
+          "passed": true,
+          "args": [],
+          "witnesses": [
+            "PASS BACKEND SEQUENCE ADMISSION actual_rob48_seq8 epochs=3 wraps=1 redirects=66 dispatched=388"
+          ]
+        }
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "top": "rv_d_fabric_tb",
+      "reason": "replaced TIM architecture",
+      "absent": [
+        "rtl/soc/rv_tim_2bank.sv",
+        "rtl/soc/rv_d_fabric.sv"
+      ]
+    },
+    {
+      "top": "rv_i_fabric_tb",
+      "reason": "replaced TIM architecture",
+      "absent": [
+        "rtl/soc/rv_tim_2bank.sv",
+        "rtl/soc/rv_i_fabric.sv"
+      ]
+    }
+  ],
+  "scope": "Original reusable block/backend tests; finite simulation, not full ISA/STA"
+}

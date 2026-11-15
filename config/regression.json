@@ -1,0 +1,833 @@
+{
+  "cases": [
+    {
+      "name": "rv_rename2_tb",
+      "top": "rv_rename2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_rename2.sv",
+        "tb/unit/backend/rv_rename2_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_phys_regfile_tb",
+      "top": "rv_phys_regfile_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_phys_regfile.sv",
+        "tb/unit/backend/rv_phys_regfile_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_execute_units_tb",
+      "top": "rv_execute_units_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_int_alu.sv",
+        "rtl/backend/rv_branch_unit.sv",
+        "tb/unit/backend/rv_execute_units_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_decode2_tb",
+      "top": "rv_decode2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fp_decode_pkg.sv",
+        "rtl/frontend/rv_c_expander.sv",
+        "rtl/backend/rv_vector_decode_pkg.sv",
+        "rtl/backend/rv_hypervisor_decode_pkg.sv",
+        "rtl/backend/rv_decode2.sv",
+        "tb/unit/backend/rv_decode2_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_divider_tb",
+      "top": "rv_divider_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_divider.sv",
+        "tb/unit/backend/rv_divider_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_fpu_tb",
+      "top": "rv_fpu_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fpu.sv",
+        "tb/unit/backend/rv_fpu_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_fpu_diff_tb",
+      "top": "rv_fpu_diff_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fpu.sv",
+        "tb/unit/backend/rv_fpu_diff_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_fetch_queue_tb",
+      "top": "rv_fetch_queue_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_fetch_queue.sv",
+        "tb/unit/frontend/rv_fetch_queue_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_fetch_target_buffer_tb",
+      "top": "rv_fetch_target_buffer_tb",
+      "files": [
+        "rtl/frontend/rv_fetch_target_buffer.sv",
+        "tb/unit/frontend/rv_fetch_target_buffer_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsu_pipe_tb",
+      "top": "rv_lsu_pipe_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "tb/unit/backend/rv_lsu_pipe_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsu_pipe_depth2_tb",
+      "top": "rv_lsu_pipe_depth2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "tb/unit/backend/rv_lsu_pipe_depth2_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_issue_arbiter_age_tb",
+      "top": "rv_issue_arbiter_age_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_age_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_store_buffer_tb",
+      "top": "rv_store_buffer_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_store_buffer.sv",
+        "tb/unit/backend/rv_store_buffer_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsq_tb",
+      "top": "rv_lsq_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsq.sv",
+        "tb/unit/backend/rv_lsq_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_writeback_arbiter_tb",
+      "top": "rv_writeback_arbiter_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_writeback_arbiter.sv",
+        "tb/unit/backend/rv_writeback_arbiter_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_branch_recovery_tb",
+      "top": "rv_branch_recovery_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_branch_recovery.sv",
+        "tb/unit/backend/rv_branch_recovery_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_trap_controller_tb",
+      "top": "rv_trap_controller_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "tb/unit/backend/rv_trap_controller_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_exec_result_buffer_tb",
+      "top": "rv_exec_result_buffer_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "tb/unit/backend/rv_exec_result_buffer_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_csr_file_tb",
+      "top": "rv_csr_file_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_csr_file.sv",
+        "tb/unit/backend/rv_csr_file_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_pmp_tb",
+      "top": "rv_pmp_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_pmp.sv",
+        "tb/unit/backend/rv_pmp_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_branch_arithmetic_tb",
+      "top": "rv_branch_arithmetic_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_branch_unit.sv",
+        "tb/unit/backend/rv_branch_arithmetic_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_rob_tb",
+      "top": "rv_rob_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_rob.sv",
+        "tb/unit/backend/rv_rob_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_issue_queue_tb",
+      "top": "rv_issue_queue_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "tb/unit/backend/rv_issue_queue_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_issue_arbiter_tb",
+      "top": "rv_issue_arbiter_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_issue_queue_tb__GCompatiblePairSelect_1",
+      "top": "rv_issue_queue_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "tb/unit/backend/rv_issue_queue_tb.sv"
+      ],
+      "params": [
+        "-GCompatiblePairSelect=1"
+      ]
+    },
+    {
+      "name": "rv_lsq_tb__GEarlyLoadSelect_1",
+      "top": "rv_lsq_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsq.sv",
+        "tb/unit/backend/rv_lsq_tb.sv"
+      ],
+      "params": [
+        "-GEarlyLoadSelect=1"
+      ]
+    },
+    {
+      "name": "rv_multiplier_tb",
+      "top": "rv_multiplier_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "tb/unit/backend/rv_multiplier_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_branch_predictor_tb",
+      "top": "rv_branch_predictor_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_branch_predictor.sv",
+        "tb/unit/frontend/rv_branch_predictor_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_branch_target_arithmetic_tb",
+      "top": "rv_branch_target_arithmetic_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_branch_predictor.sv",
+        "tb/unit/frontend/rv_branch_target_arithmetic_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_axi_bridge_tb",
+      "top": "rv_axi_bridge_tb",
+      "files": [
+        "rtl/soc/rv_soc_pkg.sv",
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/soc/rv_axi4_if.sv",
+        "rtl/soc/rv_local_mem_if.sv",
+        "rtl/soc/rv_local_to_axi_bridge.sv",
+        "rtl/soc/rv_axi_to_local_bridge.sv",
+        "tb/unit/soc/rv_axi_bridge_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_axi_to_local_burst_tb",
+      "top": "rv_axi_to_local_burst_tb",
+      "files": [
+        "rtl/soc/rv_soc_pkg.sv",
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/soc/rv_axi4_if.sv",
+        "rtl/soc/rv_local_mem_if.sv",
+        "rtl/soc/rv_axi_to_local_bridge.sv",
+        "tb/unit/soc/rv_axi_bridge_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_soc_peripheral_tb",
+      "top": "rv_soc_peripheral_tb",
+      "files": [
+        "rtl/soc/rv_soc_pkg.sv",
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/soc/rv_local_mem_if.sv",
+        "rtl/soc/rv_sram_1r1w.sv",
+        "rtl/soc/rv_bootrom.sv",
+        "rtl/soc/rv_hostif.sv",
+        "tb/unit/soc/rv_soc_peripheral_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_plic_tb",
+      "top": "rv_plic_tb",
+      "files": [
+        "rtl/soc/rv_soc_pkg.sv",
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/soc/rv_axi4_if.sv",
+        "rtl/soc/rv_local_mem_if.sv",
+        "rtl/soc/rv_axi_to_local_bridge.sv",
+        "rtl/soc/rv_plic.sv",
+        "tb/unit/soc/rv_plic_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_clint_tb",
+      "top": "rv_clint_tb",
+      "files": [
+        "rtl/soc/rv_soc_pkg.sv",
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/soc/rv_local_mem_if.sv",
+        "rtl/soc/rv_clint.sv",
+        "tb/unit/soc/rv_clint_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsu_pipe_widths_tb",
+      "top": "rv_lsu_pipe_widths_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "tb/unit/backend/rv_lsu_pipe_widths_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_frontend_cross_block_tb",
+      "top": "rv_frontend_cross_block_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_fetch_queue.sv",
+        "rtl/frontend/rv_branch_predictor.sv",
+        "rtl/frontend/rv_fetch_target_buffer.sv",
+        "rtl/frontend/rv_frontend.sv",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsu_base_cache_tb",
+      "top": "rv_lsu_base_cache_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "tb/unit/backend/rv_lsu_base_cache_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_lsu_base_cache64_tb",
+      "top": "rv_lsu_base_cache64_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "tb/unit/backend/rv_lsu_base_cache_tb.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_fpu_tb_latency2",
+      "top": "rv_fpu_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fpu.sv",
+        "tb/unit/backend/rv_fpu_tb.sv"
+      ],
+      "params": [
+        "-GFpuLatency=2"
+      ]
+    },
+    {
+      "name": "rv_fpu_tb_latency5",
+      "top": "rv_fpu_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fpu.sv",
+        "tb/unit/backend/rv_fpu_tb.sv"
+      ],
+      "params": [
+        "-GFpuLatency=5"
+      ]
+    },
+    {
+      "name": "rv_fpu_tb_latency6",
+      "top": "rv_fpu_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fpu.sv",
+        "tb/unit/backend/rv_fpu_tb.sv"
+      ],
+      "params": [
+        "-GFpuLatency=6"
+      ]
+    },
+    {
+      "name": "rv_pmp_tb_pa32",
+      "top": "rv_pmp_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_pmp.sv",
+        "tb/unit/backend/rv_pmp_tb.sv"
+      ],
+      "params": [
+        "-GPADDR_WIDTH=32"
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb_xlen32",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv"
+      ],
+      "params": [
+        "-GXLEN=32"
+      ]
+    },
+    {
+      "name": "rv_pmp_tb_pa64",
+      "top": "rv_pmp_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_pmp.sv",
+        "tb/unit/backend/rv_pmp_tb.sv"
+      ],
+      "params": [
+        "-GPADDR_WIDTH=64"
+      ]
+    },
+    {
+      "name": "rv_exec_result_buffer_depth2_tb_xlen64",
+      "top": "rv_exec_result_buffer_depth2_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv"
+      ],
+      "params": [
+        "-GXLEN=64"
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports2",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv"
+      ],
+      "params": [
+        "-GExecPorts=2"
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports3",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv"
+      ],
+      "params": [
+        "-GExecPorts=3"
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports4",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv"
+      ],
+      "params": [
+        "-GExecPorts=4"
+      ]
+    },
+    {
+      "name": "rv_issue_arbiter_equiv_tb_ports6",
+      "top": "rv_issue_arbiter_equiv_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv"
+      ],
+      "params": [
+        "-GExecPorts=6"
+      ]
+    },
+    {
+      "name": "rv_lsq_tb_early0_agu1",
+      "top": "rv_lsq_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsq.sv",
+        "tb/unit/backend/rv_lsq_tb.sv"
+      ],
+      "params": [
+        "-GEarlyLoadSelect=0",
+        "-GAguLoadBypass=1"
+      ]
+    },
+    {
+      "name": "rv_lsq_tb_early1_agu1",
+      "top": "rv_lsq_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_lsq.sv",
+        "tb/unit/backend/rv_lsq_tb.sv"
+      ],
+      "params": [
+        "-GEarlyLoadSelect=1",
+        "-GAguLoadBypass=1"
+      ]
+    },
+    {
+      "name": "rv_backend_int_tb",
+      "top": "rv_backend_int_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fp_decode_pkg.sv",
+        "rtl/frontend/rv_c_expander.sv",
+        "rtl/backend/rv_vector_decode_pkg.sv",
+        "rtl/backend/rv_hypervisor_decode_pkg.sv",
+        "rtl/backend/rv_decode2.sv",
+        "rtl/backend/rv_lsq_order_check.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "rtl/backend/rv_lsq.sv",
+        "rtl/backend/rv_store_buffer.sv",
+        "rtl/backend/rv_lsu_cluster.sv",
+        "rtl/backend/rv_rename2.sv",
+        "rtl/backend/rv_phys_regfile.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "rtl/backend/rv_int_alu.sv",
+        "rtl/backend/rv_branch_unit.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "rtl/backend/rv_divider.sv",
+        "rtl/backend/rv_fpu.sv",
+        "rtl/backend/rv_writeback_arbiter.sv",
+        "rtl/backend/rv_branch_recovery.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_pmp.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "rtl/backend/rv_fence_controller.sv",
+        "rtl/backend/rv_rob.sv",
+        "rtl/backend/rv_backend.sv",
+        "tb/integration/backend/rv_backend_int_tb.sv",
+        "rtl/backend/rv23_wait_reservation.sv",
+        "rtl/soc/rv23_pointer_mask.sv"
+      ],
+      "params": []
+    },
+    {
+      "name": "rv_backend_int_tb_div_stress",
+      "top": "rv_backend_int_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fp_decode_pkg.sv",
+        "rtl/frontend/rv_c_expander.sv",
+        "rtl/backend/rv_vector_decode_pkg.sv",
+        "rtl/backend/rv_hypervisor_decode_pkg.sv",
+        "rtl/backend/rv_decode2.sv",
+        "rtl/backend/rv_lsq_order_check.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "rtl/backend/rv_lsq.sv",
+        "rtl/backend/rv_store_buffer.sv",
+        "rtl/backend/rv_lsu_cluster.sv",
+        "rtl/backend/rv_rename2.sv",
+        "rtl/backend/rv_phys_regfile.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "rtl/backend/rv_int_alu.sv",
+        "rtl/backend/rv_branch_unit.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "rtl/backend/rv_divider.sv",
+        "rtl/backend/rv_fpu.sv",
+        "rtl/backend/rv_writeback_arbiter.sv",
+        "rtl/backend/rv_branch_recovery.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_pmp.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "rtl/backend/rv_fence_controller.sv",
+        "rtl/backend/rv_rob.sv",
+        "rtl/backend/rv_backend.sv",
+        "tb/integration/backend/rv_backend_int_tb.sv",
+        "rtl/backend/rv23_wait_reservation.sv",
+        "rtl/soc/rv23_pointer_mask.sv"
+      ],
+      "params": [
+        "-GDivStressOnly=1"
+      ]
+    },
+    {
+      "name": "rv_frontend_cross_block_tb_xlen64",
+      "top": "rv_frontend_cross_block_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_fetch_queue.sv",
+        "rtl/frontend/rv_branch_predictor.sv",
+        "rtl/frontend/rv_fetch_target_buffer.sv",
+        "rtl/frontend/rv_frontend.sv",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv"
+      ],
+      "params": [
+        "-GXLEN=64"
+      ]
+    },
+    {
+      "name": "rv_frontend_cross_block_tb_xlen64_pa32",
+      "top": "rv_frontend_cross_block_tb",
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/frontend/rv_fetch_queue.sv",
+        "rtl/frontend/rv_branch_predictor.sv",
+        "rtl/frontend/rv_fetch_target_buffer.sv",
+        "rtl/frontend/rv_frontend.sv",
+        "tb/unit/frontend/rv_frontend_cross_block_tb.sv"
+      ],
+      "params": [
+        "-GXLEN=64",
+        "-GPADDR_WIDTH=32"
+      ]
+    },
+    {
+      "name": "rv_backend_seq_admission_tb",
+      "top": "rv_backend_seq_admission_tb",
+      "params": [],
+      "files": [
+        "rtl/rv_ooo_pkg.sv",
+        "rtl/backend/rv_fp_decode_pkg.sv",
+        "rtl/frontend/rv_c_expander.sv",
+        "rtl/backend/rv_vector_decode_pkg.sv",
+        "rtl/backend/rv_hypervisor_decode_pkg.sv",
+        "rtl/backend/rv_decode2.sv",
+        "rtl/backend/rv_lsq_order_check.sv",
+        "rtl/backend/rv_lsu_pipe.sv",
+        "rtl/backend/rv_lsq.sv",
+        "rtl/backend/rv_store_buffer.sv",
+        "rtl/backend/rv_lsu_cluster.sv",
+        "rtl/backend/rv_rename2.sv",
+        "rtl/backend/rv_phys_regfile.sv",
+        "rtl/backend/rv_issue_queue.sv",
+        "rtl/backend/rv_issue_arbiter.sv",
+        "rtl/backend/rv_int_alu.sv",
+        "rtl/backend/rv_branch_unit.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "rtl/backend/rv_divider.sv",
+        "rtl/backend/rv_fpu.sv",
+        "rtl/backend/rv_writeback_arbiter.sv",
+        "rtl/backend/rv_branch_recovery.sv",
+        "rtl/backend/rv_exec_result_buffer.sv",
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_pmp.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "rtl/backend/rv_fence_controller.sv",
+        "rtl/backend/rv_rob.sv",
+        "rtl/backend/rv_backend.sv",
+        "tb/integration/backend/rv_backend_seq_admission_tb.sv",
+        "rtl/backend/rv23_wait_reservation.sv",
+        "rtl/soc/rv23_pointer_mask.sv"
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "top": "rv_d_fabric_tb",
+      "reason": "replaced TIM architecture",
+      "absent": [
+        "rtl/soc/rv_tim_2bank.sv",
+        "rtl/soc/rv_d_fabric.sv"
+      ]
+    },
+    {
+      "top": "rv_i_fabric_tb",
+      "reason": "replaced TIM architecture",
+      "absent": [
+        "rtl/soc/rv_tim_2bank.sv",
+        "rtl/soc/rv_i_fabric.sv"
+      ]
+    }
+  ],
+  "scope": "Reusable original unit/block/backend regressions plus exact FP; TIM TBs superseded",
+  "imported_inputs": {
+    "scripts/build_rv32_priv_smoke_elf.ps1": "c807964185c5646ebf424b1ddb5831d049326610edba4022da1b477911c0f48d",
+    "scripts/build_rv32_smoke_elf.ps1": "ccdfc9b8e56e6188c3a3323de3cd6e2741b7e22ad5b8e0f54478c427c4e34e1d",
+    "scripts/build_rv32c_smoke_elf.ps1": "be181662af95d1d833de0c1a2167dfcca693e384096e97089e4de1f2d5e7154e",
+    "scripts/gen_fpu_diff_vectors.py": "0ed57b247e21e46c4b870ef9c012b80e49f5dbe215f6b08c9913418281f07233",
+    "sw/benchmarks/coremark/README.md": "c143e473d81314b0f8e89ea9b90d703360c3fd3f715a45025454c345f6485522",
+    "sw/benchmarks/coremark/port/core_portme.c": "b2f4871e4bade6aaaff65555899b1c775128bba661fb5176efb48da55c6a35fb",
+    "sw/benchmarks/coremark/port/core_portme.h": "6aefefc3c3921081cdf39862546f16c986774093b87b71bde83e31ef8e0a3df1",
+    "sw/benchmarks/coremark/rv32_start.S": "28d8aa2cba90a9902284d571df17e2c75954bdeafbe435ef83ab2465fee093e7",
+    "sw/benchmarks/coremark/rv32_tim.ld": "95a34fd6345b7cf757a5ba7219977a40a3f51fd136095e1b2d852dcff0b63dff",
+    "sw/tests/external_access_fault/README.md": "613eb915f74bdcf9000d14c2eac25567f06ea28a52d21ef39138bb08ae9371ea",
+    "sw/tests/external_access_fault/external_access_fault.S": "696c08a2bd972fa0b24393ef6ed166da318d74cf44a5fbec487e15dde9caf1e3",
+    "sw/tests/fp_conversion_vectors/__pycache__/gen_vectors.cpython-311.pyc": "e268d81b112997919bf3fe69e07473f479cc9306be27e9e7ac27ac2d6fe1caa9",
+    "sw/tests/fp_conversion_vectors/gen_unit_vectors.py": "3c721697fded8abaea24822c81fa5aee84f1edcbaad0ffc38e185616861210bd",
+    "sw/tests/fp_conversion_vectors/gen_vectors.py": "9cbabe3153d1171c207bb2a7f16ee8c4ad938dbd476ab74486d12c261cda2f47",
+    "sw/tests/fp_conversion_vectors/start.S": "e14726043e7c9b9353e0aa5835e1d233f873e7e9360991ee44c200f28e987527",
+    "sw/tests/fp_conversion_vectors/test.c": "84880ea1ca2896d473ef3a0b37c18df8e7aa675e91b7d2908e25289b711a7c2b",
+    "sw/tests/htif_smoke/htif_smoke.S": "7023b767fe621971408c7bb6e0334824d30f781ca947ce805eaa36c8a16833f6",
+    "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687",
+    "sw/tests/htif_smoke/server_a7c_load_pair.S": "88741c9181c6df5e126a4e389a96b08bd8e08e121e64d5d5414bcd716d2b073f",
+    "sw/tests/lsq_capacity_rotation/dual_lsu_pressure.S": "75385a29aa5867704e20d39ba9a2203b06a9461d4739eb189eae3b922b53f77e",
+    "sw/tests/lsq_capacity_rotation/older_store_fault.S": "51e3fd9560258325cc7b9c4436abf58232b07710ddb3809519f68ca889daf88b",
+    "sw/tests/lsu_validation_pipeline/precise_faults.S": "f02887708b91f79207db958eb333a6951ff27aff37bd75efec3d81b1227eaef2",
+    "sw/tests/pmp_fetch/csr_trace.S": "f6645f0c3f163dec18d82603b7abd246f71045b312dff01ae875d3ed8382332d",
+    "sw/tests/pmp_fetch/parcel_boundary.S": "3fbaa9942a710269c0fd76675cf569516c6a3c1ee689809bb99df6ec37d19d29",
+    "sw/tests/pmp_fetch/protection_change.S": "8e8bedc07ead95bb498154d471f7149941787e2620a2fdcbe546e4e8319f5f22",
+    "sw/tests/riscv_dv/fp_stress_testlist.yaml": "09b27d88e6afb85d9b33ae3aa508bef11f5ef1719420d58250a8d911873af095",
+    "sw/tests/riscv_dv/rv32_tim.ld": "e85ab4cefd9563b28eccec0ed94bea8a860807f498d2437263788be8d5bfc97f",
+    "sw/tests/rv32_c_loop/rv32_loop_smoke.c": "5767b11d6a4d2c6e317fef4c0e799ff8b9ab84a3db971fc53ce97274495e9ce9",
+    "sw/tests/rv32_c_loop/rv32_start.S": "453af5f623e235c7d35311804c8dc5747d7b287ec95d7bd20aef1acfb325312a",
+    "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672",
+    "tb/fixtures/bootrom/bootrom_test.hex": "c6b67c46e72e141749a4d2f13858b2a754af6d39506bd54190f6181ae0c27f98",
+    "tb/integration/backend/rv_backend_int_tb.sv": "4c47a40d7822808272340ad9934fdbc1333e8624bdb3c5e50f9d55d38e777ead",
+    "tb/unit/backend/rv_branch_arithmetic_tb.sv": "5a8f9c5cbba7020818adf9f5d12c6194914326f283ca189e554a70a194d54fff",
+    "tb/unit/backend/rv_branch_recovery_tb.sv": "a436d9d17372475c353f627067b62fc7cc30131c6309da4d5efab7ef7f9b7c77",
+    "tb/unit/backend/rv_csr_file_tb.sv": "8de87fa08aec544deeed19cb30a797790d6c8a31f275597c1289566e9667d3d3",
+    "tb/unit/backend/rv_decode2_tb.sv": "c6a5a46a2d07cc64778bd75b1725009ece373f307fa0af1bd1710686ffa59544",
+    "tb/unit/backend/rv_divider_tb.sv": "bbf4e1e421670bd7f4f3929c83c2be40846dfe596f30d02603782dbccef52d86",
+    "tb/unit/backend/rv_exec_result_buffer_depth2_tb.sv": "55643418cb4e6d66997d396ecfb758a51156c6017b3c4869da36e156345becbf",
+    "tb/unit/backend/rv_exec_result_buffer_tb.sv": "cd237ae719090b0c7f469ee5469a3ff43f2e351b1ad51a2d4f0cb3062e3f0c83",
+    "tb/unit/backend/rv_execute_units_tb.sv": "8b1c86afa738bd8c50dce658d659da61c6ae3d373131f4391617f778d7bdeaae",
+    "tb/unit/backend/rv_fpu_diff_tb.sv": "9d0512c8e79b74a00b34a8b717df5f4b38764752c9eb7899305de4c78d94705e",
+    "tb/unit/backend/rv_fpu_tb.sv": "8043492ecb31a9274f669b40bcbb7441b5f0dfe07c2ef1fed9cd7bf003cc0335",
+    "tb/unit/backend/rv_issue_arbiter_age_tb.sv": "4b714e2fa8b52f34f518e19373d20af667b1ef8ed51f8f3d12c5c85b076777e8",
+    "tb/unit/backend/rv_issue_arbiter_equiv_tb.sv": "766356692ba95e82b9e2d87361110dc51db26529a1f965b96e2c3e4391eb4e03",
+    "tb/unit/backend/rv_issue_arbiter_tb.sv": "15fa1872254b079bb6cc39a7d37a64ba76aff34bea4bfc2f4cff0622118e7d78",
+    "tb/unit/backend/rv_issue_queue_tb.sv": "6f5a4964cc91030389e5199d8b4e2fa36918d661739c32728fc1e9a9a7b23749",
+    "tb/unit/backend/rv_lsq_tb.sv": "497b576122b0d463771562e79ffdcbe450db50cb42ec0d212074f4965e8970e9",
+    "tb/unit/backend/rv_lsu_base_cache_tb.sv": "1242cb913ecd48537b3a0e4108bc3c637de4126cf3bb86e2644086496cbe38e5",
+    "tb/unit/backend/rv_lsu_pipe_depth2_tb.sv": "8b5278b9b95773d0926134666226389316696c5d3025466f8fda0c7879efe4cd",
+    "tb/unit/backend/rv_lsu_pipe_tb.sv": "ce11dbf939f73bafb6e4c7d9fc246281fb5491baa39094e6a6a19ce0329f9f9b",
+    "tb/unit/backend/rv_lsu_pipe_widths_tb.sv": "062ee2b5cf53c3db166f3f7a20e2a6296d6dd9ef07dc708e66a4290677a805a8",
+    "tb/unit/backend/rv_multiplier_tb.sv": "b3721d5dfbb0ae1e2f724bce8554e2b745735aff3920d9640f5d0d9f2b4279db",
+    "tb/unit/backend/rv_phys_regfile_tb.sv": "19021f7b4ec64fce6dd74c155aad409b9c5bb266e96282d409d1698cefb6b33d",
+    "tb/unit/backend/rv_pmp_tb.sv": "d0f6be9456b536d4dea4ee2be018f13a728250e3340ac2d782d94af01cda9b78",
+    "tb/unit/backend/rv_rename2_tb.sv": "da3118bd8747c6901c074b5d62698e59576a0c2190ef5527b0572938e80c6ea5",
+    "tb/unit/backend/rv_rob_tb.sv": "2cc013780cc911136212fb5d0b27a6a53cf1eab5d692a7393c1313b36fa6dfb4",
+    "tb/unit/backend/rv_store_buffer_tb.sv": "e6ab65d30392e2dec3dd81e8996c8cc10416c52d4b798ce07ce71260db2a2c6d",
+    "tb/unit/backend/rv_trap_controller_tb.sv": "1fa75aa9b2e9fd5c8d70c5e4b5434dfd34414a86a518ecbb63dec1dd41e6f8a9",
+    "tb/unit/backend/rv_writeback_arbiter_tb.sv": "413442ebf61bcaab700b5eede703d2cfabf548e6ed5cb26fc6ca9adbdbac8b44",
+    "tb/unit/frontend/rv_branch_predictor_tb.sv": "a8789658bda86857357c307b4c9ee2b4642b3f2aa421b569928ce2d63c37e97f",
+    "tb/unit/frontend/rv_branch_target_arithmetic_tb.sv": "a89a5bad168cb1e464aa9670f9dfcde76d0cce84945f0076a3d3c6066596cfcc",
+    "tb/unit/frontend/rv_fetch_queue_tb.sv": "533296cff530b1619131f95efef20f9550feae661518f6986a1730dbe9817cd1",
+    "tb/unit/frontend/rv_fetch_target_buffer_tb.sv": "f8fb78f4ab3d0b1f7ba5e22b179333b336cd0be72295e56f857fb9bc31fb9ad8",
+    "tb/unit/frontend/rv_frontend_cross_block_tb.sv": "529a775f9a0ba8267379cf53f0db4573ecccf03120473c4a00d327cf5745b01e",
+    "tb/unit/soc/rv_axi_bridge_tb.sv": "5d3eda1af851895cf0c1035a7dd4346393a92cca145b46b7d345ad15cbe86dea",
+    "tb/unit/soc/rv_clint_tb.sv": "e02aceef7a89b1029fd4d457b4a6931f2e4fb4c22138c61f43306b632d7a8f8b",
+    "tb/unit/soc/rv_plic_tb.sv": "8af405cb7d83144ed079a0c4395268a062af051dc733df0b89d4c9ffe8b0a47e",
+    "tb/unit/soc/rv_soc_peripheral_tb.sv": "50220b407e35d42b46d98a741cd5afcab6b7c277233ea2c3bc9cd710773896c2"
+  }
+}

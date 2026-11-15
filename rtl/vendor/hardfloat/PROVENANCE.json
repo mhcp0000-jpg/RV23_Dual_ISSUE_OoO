@@ -1,0 +1,152 @@
+{
+  "package": "Berkeley HardFloat Release 1",
+  "release": "2019-07",
+  "source_url": "https://www.jhauser.us/arithmetic/HardFloat-1.zip",
+  "archive_sha256": "6b3757c9fbfa2230c6a2b84605e39372cb589dd7500e979c4f0b8ecc8a03b14b",
+  "specialization": "RISCV",
+  "license": "BSD-3-Clause; see COPYING.txt and individual file headers",
+  "status": "Selected sources for FP64 development; not yet connected or claimed implemented",
+  "files": [
+    {
+      "path": "rtl/vendor/hardfloat/isSigNaNRecFN.v",
+      "archive_path": "HardFloat-1/source/isSigNaNRecFN.v",
+      "upstream_sha256": "77e37250ec9c18c4484c23eda48bfcf7df8dec1a3d3b2c1a1e5804386a25de8b",
+      "sha256": "77e37250ec9c18c4484c23eda48bfcf7df8dec1a3d3b2c1a1e5804386a25de8b",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_rawFN.v",
+      "archive_path": "HardFloat-1/source/HardFloat_rawFN.v",
+      "upstream_sha256": "353cad0b733c601f5c2449dc75f1ddefa34dc5c2466ac82540302303899fe355",
+      "sha256": "5238e706b116fc4d80b929b36bc899e4cb7b0846e97fe81cba0424a76035a8a3",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/recFNToFN.v",
+      "archive_path": "HardFloat-1/source/recFNToFN.v",
+      "upstream_sha256": "62d42a8f004f00f9a688c5e45302ceff22148313b3602840e5d05a13e9391e96",
+      "sha256": "cc3b9e9fc2b40972ffd4ea211a479895d078f72350ed29abbc06c970c1d7f2b5",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/recFNToRecFN.v",
+      "archive_path": "HardFloat-1/source/recFNToRecFN.v",
+      "upstream_sha256": "3ec9a39057e64d7fb42893c12f0e19b36af7226669ba53671d6abe19db0722fc",
+      "sha256": "c4e96b454c985bbd3726ec32fb16d750253af47e91ee27d64b1bc225cb5d1458",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/mulRecFN.v",
+      "archive_path": "HardFloat-1/source/mulRecFN.v",
+      "upstream_sha256": "5a6a263dcde9f38f0fabef87ceb41e1bdff63c46d151c7c65e404467354bee43",
+      "sha256": "27a5481e75d1199fc8c60920141e98618407ea7174bffbad1c2790c899867bc3",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/iNToRecFN.v",
+      "archive_path": "HardFloat-1/source/iNToRecFN.v",
+      "upstream_sha256": "bb7a5cd239ebc2f95a7eb9047534f1e530f148f5d017dd664c3f252bccb25f1c",
+      "sha256": "cbe8d5f6103606b336ad522c2db014cfb41190b28196dfa3155cb2c2c49830a5",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_consts.vi",
+      "archive_path": "HardFloat-1/source/HardFloat_consts.vi",
+      "upstream_sha256": "53d4c22ee61b9b81bc763330959327914d8e1952e15f3f66361d1a4e34e2802f",
+      "sha256": "53d4c22ee61b9b81bc763330959327914d8e1952e15f3f66361d1a4e34e2802f",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_specialize.vi",
+      "archive_path": "HardFloat-1/source/RISCV/HardFloat_specialize.vi",
+      "upstream_sha256": "c252f7e1638f63838f66e6f469bf86fdec0e4396f6b0be69172623a26519307c",
+      "sha256": "c252f7e1638f63838f66e6f469bf86fdec0e4396f6b0be69172623a26519307c",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_specialize.v",
+      "archive_path": "HardFloat-1/source/RISCV/HardFloat_specialize.v",
+      "upstream_sha256": "de4442606d2c51bf30c0476d289fa7f955273c8bb58c1484f0e745b76bc8d316",
+      "sha256": "de4442606d2c51bf30c0476d289fa7f955273c8bb58c1484f0e745b76bc8d316",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/compareRecFN.v",
+      "archive_path": "HardFloat-1/source/compareRecFN.v",
+      "upstream_sha256": "b88d572db1cea8d5275aeb1db7dcdfabad74281fdc29378940fd4b20f7326d69",
+      "sha256": "b88d572db1cea8d5275aeb1db7dcdfabad74281fdc29378940fd4b20f7326d69",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/divSqrtRecFN_small.v",
+      "archive_path": "HardFloat-1/source/divSqrtRecFN_small.v",
+      "upstream_sha256": "f76feb5557faa8bcb2868e51bf2ce7d1297be46dd67ae51d509b1ae91066a522",
+      "sha256": "8bbaf708f1b5f9b253d6fe7e86db57662309c3c2f587445404d5874dfe904e9d",
+      "changes": [
+        "project-root-relative include paths",
+        "synchronous active-low reset for divider control",
+        "remove duplicate ANSI output net declaration for current SystemVerilog tools"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/mulAddRecFN.v",
+      "archive_path": "HardFloat-1/source/mulAddRecFN.v",
+      "upstream_sha256": "268c38c2433e66337900a4ad67daf393ffa6f4aaa43552728bc786a83604008b",
+      "sha256": "60bdd19fabb4a06abc10494a7a254e7c0b139161f2a385422bdb7988004e2577",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/addRecFN.v",
+      "archive_path": "HardFloat-1/source/addRecFN.v",
+      "upstream_sha256": "15fb5387ab0deff63670ed144189e9f263c61ffc909d06697974c49d11ba5dc3",
+      "sha256": "a25e010a51613ecca7a795f49aa957fe643bdcad50e92e49ec965c7a4dbb09dd",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_primitives.v",
+      "archive_path": "HardFloat-1/source/HardFloat_primitives.v",
+      "upstream_sha256": "5a1d0823a066395eda8191b3a556c414e6120b8085ff43ce383980d84af47f9f",
+      "sha256": "5a1d0823a066395eda8191b3a556c414e6120b8085ff43ce383980d84af47f9f",
+      "changes": []
+    },
+    {
+      "path": "rtl/vendor/hardfloat/recFNToIN.v",
+      "archive_path": "HardFloat-1/source/recFNToIN.v",
+      "upstream_sha256": "881c05985ee57e1006988661236708c74269352957d94f65c88696c1a7928877",
+      "sha256": "00f67f23bfe59480a6134d3b0d528ed360b5a2735e7f9dc510cd2e9b2c319e86",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/fNToRecFN.v",
+      "archive_path": "HardFloat-1/source/fNToRecFN.v",
+      "upstream_sha256": "7aca940370a4ecf1b52774cec62e90252d090f20a4acd5f577cf88565266426c",
+      "sha256": "549dfb5645b9f35fa597eb2d28f8efa79c834860245ecee4108f4db33339439e",
+      "changes": [
+        "project-root-relative include paths"
+      ]
+    },
+    {
+      "path": "rtl/vendor/hardfloat/HardFloat_localFuncs.vi",
+      "archive_path": "HardFloat-1/source/HardFloat_localFuncs.vi",
+      "upstream_sha256": "e6e8d53f362dc2c9fe14c9b0edbc73bc6367d8899276b3384e947a17029b5d50",
+      "sha256": "e6e8d53f362dc2c9fe14c9b0edbc73bc6367d8899276b3384e947a17029b5d50",
+      "changes": []
+    }
+  ]
+}

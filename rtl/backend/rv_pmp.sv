@@ -1,0 +1,201 @@
+module rv_pmp #(
+  parameter int unsigned PADDR_WIDTH = 32,
+  parameter int unsigned PMP_ENTRIES = 8,
+  parameter int unsigned CHECK_PORTS = 3,
+  localparam int unsigned PMP_ADDR_WIDTH = PADDR_WIDTH - 2
+) (
+  input  logic [PMP_ENTRIES*8-1:0]                   pmpcfg_i,
+  input  logic [PMP_ENTRIES*PMP_ADDR_WIDTH-1:0]      pmpaddr_i,
+  input  logic [CHECK_PORTS-1:0]                      check_valid_i,
+  input  logic [CHECK_PORTS-1:0][PADDR_WIDTH-1:0]     check_address_i,
+  input  logic [CHECK_PORTS-1:0][2:0]                 check_size_i,
+  // Bit 0/1/2 request read/write/execute permission respectively.
+  input  logic [CHECK_PORTS-1:0][2:0]                 check_access_i,
+  input  rv_ooo_pkg::privilege_e [CHECK_PORTS-1:0]    check_privilege_i,
+  output logic [CHECK_PORTS-1:0]                      allow_o,
+  output logic [CHECK_PORTS-1:0]                      matched_o,
+  output logic [CHECK_PORTS-1:0][PADDR_WIDTH-1:0]     fault_address_o
+);
+  import rv_ooo_pkg::*;
+
+  logic [7:0] entry_cfg_decoded [0:PMP_ENTRIES-1];
+  logic [1:0] entry_mode_decoded [0:PMP_ENTRIES-1];
+  logic [PADDR_WIDTH:0] region_low_decoded [0:PMP_ENTRIES-1];
+  logic [PADDR_WIDTH:0] region_high_decoded [0:PMP_ENTRIES-1];
+  logic [PMP_ADDR_WIDTH-1:0] napot_prefix_ones [0:PMP_ENTRIES-1];
+  logic [PMP_ADDR_WIDTH-1:0] napot_high_base [0:PMP_ENTRIES-1];
+  logic [PMP_ADDR_WIDTH:0] napot_high_encoded [0:PMP_ENTRIES-1];
+  function automatic logic [PMP_ADDR_WIDTH:0] napot_exclusive_high(
+    input logic [PMP_ADDR_WIDTH-1:0] address
+  );
+    logic [PMP_ADDR_WIDTH-1:0] all_ones, at_most_one_zero;
+    logic [PMP_ADDR_WIDTH-1:0] lower_neutral, high_base;
+    logic [PMP_ADDR_WIDTH:0] result;
+    all_ones=address;
+    at_most_one_zero='1;
+    // Filling the first zero in the encoded address makes the increment
+    // carry into bit k true iff address[k-1:0] has at most one zero.
+    // Compute those two associative prefix properties together, instead of
+    // detecting trailing ones and THEN incrementing the modified address.
+    for (int stride=1; stride<PMP_ADDR_WIDTH; stride*=2) begin
+      lower_neutral=(PMP_ADDR_WIDTH'(1)<<stride)-1'b1;
+      at_most_one_zero=(at_most_one_zero & ((all_ones<<stride)|lower_neutral)) |
+                       (all_ones & (at_most_one_zero<<stride));
+      all_ones &= (all_ones<<stride)|lower_neutral;
+    end
+    high_base=address | ((all_ones<<1)|PMP_ADDR_WIDTH'(1));
+    result= {1'b0,high_base} ^ {at_most_one_zero,1'b1};
+    return result;
+  endfunction
+  for (genvar entry=0; entry<PMP_ENTRIES; entry++) begin : g_napot_prefix
+    assign napot_high_base[entry] =
+      pmpaddr_i[entry*PMP_ADDR_WIDTH +: PMP_ADDR_WIDTH] |
+      ((napot_prefix_ones[entry] << 1) | PMP_ADDR_WIDTH'(1));
+    // Keep the physical-space carry, but derive it together with every
+    // lower carry from the original address (at most one zero per prefix).
+    assign napot_high_encoded[entry] = napot_exclusive_high(
+      pmpaddr_i[entry*PMP_ADDR_WIDTH +: PMP_ADDR_WIDTH]);
+    for (genvar bit_index=0; bit_index<PMP_ADDR_WIDTH; bit_index++) begin : g_bit
+      assign napot_prefix_ones[entry][bit_index] =
+        &pmpaddr_i[entry*PMP_ADDR_WIDTH +: bit_index+1];
+    end
+  end
+
+  // Decode each PMP entry once, independently of the number of access ports.
+  // In particular, NAPOT trailing-one detection and TOR bound construction
+  // are shared by IFU and both LSU checks instead of being replicated inside
+  // every port/entry comparison cone.
+  always_comb begin : p_predecode
+    for (int unsigned entry = 0; entry < PMP_ENTRIES; entry++) begin
+      logic [PMP_ADDR_WIDTH-1:0] entry_addr;
+      logic [PMP_ADDR_WIDTH-1:0] previous_addr;
+      logic [PMP_ADDR_WIDTH-1:0] napot_low_mask;
+
+      entry_cfg_decoded[entry] = pmpcfg_i[entry*8 +: 8];
+      entry_mode_decoded[entry] = entry_cfg_decoded[entry][4:3];
+      region_low_decoded[entry] = '0;
+      region_high_decoded[entry] = '0;
+      entry_addr = pmpaddr_i[entry*PMP_ADDR_WIDTH +: PMP_ADDR_WIDTH];
+      previous_addr = '0;
+      if (entry != 0)
+        previous_addr = pmpaddr_i[(entry-1)*PMP_ADDR_WIDTH +:
+                                  PMP_ADDR_WIDTH];
+      napot_low_mask = napot_prefix_ones[entry];
+
+      case (entry_mode_decoded[entry])
+        2'b01: begin // TOR
+          if (entry != 0)
+            region_low_decoded[entry] = {1'b0, previous_addr, 2'b00};
+          region_high_decoded[entry] = {1'b0, entry_addr, 2'b00};
+        end
+        2'b10: begin // NA4
+          region_low_decoded[entry] = {1'b0, entry_addr, 2'b00};
+          region_high_decoded[entry] = region_low_decoded[entry] +
+                                           (PADDR_WIDTH+1)'(4);
+        end
+        2'b11: begin // NAPOT
+          if (&entry_addr[PMP_ADDR_WIDTH-2:0]) begin
+            region_low_decoded[entry] = '0;
+            region_high_decoded[entry] = '0;
+            region_high_decoded[entry][PADDR_WIDTH] = 1'b1;
+          end else begin
+            region_low_decoded[entry] = {1'b0,
+              (entry_addr & ~napot_low_mask), 2'b00};
+            // N trailing ones encode 2^(N+3) bytes. Preserve the exclusive
+            // bound, including carry at the physical address-space end.
+            region_high_decoded[entry] = {napot_high_encoded[entry], 2'b00};
+          end
+        end
+        default: begin
+        end
+      endcase
+    end
+  end
+
+  // All regions and accesses retain exclusive high bounds. One extra bit
+  // represents exactly 2**PADDR_WIDTH and detects physical-address wrap.
+  always_comb begin : p_lookup
+    allow_o = '0;
+    matched_o = '0;
+    fault_address_o = check_address_i;
+
+    for (int unsigned port = 0; port < CHECK_PORTS; port++) begin
+      logic [PMP_ENTRIES-1:0] overlap_vector;
+      logic [PMP_ENTRIES-1:0] deny_vector;
+      logic [PMP_ENTRIES-1:0] first_match_vector;
+      logic [PADDR_WIDTH:0] access_low;
+      logic [PADDR_WIDTH:0] access_high;
+      logic [PADDR_WIDTH:0] access_bytes;
+      logic [PADDR_WIDTH:0] address_space_end;
+      logic access_in_range;
+
+      overlap_vector = '0;
+      deny_vector = '0;
+      first_match_vector = '0;
+      access_low = {1'b0, check_address_i[port]};
+      access_bytes = '0;
+      if (check_size_i[port] <= PADDR_WIDTH)
+        access_bytes[check_size_i[port]] = 1'b1;
+      access_high = access_low + access_bytes;
+      address_space_end = '0;
+      address_space_end[PADDR_WIDTH] = 1'b1;
+      access_in_range = (access_bytes != 0) &&
+                        (access_high <= address_space_end);
+
+      // No matching entry permits M-mode accesses, but S/U accesses require
+      // a matching entry. An access that wraps the physical address space is
+      // always rejected.
+      allow_o[port] = (check_privilege_i[port] == PRIV_M) &&
+                      access_in_range;
+
+      for (int unsigned entry = 0; entry < PMP_ENTRIES; entry++) begin
+        logic overlaps;
+        logic full_match;
+        logic permissions_ok;
+        overlaps = (entry_mode_decoded[entry] != 2'b00) &&
+                   (access_low < region_high_decoded[entry]) &&
+                   (access_high > region_low_decoded[entry]);
+        full_match = overlaps &&
+                     (access_low >= region_low_decoded[entry]) &&
+                     (access_high <= region_high_decoded[entry]) &&
+                     access_in_range;
+        permissions_ok =
+          ((check_access_i[port] & ~entry_cfg_decoded[entry][2:0]) ==
+           3'b000) &&
+          !(entry_cfg_decoded[entry][1] && !entry_cfg_decoded[entry][0]);
+
+        overlap_vector[entry] = overlaps;
+        deny_vector[entry] = !full_match ||
+          (!((check_privilege_i[port] == PRIV_M) &&
+             !entry_cfg_decoded[entry][7]) && !permissions_ok);
+      end
+
+      // Compare every entry in parallel, then qualify the lowest-index
+      // overlap with a prefix reduction. Do not chain full-match/permission
+      // muxes across the entries: a late address decode must reach only the
+      // winning entry's decision, not every subsequent priority mux.
+      for (int unsigned entry = 0; entry < PMP_ENTRIES; entry++) begin
+        logic earlier_overlap;
+        earlier_overlap = 1'b0;
+        for (int unsigned earlier = 0; earlier < entry; earlier++)
+          earlier_overlap |= overlap_vector[earlier];
+        first_match_vector[entry] = overlap_vector[entry] && !earlier_overlap;
+      end
+      matched_o[port] = |overlap_vector;
+      if (|overlap_vector)
+        allow_o[port] = !(|(first_match_vector & deny_vector));
+
+      if (!check_valid_i[port]) begin
+        allow_o[port] = 1'b1;
+        matched_o[port] = 1'b0;
+      end
+    end
+  end
+
+  initial begin : p_parameter_checks
+    if (PADDR_WIDTH < 4)
+      $fatal(1, "PMP requires at least a 4-bit physical address");
+    if ((PMP_ENTRIES == 0) || (CHECK_PORTS == 0))
+      $fatal(1, "PMP entry and check-port counts must be non-zero");
+  end
+endmodule

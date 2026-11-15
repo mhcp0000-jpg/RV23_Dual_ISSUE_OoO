@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: BSD-3-Clause-Clear
+# H 1.0 permits GEILEN=0 (ISA manual 20240411, hypervisor section).
+schema:
+  minimum: 0

@@ -1,0 +1,27 @@
+[
+  {
+    "file": "config/hypervisor_opcode_tables/rv_h",
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_h",
+    "sha256": "a096f8544887e18c82061e8a06ae785991264b617d2305319b79903da7c1283c"
+  },
+  {
+    "file": "config/hypervisor_opcode_tables/rv64_h",
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv64_h",
+    "sha256": "212893f3eb0cc834f81371cfc219a22d125a98d7f91ade5d2617dcdf10df26c3"
+  },
+  {
+    "file": "config/hypervisor_opcode_tables/rv_svinval",
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_svinval",
+    "sha256": "ec4f5e833bdafa3345768919ea63416fe6a27209a6d74ceeffbdf97589fca895"
+  },
+  {
+    "file": "config/hypervisor_opcode_tables/LICENSE",
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/LICENSE",
+    "sha256": "1b24700313c5720c31e52f914d80c3e652f4b0abd4410d37755165d73d79acc4"
+  },
+  {
+    "file": "config/hypervisor_opcode_tables/rv_svinval_h",
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_svinval_h",
+    "sha256": "adccceccb1931a3c30d6ba4c2599cdc03dda05076156c632d34fc1e968b87e95"
+  }
+]

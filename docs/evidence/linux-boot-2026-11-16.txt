@@ -1,0 +1,15 @@
+RV23 Linux 6.12 RTL simulation, 32 MiB configuration
+Selected console lines, with the kernel build user and host omitted.
+
+LINUX_RTL_S_ENTRY pc=0000000080200000
+Linux version 6.12.0
+LINUX_RTL_U_RETIRE pc=00000000000100b0
+RV23 LINUX INIT PASS
+reboot: Power down
+[host-finish code=0]
+PASS rv_act4_program_tb commits=21655063
+
+Full local log: out/linux_bringup/mixed_eew/firmware/rtl.log
+Full log SHA-256: 9b973c3d2eaeda74ed1de8de0655ecd162e2f32552a5ef3b30ef76b78f644819
+Firmware ELF SHA-256: 050b5a5c0199dc05899de3836bbb6b77dd3efac022e3d484e4d40a2e06c7d833
+Simulator SHA-256: 185e84c0b250b3a249989cc65178cb5edbef8bb9f5da02f27d9dd5e90e47ec84

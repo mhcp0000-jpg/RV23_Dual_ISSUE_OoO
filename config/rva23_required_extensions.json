@@ -1,0 +1,89 @@
+{
+  "profile": "RVA23S64",
+  "version": "1.0",
+  "source_url": "https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html",
+  "source_html_sha256": "12bf03abe5c86a89c53c0c3b73e4ed0d494b4cb4ffdde72bec002c08d2452063",
+  "retrieved_date": "2026-11-01",
+  "base": {
+    "isa": "RV64I",
+    "endianness": "little"
+  },
+  "mandatory_unprivileged_inherited_from_RVA23U64": [
+    "M",
+    "A",
+    "F",
+    "D",
+    "C",
+    "B",
+    "Zicsr",
+    "Zicntr",
+    "Zihpm",
+    "Ziccif",
+    "Ziccrse",
+    "Ziccamoa",
+    "Zicclsm",
+    "Za64rs",
+    "Zihintpause",
+    "Zic64b",
+    "Zicbom",
+    "Zicbop",
+    "Zicboz",
+    "Zfhmin",
+    "Zkt",
+    "V",
+    "Zvfhmin",
+    "Zvbb",
+    "Zvkt",
+    "Zihintntl",
+    "Zicond",
+    "Zimop",
+    "Zcmop",
+    "Zcb",
+    "Zfa",
+    "Zawrs",
+    "Supm"
+  ],
+  "mandatory_unprivileged_added_by_RVA23S64": [
+    "Zifencei"
+  ],
+  "mandatory_supervisor": [
+    "Ss1p13",
+    "Svbare",
+    "Sv39",
+    "Svade",
+    "Ssccptr",
+    "Sstvecd",
+    "Sstvala",
+    "Sscounterenw",
+    "Svpbmt",
+    "Svinval",
+    "Svnapot",
+    "Sstc",
+    "Sscofpmf",
+    "Ssnpm",
+    "Ssu64xl",
+    "Sha"
+  ],
+  "Sha_components": [
+    "H",
+    "Ssstateen",
+    "Shcounterenw",
+    "Shvstvala",
+    "Shtvala",
+    "Shvstvecd",
+    "Shvsatpa",
+    "Shgatpa"
+  ],
+  "aggregate_expansions": {
+    "B": [
+      "Zba",
+      "Zbb",
+      "Zbs"
+    ],
+    "A": [
+      "Zaamo",
+      "Zalrsc"
+    ]
+  },
+  "audit_status": "Normative inventory verified against the official profile page; clause-by-clause RTL/evidence audit remains in progress. The 64-step directed checkpoint is separate evidence."
+}

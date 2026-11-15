@@ -1,0 +1,19 @@
+- test: riscv_floating_point_mmu_stress_test
+  description: >
+    Pyflow-compatible RV32IMFC profile of the official RISC-V DV floating-point
+    load/store stress test. Address translation remains BARE for this target.
+    The generator exposes the RV32IMF subset to avoid the known Pyflow
+    compressed SP-reservation constraint conflict; the ELF still targets and
+    runs on the RV32IMFC core, while dedicated C tests cover RV32C. Pyflow only
+    implements the random and hazard memory streams; the full four-stream test
+    remains a SystemVerilog/UVM generator regression for Xcelium.
+  iterations: 1
+  gen_test: riscv_instr_base_test
+  gen_opts: >
+    +instr_cnt=50
+    +num_of_sub_program=0
+    +enable_floating_point=1
+    +disable_compressed_instr=1
+    +enable_unaligned_load_store=0
+    +directed_instr_0=riscv_load_store_rand_instr_stream,40
+    +directed_instr_1=riscv_load_store_hazard_instr_stream,40

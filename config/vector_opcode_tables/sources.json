@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_v",
+    "file": "config/vector_opcode_tables/rv_v",
+    "sha256": "a260265cf952fa0025382b97c125c47bd3f42fa167805da0ee97b09c16ba7cba"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_zvbb",
+    "file": "config/vector_opcode_tables/rv_zvbb",
+    "sha256": "8caadc210a5b202c550d9eb5c4f0c7116ddaf1f44ec41b5f03c9e2f3a1168393"
+  }
+]

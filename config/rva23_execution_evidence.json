@@ -1,0 +1,300 @@
+[
+  {
+    "requirements": [
+      "I"
+    ],
+    "report": "out/rva23/fence_order/report.json",
+    "behavior": "FENCE encodings, SRAM write response, retire and younger load ordering"
+  },
+  {
+    "requirements": [
+      "I",
+      "M",
+      "A",
+      "F",
+      "D",
+      "C",
+      "B",
+      "Zicond"
+    ],
+    "report": "out/rva23/sail_reference_evidence.json",
+    "behavior": "Identical upstream ELFs and exact user-mode scalar retirement comparison"
+  },
+  {
+    "requirements": [
+      "A",
+      "Ziccamoa",
+      "Zicclsm",
+      "Zfhmin",
+      "Zfa",
+      "Zimop",
+      "Zcmop",
+      "Zcb",
+      "Svbare",
+      "Sv39"
+    ],
+    "report": "out/rva23/profile_hypervisor_replay/report.json",
+    "behavior": "Native scalar profile programs, including atomic, FP, misaligned and Bare/Sv39 workloads"
+  },
+  {
+    "requirements": [
+      "Za64rs",
+      "Ziccrse"
+    ],
+    "report": "out/rva23/lrsc_progress",
+    "behavior": "Native W/D constrained LR/SC loops across 72 placements"
+  },
+  {
+    "requirements": [
+      "A",
+      "Za64rs"
+    ],
+    "report": "out/rva23/wrs_debug_wake",
+    "behavior": "Live debug AXI writes wake WRS.NTO, preserve W/D SC success on an adjacent line, and force W/D SC failure on overlap without overwriting debugger data"
+  },
+  {
+    "requirements": [
+      "Ziccif",
+      "Zifencei"
+    ],
+    "report": "out/regression/rv23_instruction_fetch_atomic_tb/report.json",
+    "behavior": "Aligned fetch atomicity during debug writes and refills, followed by FENCE.I"
+  },
+  {
+    "requirements": [
+      "Zicsr",
+      "Zicntr",
+      "Zihpm",
+      "Sscounterenw",
+      "Shcounterenw"
+    ],
+    "report": "out/rva23/counter_permission_matrix/read",
+    "behavior": "Native CSR counter reads and hierarchical enable permissions"
+  },
+  {
+    "requirements": [
+      "Zicsr",
+      "Zicntr",
+      "Zihpm",
+      "Sscounterenw",
+      "Shcounterenw"
+    ],
+    "report": "out/rva23/counter_permission_matrix/write_zero",
+    "behavior": "Native CSR write intent to read-only counters and boundary permissions"
+  },
+  {
+    "requirements": [
+      "Zic64b",
+      "Zicbom",
+      "Zicboz"
+    ],
+    "report": "out/rva23/cbo_permissions",
+    "behavior": "64-byte ZERO granule and privilege/envcfg permissions for management operations"
+  },
+  {
+    "requirements": [
+      "Zkt",
+      "Zvkt"
+    ],
+    "report": "out/rva23/timing_contract_evidence.json",
+    "behavior": "Paired latency measurements and rejected operand-dependent early-exit control"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_agnostic_differential/audit.json",
+    "behavior": "Native versus Sail vector state across 22 configurations and three agnostic policies"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_overlap",
+    "behavior": "Native mixed-EEW source overlap traps, legal same-EEW aliases and destination overlap restart"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_mixed_eew_sail/report.json",
+    "behavior": "Sail and RTL execute the same ELF with seven exact mixed-EEW traps and two legal same-width aliases"
+  },
+  {
+    "requirements": [
+      "V",
+      "H",
+      "Sha"
+    ],
+    "report": "out/rva23/hypervisor_vector_faults_vu",
+    "behavior": "Guest vector load/store restart and G-stage fault metadata"
+  },
+  {
+    "requirements": [
+      "Zvfhmin"
+    ],
+    "report": "out/act4/current_execution_audit.json",
+    "behavior": "Generated Zvfhmin suite covering half/single widening and narrowing conversions"
+  },
+  {
+    "requirements": [
+      "Zvbb"
+    ],
+    "report": "out/rva23/zvbb_native",
+    "behavior": "16 forms, widening, mask/prestart/tail preservation and zero-length execution"
+  },
+  {
+    "requirements": [
+      "Zawrs"
+    ],
+    "report": "out/rva23/guest_wrs_timeout",
+    "behavior": "Guest timeout/intercept behavior and STO/SC continuation"
+  },
+  {
+    "requirements": [
+      "Zawrs"
+    ],
+    "report": "out/rva23/wrs_debug_wake",
+    "behavior": "External wake and subsequent SC outcome"
+  },
+  {
+    "requirements": [
+      "Supm",
+      "Ssnpm"
+    ],
+    "report": "out/rva23/guest_pointer_mask_faults",
+    "behavior": "Guest masked addresses, G-stage faults and PMLEN=0 control"
+  },
+  {
+    "requirements": [
+      "Ss1p13"
+    ],
+    "report": "out/rva23/sail_privileged_events/audit.json",
+    "behavior": "Exact M/S trap, interrupt and WFI event trace comparison"
+  },
+  {
+    "requirements": [
+      "Ss1p13",
+      "H",
+      "Sha"
+    ],
+    "report": "out/rva23/interrupt_csr_boundary",
+    "behavior": "Committed SSTATUS/SIE/SIP and SRET interrupt boundaries in HS and VS"
+  },
+  {
+    "requirements": [
+      "H",
+      "Sha"
+    ],
+    "report": "out/rva23/guest_interrupt_priority",
+    "behavior": "Simultaneous HS and VS interrupt priority, guest preemption and cause mapping"
+  },
+  {
+    "requirements": [
+      "H",
+      "Sha"
+    ],
+    "report": "out/rva23/hlvx_permissions",
+    "behavior": "Two-stage permission matrix and PMP denial for HLVX"
+  },
+  {
+    "requirements": [
+      "Svbare",
+      "Sv39",
+      "Svade",
+      "Svnapot",
+      "Svpbmt"
+    ],
+    "report": "out/rva23/mmu.json",
+    "behavior": "MMU-level Bare, page walks, A/D, NAPOT, PBMT and fault handling"
+  },
+  {
+    "requirements": [
+      "Ssccptr"
+    ],
+    "report": "out/rva23/ptw_debug_coherence/audit.json",
+    "behavior": "Native resident PTE coherence under debug writes, with stale-PTE control"
+  },
+  {
+    "requirements": [
+      "Svbare",
+      "Sv39",
+      "Sstvecd",
+      "Ssu64xl",
+      "Shvstvecd",
+      "Shvsatpa",
+      "Shgatpa"
+    ],
+    "report": "out/rva23/profile_csr_geometry",
+    "behavior": "Supported translation modes, address geometry, UXL, and S/VS direct-vector CSR values"
+  },
+  {
+    "requirements": [
+      "Sstvala",
+      "Shvstvala",
+      "Shtvala"
+    ],
+    "report": "out/rva23/split_fetch_faults",
+    "behavior": "Precise faulting parcel addresses and G-stage GPA metadata across trap targets"
+  },
+  {
+    "requirements": [
+      "Shtvala"
+    ],
+    "report": "out/rva23/hypervisor_mprv_faults/report.json",
+    "behavior": "Implicit and explicit two-stage memory fault metadata under MPRV"
+  },
+  {
+    "requirements": [
+      "Svpbmt"
+    ],
+    "report": "out/rva23/guest_pbmt_precedence/report.json",
+    "behavior": "Native two-stage memory-type precedence and old RTL failure control"
+  },
+  {
+    "requirements": [
+      "Svinval",
+      "Shgatpa",
+      "Shvsatpa"
+    ],
+    "report": "out/rva23/sv39x4_root",
+    "behavior": "VS and G remaps, root quadrants, 41-bit boundary and HINVAL ordering"
+  },
+  {
+    "requirements": [
+      "Sv39",
+      "Shgatpa",
+      "Shvsatpa"
+    ],
+    "report": "out/rva23/guest_superpages",
+    "behavior": "Native VS/G megapage and gigapage reads, stores and misaligned-leaf faults"
+  },
+  {
+    "requirements": [
+      "Sstc"
+    ],
+    "report": "out/rva23/guest_timer_wrap",
+    "behavior": "Unsigned timer wrap, injected pending state and delegated VS timer delivery"
+  },
+  {
+    "requirements": [
+      "Sscofpmf"
+    ],
+    "report": "out/rva23/hpm_mode_filters",
+    "behavior": "Committed per-mode counter gates"
+  },
+  {
+    "requirements": [
+      "Sscofpmf"
+    ],
+    "report": "out/rva23/hpm_machine_overflow",
+    "behavior": "Machine counter overflow interrupt delivery and clearing"
+  },
+  {
+    "requirements": [
+      "Ssstateen"
+    ],
+    "report": "out/rva23/guest_stateen",
+    "behavior": "Independent state-enable bits and native guest CSR permission traps"
+  }
+]

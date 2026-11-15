@@ -1,0 +1,825 @@
+module rv_backend_int_tb #(parameter bit AguLoadBypass = rv_ooo_pkg::CORE_CFG_AGU_LOAD_BYPASS,
+                          parameter bit EarlyLoadSelect = rv_ooo_pkg::CORE_CFG_EARLY_LOAD_SELECT,
+                          parameter bit CompatiblePairSelect = rv_ooo_pkg::CORE_CFG_COMPATIBLE_PAIR_SELECT,
+                          parameter bit BranchTagPipeline = rv_ooo_pkg::CORE_CFG_BRANCH_TAG_PIPELINE,
+                          parameter bit DivTagPipeline = rv_ooo_pkg::CORE_CFG_DIV_TAG_PIPELINE,
+                          parameter bit DivStressOnly = 1'b0);
+  import rv_ooo_pkg::*;
+
+  logic clk, rst_n;
+  logic [1:0] fetch_valid, fetch_ready;
+  logic [1:0][31:0] fetch_pc, fetch_instr;
+  inst_len_e [1:0] fetch_len;
+  prediction_meta_t [1:0] fetch_prediction;
+  logic [1:0] fetch_fault;
+  logic redirect_valid;
+  logic [31:0] redirect_pc;
+  logic [1:0] dmem_req_valid, dmem_req_ready, dmem_req_write;
+  logic [1:0][5:0] dmem_req_id, dmem_rsp_id;
+  logic [1:0][31:0] dmem_req_addr;
+  logic [1:0][2:0] dmem_req_size, dmem_rsp_replay;
+  logic [1:0][63:0] dmem_req_wdata, dmem_rsp_rdata;
+  logic [1:0][7:0] dmem_req_wstrb;
+  logic [1:0][1:0] dmem_req_priv, dmem_rsp_resp;
+  logic [1:0][ROB_SEQ_WIDTH-1:0] dmem_req_sequence;
+  logic [1:0] dmem_req_committed, dmem_req_device;
+  logic [1:0] dmem_rsp_valid, dmem_rsp_ready;
+  logic [1:0] trace_valid;
+  logic [1:0][31:0] trace_pc, trace_instr, trace_wdata;
+  logic [1:0][4:0] trace_rd;
+  logic [1:0] trace_rd_write, trace_rd_fp, trace_trap;
+  logic [1:0][5:0] trace_cause;
+  logic [1:0][31:0] trace_tval;
+
+  int unsigned write_count;
+  logic [4:0] write_rd [0:31];
+  logic [31:0] write_data [0:31];
+  int unsigned fp_write_count;
+  logic [4:0] fp_write_rd [0:7];
+  logic [31:0] fp_write_data [0:7];
+  logic saw_bad_x6;
+  int unsigned memory_write_count;
+  int unsigned memory_read_count;
+  logic saw_uncommitted_write;
+  logic saw_bad_forward_read;
+  logic saw_dual_load_request;
+  logic memory_request_hold = 1'b0;
+  int unsigned memory_request_count;
+  logic [1:0] accepted_memory_write, accepted_memory_read;
+  logic irq_software;
+
+  always #5 clk = ~clk;
+
+  function automatic logic [63:0] memory_read_data(
+    input logic [31:0] address
+  );
+    case (address)
+      32'h8002_0000: memory_read_data = 64'hdead_beef_dead_beef;
+      32'h8002_0008: memory_read_data = 64'h0000_0000_ffff_ff80;
+      32'h8002_0010: memory_read_data = 64'h0000_0000_1234_5678;
+      default:        memory_read_data = 64'hbad0_bad0_bad0_bad0;
+    endcase
+  endfunction
+
+  function automatic logic memory_address_is_mapped(
+    input logic [31:0] address
+  );
+    // The backend integration model treats only the initial 256 KiB TIM
+    // window as implemented.  Requests outside it model the DECERR returned
+    // by the SoC main crossbar's default error slave.
+    return (address >= 32'h8000_0000) && (address < 32'h8004_0000);
+  endfunction
+
+  rv_backend #(.XLEN(32), .PADDR_WIDTH(32), .MEM_DATA_WIDTH(64),
+               .EARLY_LOAD_SELECT(EarlyLoadSelect), .AGU_LOAD_BYPASS(AguLoadBypass),
+               .COMPATIBLE_PAIR_SELECT(CompatiblePairSelect),
+               .BRANCH_TAG_PIPELINE(BranchTagPipeline),
+               .DIV_TAG_PIPELINE(DivTagPipeline)) u_dut (
+    .clk_i(clk), .rst_ni(rst_n), .fetch_valid_i(fetch_valid),
+    .fetch_ready_o(fetch_ready), .fetch_pc_i(fetch_pc),
+    .fetch_instr_i(fetch_instr), .fetch_inst_len_i(fetch_len),
+    .fetch_prediction_i(fetch_prediction), .fetch_fault_i(fetch_fault),
+    .redirect_valid_o(redirect_valid), .redirect_pc_o(redirect_pc),
+    .dmem_req_valid_o(dmem_req_valid), .dmem_req_ready_i(dmem_req_ready),
+    .dmem_req_id_o(dmem_req_id), .dmem_req_write_o(dmem_req_write),
+    .dmem_req_addr_o(dmem_req_addr), .dmem_req_size_o(dmem_req_size),
+    .dmem_req_wdata_o(dmem_req_wdata), .dmem_req_wstrb_o(dmem_req_wstrb),
+    .dmem_req_priv_o(dmem_req_priv), .dmem_req_rob_seq_o(dmem_req_sequence),
+    .dmem_req_committed_o(dmem_req_committed),
+    .dmem_req_device_o(dmem_req_device), .dmem_rsp_valid_i(dmem_rsp_valid),
+    .dmem_rsp_ready_o(dmem_rsp_ready), .dmem_rsp_id_i(dmem_rsp_id),
+    .dmem_rsp_rdata_i(dmem_rsp_rdata), .dmem_rsp_resp_i(dmem_rsp_resp),
+    .dmem_rsp_replay_i(dmem_rsp_replay), .irq_software_i(irq_software),
+    .irq_timer_i(1'b0), .irq_external_i(1'b0), .mtime_i(64'b0),
+    .debug_halt_req_i(1'b0),
+    .trace_valid_o(trace_valid), .trace_pc_o(trace_pc),
+    .trace_instr_o(trace_instr), .trace_rd_o(trace_rd),
+    .trace_rd_write_o(trace_rd_write), .trace_rd_wdata_o(trace_wdata),
+    .trace_rd_fp_o(trace_rd_fp),
+    .trace_trap_o(trace_trap), .trace_cause_o(trace_cause),
+    .trace_tval_o(trace_tval)
+  );
+
+  task automatic clear_fetch;
+    fetch_valid = '0;
+    fetch_pc = '0;
+    fetch_instr = '0;
+    fetch_len[0] = INST_LEN_32;
+    fetch_len[1] = INST_LEN_32;
+    fetch_prediction = '0;
+    fetch_fault = '0;
+  endtask
+
+  task automatic send_pair(
+    input logic [31:0] pc0,
+    input logic [31:0] instruction0,
+    input logic second_valid,
+    input logic [31:0] pc1,
+    input logic [31:0] instruction1
+  );
+    @(negedge clk);
+    fetch_valid = {second_valid, 1'b1};
+    fetch_pc[0] = pc0;
+    fetch_pc[1] = pc1;
+    fetch_instr[0] = instruction0;
+    fetch_instr[1] = instruction1;
+    while (!fetch_ready[0]) @(negedge clk);
+    @(posedge clk);
+    @(negedge clk);
+    clear_fetch();
+  endtask
+
+  task automatic send_single_length(
+    input logic [31:0] pc,
+    input logic [31:0] instruction,
+    input inst_len_e instruction_length
+  );
+    @(negedge clk);
+    fetch_valid = 2'b01;
+    fetch_pc[0] = pc;
+    fetch_instr[0] = instruction;
+    fetch_len[0] = instruction_length;
+    while (!fetch_ready[0]) @(negedge clk);
+    @(posedge clk);
+    @(negedge clk);
+    clear_fetch();
+  endtask
+
+  function automatic logic [31:0] div_instruction(
+    input logic [4:0] rd, rs1, rs2, input logic [2:0] funct3
+  );
+    return {7'b0000001, rs2, rs1, funct3, rd, 7'b0110011};
+  endfunction
+
+  task automatic drain_writes(input int wanted);
+    int timeout;
+    timeout = 0;
+    while ((write_count < wanted || !u_dut.rob_empty || (|u_dut.dec_valid)) && timeout < 1500) begin
+      @(negedge clk);
+      timeout++;
+    end
+    if (timeout == 1500 || write_count != wanted)
+      $fatal(1, "DIV stress drain expected=%0d actual=%0d rob_pc=%08x", wanted, write_count, u_dut.rob_head_pc);
+  endtask
+
+  int div_wait_cycles, div_refills, div_flush_kills, div_flush_keeps, div_global_kills, sequence_wraps;
+  logic [ROB_SEQ_WIDTH-1:0] last_dispatch_sequence;
+  if (DivStressOnly) begin : g_div_coverage
+    always_ff @(posedge clk) begin
+      if (!rst_n) begin
+        div_wait_cycles <= 0; div_refills <= 0; div_flush_kills <= 0;
+        div_flush_keeps <= 0; div_global_kills <= 0; sequence_wraps <= 0;
+        last_dispatch_sequence <= '0;
+      end else begin
+        if (u_dut.div_issue_valid_q && !u_dut.div_req_ready) div_wait_cycles <= div_wait_cycles+1;
+        if (u_dut.div_issue_valid_q && u_dut.div_req_ready && !u_dut.flush_valid &&
+            u_dut.selected_port_valid[1] && u_dut.cand_fu_onehot[u_dut.port_candidate[1]][FU_DIV])
+          div_refills <= div_refills+1;
+        if (u_dut.flush_valid && u_dut.div_issue_valid_q) begin
+          if (u_dut.flush_all) div_global_kills <= div_global_kills+1;
+          else if (u_dut.sequence_after_backend(u_dut.div_issue_q.sequence_id, u_dut.flush_sequence))
+            div_flush_kills <= div_flush_kills+1;
+          else div_flush_keeps <= div_flush_keeps+1;
+        end
+        if (u_dut.dispatch_fire) begin
+          if (u_dut.rob_alloc_sequence[0] < last_dispatch_sequence) sequence_wraps <= sequence_wraps+1;
+          last_dispatch_sequence <= u_dut.rob_alloc_sequence[0];
+        end
+      end
+    end
+  end
+
+  task automatic run_div_stress;
+    logic [31:0] expected [0:19];
+    int timeout;
+    expected = '{32'hffffffdb,5,32'hfffffff9,32'hfffffffe,32'h3333332b,4,
+      32'hffffffff,32'hffffffdb,32'h80000000,32'hffffffff,32'h80000000,0,
+      1000,200,40,41,32'h80020000,3,32'h12345678,32'h06117228};
+    // Repeated architectural transactions exercise all DIV/REM signs, zero,
+    // MIN/-1, load->DIV bypass, dependent DIVs, queue backpressure and ROB wrap.
+    for (int round = 0; round < 16; round++) begin
+      write_count = 0;
+      send_pair('h1000,'hfdb00093,1,'h1004,'h00500113);
+      send_pair('h1008,div_instruction(3,1,2,3'b100),1,'h100c,div_instruction(4,1,2,3'b110));
+      send_pair('h1010,div_instruction(5,1,2,3'b101),1,'h1014,div_instruction(6,1,2,3'b111));
+      send_pair('h1018,div_instruction(7,1,0,3'b100),1,'h101c,div_instruction(8,1,0,3'b110));
+      send_pair('h1020,'h800004b7,1,'h1024,'hfff00513);
+      send_pair('h1028,div_instruction(11,9,10,3'b100),1,'h102c,div_instruction(12,9,10,3'b110));
+      send_pair('h1030,'h3e800693,1,'h1034,div_instruction(14,13,2,3'b101));
+      send_pair('h1038,div_instruction(15,14,2,3'b101),1,'h103c,'h00178813);
+      send_pair('h1040,'h800208b7,1,'h1044,'h00300913);
+      send_pair('h1048,'h0108a983,1,'h104c,div_instruction(20,19,18,3'b101));
+      drain_writes(20);
+      for (int index = 0; index < 20; index++)
+        if (write_rd[index] != index+1 || write_data[index] !== expected[index])
+          $fatal(1,"DIV stress round=%0d index=%0d rd=%0d actual=%08x expected=%08x",
+                 round,index,write_rd[index],write_data[index],expected[index]);
+    end
+    for (int preserve = 0; preserve < 2; preserve++) begin
+      write_count = 0;
+      memory_request_hold = 1;
+      send_pair('h5100,div_instruction(21,13,2,3'b101),preserve,'h5104,div_instruction(25,13,2,3'b101));
+      send_pair('h5108,'h0108ab03,0,0,0); // held LW x22,16(x17)
+      send_pair('h510c,{7'b0000000,5'd22,5'd22,3'b000,5'b01000,7'b1100011},1,
+                'h5110,div_instruction(23,13,2,3'b101)); // BEQ +8; wrong-path DIV
+      timeout = 0;
+      while ((!u_dut.div_issue_valid_q || !u_dut.u_div.busy_q || !(|dmem_req_valid)) && timeout < 100) begin
+        @(negedge clk); timeout++;
+      end
+      if (DivTagPipeline && timeout == 100) $fatal(1,"Did not construct a held raw DIV slot");
+      memory_request_hold = 0;
+      timeout = 0;
+      while (!redirect_valid && timeout < 150) begin @(negedge clk); timeout++; end
+      if (!redirect_valid || redirect_pc != 'h5114) $fatal(1,"DIV-slot branch recovery missing");
+      send_pair('h5114,'h02a00c13,0,0,0); // target: ADDI x24,42
+      drain_writes(preserve ? 4 : 3);
+      if (write_rd[0] != 21 || write_data[0] != 200 ||
+          (preserve && (write_rd[1] != 25 || write_data[1] != 200)) ||
+          write_rd[preserve+1] != 22 || write_data[preserve+1] != 'h12345678 ||
+          write_rd[preserve+2] != 24 || write_data[preserve+2] != 42)
+        $fatal(1,"DIV-slot younger kill/older keep architectural result mismatch");
+    end
+    // A faulting older load is held until two younger DIVs fill FU+raw slot.
+    // The load's precise trap must kill BOTH, not commit a wrong-path result.
+    write_count = 0;
+    send_pair('h6100,'hfc800d93,0,0,0); // x27=ffffffc8
+    drain_writes(1);
+    write_count = 0;
+    memory_request_hold = 1;
+    send_pair('h6104,'h000dae03,1,'h6108,div_instruction(21,13,2,3'b101));
+    send_pair('h610c,div_instruction(23,13,2,3'b101),0,0,0);
+    timeout = 0;
+    while ((!u_dut.div_issue_valid_q || !u_dut.u_div.busy_q || !(|dmem_req_valid)) && timeout < 100) begin
+      @(negedge clk); timeout++;
+    end
+    if (DivTagPipeline && timeout == 100) $fatal(1,"Did not construct full-flush DIV slot case");
+    memory_request_hold = 0;
+    timeout = 0;
+    while ((!redirect_valid || !trace_trap[0]) && timeout < 150) begin @(negedge clk); timeout++; end
+    if (!redirect_valid || trace_cause[0] != 5 || trace_tval[0] != 'hffffffc8)
+      $fatal(1,"Older load fault did not produce a precise DIV-slot global flush");
+    send_pair('h80000000,'h02a00c13,0,0,0);
+    drain_writes(1);
+    if (write_rd[0] != 24 || write_data[0] != 42) $fatal(1,"DIV escaped global trap flush");
+    if (DivTagPipeline && (div_wait_cycles == 0 || div_refills == 0 || div_flush_kills == 0 ||
+        div_flush_keeps == 0 || div_global_kills == 0 || sequence_wraps == 0))
+      $fatal(1,"Missing DIV slot coverage wait/refill/kill/keep/global/wrap: %0d/%0d/%0d/%0d/%0d/%0d",
+        div_wait_cycles,div_refills,div_flush_kills,div_flush_keeps,div_global_kills,sequence_wraps);
+    $display("DIV raw-tag stress PASS: wait=%0d refill=%0d younger-kill=%0d older-keep=%0d global-kill=%0d wraps=%0d",
+      div_wait_cycles,div_refills,div_flush_kills,div_flush_keeps,div_global_kills,sequence_wraps);
+    $finish;
+  endtask
+
+  always @(negedge clk) begin
+    if (rst_n) begin
+      for (int unsigned lane = 0; lane < 2; lane++) begin
+        if (trace_valid[lane] && trace_rd_write[lane] &&
+            !trace_rd_fp[lane]) begin
+          write_rd[write_count] = trace_rd[lane];
+          write_data[write_count] = trace_wdata[lane];
+          if ((trace_rd[lane] == 6) && (trace_wdata[lane] == 99))
+            saw_bad_x6 = 1'b1;
+          write_count = write_count + 1;
+        end
+        if (trace_valid[lane] && trace_rd_write[lane] &&
+            trace_rd_fp[lane]) begin
+          fp_write_rd[fp_write_count] = trace_rd[lane];
+          fp_write_data[fp_write_count] = trace_wdata[lane];
+          fp_write_count = fp_write_count + 1;
+        end
+      end
+    end
+  end
+
+  // One-entry response slot per LSU master models the D-fabric contract.
+  always_comb begin
+    for (int unsigned lane = 0; lane < 2; lane++) begin
+      dmem_req_ready[lane] = !memory_request_hold &&
+        (!dmem_rsp_valid[lane] || dmem_rsp_ready[lane]);
+      accepted_memory_write[lane] = dmem_req_valid[lane] &&
+        dmem_req_ready[lane] && dmem_req_write[lane];
+      accepted_memory_read[lane] = dmem_req_valid[lane] &&
+        dmem_req_ready[lane] && !dmem_req_write[lane];
+    end
+  end
+
+  always_ff @(posedge clk) begin
+    if (!rst_n) begin
+      dmem_rsp_valid <= '0;
+      dmem_rsp_id <= '0;
+      dmem_rsp_rdata <= '0;
+      dmem_rsp_resp <= '0;
+      dmem_rsp_replay <= '0;
+      memory_write_count <= 0;
+      memory_read_count <= 0;
+      saw_uncommitted_write <= 1'b0;
+      saw_bad_forward_read <= 1'b0;
+      saw_dual_load_request <= 1'b0;
+      memory_request_count <= 0;
+    end else begin
+      memory_write_count <= memory_write_count +
+        $unsigned($countones(accepted_memory_write));
+      memory_read_count <= memory_read_count +
+        $unsigned($countones(accepted_memory_read));
+      for (int unsigned lane = 0; lane < 2; lane++) begin
+        if (dmem_rsp_valid[lane] && dmem_rsp_ready[lane])
+          dmem_rsp_valid[lane] <= 1'b0;
+        if (dmem_req_valid[lane] && dmem_req_ready[lane]) begin
+          dmem_rsp_valid[lane] <= 1'b1;
+          dmem_rsp_id[lane] <= dmem_req_id[lane];
+          dmem_rsp_rdata[lane] <= memory_read_data(dmem_req_addr[lane]);
+          dmem_rsp_resp[lane] <= memory_address_is_mapped(
+            dmem_req_addr[lane]) ? 2'b00 : 2'b11;
+          dmem_rsp_replay[lane] <= 3'b000;
+          if (dmem_req_write[lane]) begin
+            if (!dmem_req_committed[lane])
+              saw_uncommitted_write <= 1'b1;
+          end else begin
+            if (dmem_req_addr[lane] == 32'h8002_0000)
+              saw_bad_forward_read <= 1'b1;
+          end
+        end
+      end
+      if (&dmem_req_valid && !(|dmem_req_write) && (&dmem_req_ready))
+        saw_dual_load_request <= 1'b1;
+      if (|(dmem_req_valid & dmem_req_ready))
+        memory_request_count <= memory_request_count + 1;
+    end
+  end
+
+  initial begin : p_test
+    clk = 1'b0;
+    rst_n = 1'b0;
+    clear_fetch();
+    write_count = 0;
+    fp_write_count = 0;
+    saw_bad_x6 = 1'b0;
+    irq_software = 1'b0;
+    repeat (4) @(posedge clk);
+    @(negedge clk);
+    rst_n = 1'b1;
+
+    if (DivStressOnly) run_div_stress();
+
+    // Independent producers followed by an older MUL and younger ADD.
+    send_pair(32'h1000, 32'h0050_0093, 1'b1,
+              32'h1004, 32'h0070_0113);
+    send_pair(32'h1008, 32'h0220_81b3, 1'b1,
+              32'h100c, 32'h0020_8233);
+
+    // Taken BEQ is predicted not-taken. Its lane1 instruction must be killed.
+    send_pair(32'h1010, 32'h0010_8463, 1'b1,
+              32'h1014, 32'h0630_0313);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while (!redirect_valid && (timeout < 80)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (redirect_pc != 32'h1018))
+        $fatal(1, "Branch recovery redirect missing or wrong: %h", redirect_pc);
+    end
+
+    send_pair(32'h1018, 32'h02a0_0313, 1'b0, '0, '0);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((write_count < 5) && (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+    end
+
+    if (write_count != 5)
+      $fatal(1, "Expected five architectural writes, saw %0d", write_count);
+    if ((write_rd[0] != 1) || (write_data[0] != 5) ||
+        (write_rd[1] != 2) || (write_data[1] != 7) ||
+        (write_rd[2] != 3) || (write_data[2] != 35) ||
+        (write_rd[3] != 4) || (write_data[3] != 12) ||
+        (write_rd[4] != 6) || (write_data[4] != 42))
+      $fatal(1, "OoO execution/in-order commit result or order is wrong");
+    if (saw_bad_x6)
+      $fatal(1, "Wrong-path x6 write became architecturally visible");
+
+    // Store and younger load issue together. The load must receive x2 through
+    // SQ forwarding, while the physical write is deferred until ROB commit.
+    send_pair(32'h2000, 32'h8002_00b7, 1'b1,
+              32'h2004, 32'h0550_0113);
+    send_pair(32'h2008, 32'h0020_a023, 1'b1,
+              32'h200c, 32'h0000_a183);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((write_count < 8) && (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+    end
+    if ((write_count < 8) || (write_rd[5] != 1) ||
+        (write_data[5] != 32'h8002_0000) || (write_rd[6] != 2) ||
+        (write_data[6] != 32'h55) || (write_rd[7] != 3) ||
+        (write_data[7] != 32'h55))
+      $fatal(1, "Store-to-load forwarding produced the wrong architectural result");
+    repeat (6) @(negedge clk);
+
+    // Two independent loads target opposite DTIM banks and should use both LSU
+    // request ports in one cycle. Hold the external memory until both are
+    // ready: an early bypass may otherwise correctly issue the older load a
+    // cycle earlier. This tests actual dual capability and backpressure,
+    // rather than requiring an optimized core to delay an already-ready load.
+    // LW at +8 also checks sign extension.
+    memory_request_hold = 1'b1;
+    send_pair(32'h2010, 32'h0080_a203, 1'b1,
+              32'h2014, 32'h0100_a283);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while (dmem_req_valid != 2'b11 && timeout < 80) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (dmem_req_valid != 2'b11 || (|dmem_req_write))
+        $fatal(1, "Two ready loads did not remain on both backpressured LSU ports");
+      memory_request_hold = 1'b0;
+    end
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((write_count < 10) && (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+    end
+    if ((write_count != 10) || (write_rd[8] != 4) ||
+        (write_data[8] != 32'hffff_ff80) || (write_rd[9] != 5) ||
+        (write_data[9] != 32'h1234_5678))
+      $fatal(1, "Dual LSU memory response or load formatting failed");
+    if (saw_uncommitted_write)
+      $fatal(1, "A store became externally visible before ROB commit");
+    if (saw_bad_forward_read)
+      $fatal(1, "Forwarded load incorrectly issued a stale memory read");
+    if (memory_write_count != 1)
+      $fatal(1, "Expected one committed store request, saw %0d",
+             memory_write_count);
+    if (memory_read_count != 2)
+      $fatal(1, "Expected two non-forwarded load requests, saw %0d",
+             memory_read_count);
+    if (!saw_dual_load_request)
+      $fatal(1, "Two ready loads did not use both LSU request ports");
+
+    // Server-stall reproduction copied from the uploaded trace. AUIPC+ADDI
+    // makes x20=0x8002_8567, so SH x31,5(x20) targets the aligned address
+    // 0x8002_856c. The store and following LBU must both make progress.
+    begin
+      int unsigned writes_before;
+      int unsigned requests_before;
+      int unsigned timeout;
+      writes_before = write_count;
+      requests_before = memory_request_count;
+      // DIVU deliberately leaves the store-data source unready while the
+      // younger memory operations enter the issue queue.
+      send_pair(32'h8000_08bc, 32'h0222_dfb3, 1'b0, '0, '0);
+      send_pair(32'h8000_08c0, 32'h0002_8a17, 1'b1,
+                32'h8000_08c4, 32'hca7a_0a13);
+      send_pair(32'h8000_08c8, 32'h005a_4c83, 1'b1,
+                32'h8000_08cc, 32'h01fa_12a3); // lbu; sh x31,5(x20)
+      send_pair(32'h8000_08d0, 32'hff6a_4e83, 1'b0, '0, '0);
+      timeout = 0;
+      while (((write_count < (writes_before + 5)) ||
+              (memory_request_count < (requests_before + 3))) &&
+             (timeout < 240)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if ((write_count != (writes_before + 5)) ||
+          (write_rd[writes_before] != 31) ||
+          (write_rd[writes_before + 1] != 20) ||
+          (write_rd[writes_before + 2] != 20) ||
+          (write_rd[writes_before + 3] != 25) ||
+          (write_rd[writes_before + 4] != 29) ||
+          (memory_request_count != (requests_before + 3))) begin
+        $display("08c8 timeout=%0d writes=%0d/%0d requests=%0d/%0d rob_pc=%08x rob_complete=%0b store_commit=%b/%b",
+                 timeout, write_count, writes_before, memory_request_count,
+                 requests_before, u_dut.rob_head_pc,
+                 u_dut.rob_head_complete,
+                 u_dut.u_lsu_cluster.store_commit_valid,
+                 u_dut.u_lsu_cluster.store_commit_ready);
+        $fatal(1, "Aligned server SH sequence failed to make forward progress");
+      end
+      $display("Server 08c8 sequence: aligned SH and following LBU PASS");
+    end
+
+    // FP instructions are legal only when mstatus.FS is not Off.  Enable the
+    // Initial state through the architectural CSR path before exercising the
+    // complete FP backend path, including same-pair rename dependency, FP PRF
+    // wakeup, FPU writeback and in-order ROB retirement.
+    send_pair(32'h27f8, 32'h0000_2537, 1'b1,
+              32'h27fc, 32'h3005_2073); // lui x10,0x2; csrrs x0,mstatus,x10
+
+    // IEEE-754 requires +0 + +0 to remain +0 even under RDN.
+    send_pair(32'h2800, 32'hf000_00d3, 1'b1,
+              32'h2804, 32'h0010_a153); // fmv.w.x f1,x0; fadd.s f2,f1,f1,rdn
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((fp_write_count < 2) && (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+    end
+    if ((fp_write_count != 2) || (fp_write_rd[0] != 1) ||
+        (fp_write_data[0] != 32'h0000_0000) || (fp_write_rd[1] != 2) ||
+        (fp_write_data[1] != 32'h0000_0000))
+      $fatal(1, "Integrated FADD.S +0 + +0 RDN failed: count=%0d rd=%0d/%0d data=%08x/%08x",
+             fp_write_count, fp_write_rd[0], fp_write_rd[1],
+             fp_write_data[0], fp_write_data[1]);
+
+    // Commit-time CSR execution: lane1 CSRRW depends on the lane0 LUI and
+    // must return old mtvec while updating it only at architectural commit.
+    send_pair(32'h3000, 32'h8000_04b7, 1'b1,
+              32'h3004, 32'h3054_9073); // lui x9,0x80000; csrrw x0,mtvec,x9
+    send_pair(32'h3008, 32'h3402_d3f3, 1'b1,
+              32'h300c, 32'h3400_2473); // csrrwi x7,mscratch,5; csrrs x8,...
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((write_count < 19) && (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+    end
+    if ((write_count != 19) || (write_rd[16] != 9) ||
+        (write_data[16] != 32'h8000_0000) || (write_rd[17] != 7) ||
+        (write_data[17] != 0) || (write_rd[18] != 8) ||
+        (write_data[18] != 5))
+      $fatal(1, "Integrated CSR old-value/write ordering failed");
+
+    // Enable MSIP locally and globally, then retire WFI. WFI first refetches
+    // its next PC; asserting MSIP afterwards must vector to mtvec.
+    send_pair(32'h3010, 32'h3044_5073, 1'b1,
+              32'h3014, 32'h3004_5073); // csrrwi x0,mie,8; csrrwi x0,mstatus,8
+    send_pair(32'h3020, 32'h1050_0073, 1'b0, '0, '0);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h3024)) &&
+             (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (redirect_pc != 32'h3024))
+        $fatal(1, "WFI did not serialize/refetch its next PC");
+    end
+
+    @(negedge clk);
+    irq_software = 1'b1;
+    // The level interrupt creates a combinational redirect before the next
+    // active edge, where the frontend consumes it and the CSR file enters M.
+    #1;
+    if (!redirect_valid || (redirect_pc != 32'h8000_0000)) begin
+      $display("MSIP diagnostic: irq=%0b pending=%0b mie=%08x mstatus=%08x mtvec=%08x rob_empty=%0b wfi_sleep=%0b redirect=%0b/%08x",
+               irq_software, u_dut.csr_interrupt_pending,
+               u_dut.u_csr_file.mie_q, u_dut.csr_mstatus, u_dut.csr_mtvec,
+               u_dut.rob_empty, u_dut.wfi_sleep_q, redirect_valid, redirect_pc);
+      $fatal(1, "Enabled MSIP did not vector through mtvec");
+    end
+    @(posedge clk);
+    @(negedge clk);
+    irq_software = 1'b0;
+
+    // Handler MRET returns to the instruction after WFI. An ECALL at that
+    // boundary then produces a precise synchronous redirect back to mtvec.
+    send_pair(32'h8000_0000, 32'h3020_0073, 1'b0, '0, '0);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h3024)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (redirect_pc != 32'h3024))
+        $fatal(1, "MRET did not return to the interrupted boundary");
+    end
+    send_pair(32'h3024, 32'h0000_0073, 1'b0, '0, '0);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h8000_0000)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (redirect_pc != 32'h8000_0000) ||
+          !trace_trap[0])
+        $fatal(1, "ECALL precise trap/trace is missing");
+    end
+
+    // EBREAK is completed as a decode-time ROB exception.  It must trap only
+    // at the head, preserve the faulting PC in mepc/mtval, and squash a
+    // younger same-bundle write.  This implementation chooses the
+    // specification-permitted informative mtval policy for EBREAK/C.EBREAK.
+    begin
+      int unsigned writes_before;
+      int unsigned timeout;
+      writes_before = write_count;
+      send_pair(32'h8000_0020, 32'h0010_0073, 1'b1,
+                32'h8000_0024, 32'h04d0_0613); // ebreak; addi x12,x0,77
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h8000_0000)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || !trace_trap[0] ||
+          (trace_cause[0] != 6'd3) ||
+          (trace_tval[0] != 32'h8000_0020)) begin
+        $display("EBREAK diagnostic redirect=%0b/%08x trace=%0b cause=%0d tval=%08x mepc=%08x mcause=%08x mtval=%08x",
+                 redirect_valid, redirect_pc, trace_trap[0], trace_cause[0],
+                 trace_tval[0], u_dut.u_csr_file.mepc_q,
+                 u_dut.u_csr_file.mcause_q, u_dut.u_csr_file.mtval_q);
+        $fatal(1, "EBREAK precise trap state is wrong");
+      end
+      // The redirect and trace are combinational in the trap-accept cycle;
+      // architectural CSRs take the payload on the following active edge.
+      @(posedge clk);
+      @(negedge clk);
+      if ((u_dut.u_csr_file.mepc_q != 32'h8000_0020) ||
+          (u_dut.u_csr_file.mcause_q != 32'd3) ||
+          (u_dut.u_csr_file.mtval_q != 32'h8000_0020))
+        $fatal(1, "EBREAK trap CSR state is wrong");
+      repeat (7) @(negedge clk);
+      if (write_count != writes_before)
+        $fatal(1, "Younger same-bundle write survived EBREAK");
+    end
+
+    begin
+      int unsigned timeout;
+      send_single_length(32'h8000_0042, 32'h0000_9002, INST_LEN_16);
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h8000_0000)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || !trace_trap[0] ||
+          (trace_instr[0][15:0] != 16'h9002) ||
+          (trace_cause[0] != 6'd3) ||
+          (trace_tval[0] != 32'h8000_0042))
+        $fatal(1, "C.EBREAK precise trap state is wrong");
+      @(posedge clk);
+      @(negedge clk);
+      if ((u_dut.u_csr_file.mepc_q != 32'h8000_0042) ||
+          (u_dut.u_csr_file.mcause_q != 32'd3) ||
+          (u_dut.u_csr_file.mtval_q != 32'h8000_0042))
+        $fatal(1, "C.EBREAK trap CSR state is wrong");
+    end
+
+    // MPRV with MPP=U makes data accesses use U privilege. With every PMP
+    // entry OFF, the load must trap locally and must never reach D-memory.
+    send_pair(32'h8000_0000, 32'h0002_0537, 1'b1,
+              32'h8000_0004, 32'h3005_1073); // lui x10,0x20; csrw mstatus,x10
+    begin
+      int unsigned requests_before;
+      int unsigned timeout;
+      requests_before = memory_request_count;
+      send_pair(32'h8000_0008, 32'h0000_2583, 1'b0, '0, '0); // lw x11,0(x0)
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h8000_0000)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || !trace_trap[0])
+        $fatal(1, "PMP-denied load did not create a precise trap");
+      if (memory_request_count != requests_before)
+        $fatal(1, "PMP-denied load escaped to D-memory");
+    end
+
+    send_pair(32'h8000_0000, 32'h0002_0537, 1'b1,
+              32'h8000_0004, 32'h3005_1073);
+    begin
+      int unsigned requests_before;
+      int unsigned timeout;
+      requests_before = memory_request_count;
+      send_pair(32'h8000_0008, 32'h0000_2023, 1'b0, '0, '0); // sw x0,0(x0)
+      timeout = 0;
+      while ((!redirect_valid || (redirect_pc != 32'h8000_0000)) &&
+             (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || !trace_trap[0])
+        $fatal(1, "PMP-denied store did not create a precise trap");
+      if (memory_request_count != requests_before)
+        $fatal(1, "PMP-denied store escaped to D-memory");
+    end
+
+    // Restore ordinary M-mode data privilege before checking address and bus
+    // faults.  The preceding PMP tests deliberately left MPRV/MPP=U active.
+    send_pair(32'h8000_0000, 32'h3000_1073, 1'b0, '0, '0);
+    begin
+      int unsigned timeout;
+      timeout = 0;
+      // Accepted bundles pass the decode->dispatch register (dec_valid)
+      // before they reach the ROB, so wait for both to drain.
+      while ((!u_dut.rob_empty || (|u_dut.dec_valid)) && (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!u_dut.rob_empty || (|u_dut.dec_valid) ||
+          (u_dut.csr_mstatus != 32'b0))
+        $fatal(1, "Failed to restore normal M-mode data privilege");
+    end
+
+    // 0xffff_ffcb is not word aligned. LW must raise cause 4 locally, with
+    // the exact effective address in mtval, and must not launch a bus request.
+    send_pair(32'h8000_0100, 32'hfcb0_0513, 1'b0, '0, '0); // addi x10,x0,-53
+    begin
+      int unsigned requests_before;
+      int unsigned timeout;
+      requests_before = memory_request_count;
+      send_pair(32'h8000_0104, 32'h0005_2583, 1'b0, '0, '0); // lw x11,0(x10)
+      timeout = 0;
+      while ((!redirect_valid || !trace_trap[0]) && (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (trace_cause[0] != 6'd4) ||
+          (trace_tval[0] != 32'hffff_ffcb))
+        $fatal(1, "Misaligned external LW trap is wrong");
+      if (memory_request_count != requests_before)
+        $fatal(1, "Misaligned external LW escaped to D-memory");
+    end
+
+    // The equivalent SW must raise cause 6 before becoming externally
+    // visible.  In particular, ROB-head commit must not turn it into a write.
+    send_pair(32'h8000_0110, 32'hfcb0_0513, 1'b0, '0, '0);
+    begin
+      int unsigned requests_before;
+      int unsigned writes_before;
+      int unsigned timeout;
+      requests_before = memory_request_count;
+      writes_before = memory_write_count;
+      send_pair(32'h8000_0114, 32'h0005_2023, 1'b0, '0, '0); // sw x0,0(x10)
+      timeout = 0;
+      while ((!redirect_valid || !trace_trap[0]) && (timeout < 120)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (trace_cause[0] != 6'd6) ||
+          (trace_tval[0] != 32'hffff_ffcb))
+        $fatal(1, "Misaligned external SW trap is wrong");
+      if ((memory_request_count != requests_before) ||
+          (memory_write_count != writes_before))
+        $fatal(1, "Misaligned external SW became externally visible");
+    end
+
+    // An aligned but unmapped load is allowed onto the device path only when
+    // it reaches the ROB head.  The modeled crossbar DECERR must retire as a
+    // precise load access fault (cause 5), never as a hang.
+    send_pair(32'h8000_0120, 32'hfc80_0513, 1'b0, '0, '0); // addi x10,x0,-56
+    begin
+      int unsigned reads_before;
+      int unsigned timeout;
+      reads_before = memory_read_count;
+      send_pair(32'h8000_0124, 32'h0005_2583, 1'b0, '0, '0);
+      timeout = 0;
+      while ((!redirect_valid || !trace_trap[0]) && (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (trace_cause[0] != 6'd5) ||
+          (trace_tval[0] != 32'hffff_ffc8))
+        $fatal(1, "Unmapped aligned LW access-fault trap is wrong");
+      if (memory_read_count != (reads_before + 1))
+        $fatal(1, "Unmapped aligned LW did not issue exactly one read");
+    end
+
+    // The aligned unmapped store follows the direct-device store path: it is
+    // issued once, only at the ROB head, then DECERR becomes precise cause 7.
+    send_pair(32'h8000_0130, 32'hfc80_0513, 1'b0, '0, '0);
+    begin
+      int unsigned writes_before;
+      int unsigned timeout;
+      writes_before = memory_write_count;
+      send_pair(32'h8000_0134, 32'h0005_2023, 1'b0, '0, '0);
+      timeout = 0;
+      while ((!redirect_valid || !trace_trap[0]) && (timeout < 160)) begin
+        @(negedge clk);
+        timeout++;
+      end
+      if (!redirect_valid || (trace_cause[0] != 6'd7) ||
+          (trace_tval[0] != 32'hffff_ffc8))
+        $fatal(1, "Unmapped aligned SW access-fault trap is wrong");
+      if (memory_write_count != (writes_before + 1))
+        $fatal(1, "Unmapped aligned SW did not issue exactly one committed write");
+      if (saw_uncommitted_write)
+        $fatal(1, "An unmapped store escaped before ROB-head commit");
+    end
+
+    $display("rv_backend_int_tb PASS");
+    $finish;
+  end
+endmodule

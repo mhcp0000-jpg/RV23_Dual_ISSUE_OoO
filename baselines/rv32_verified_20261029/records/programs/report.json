@@ -1,0 +1,2980 @@
+{
+  "passed": true,
+  "state": "finished",
+  "expected_cases": [
+    "c_loop",
+    "system_contract",
+    "external_access_fault",
+    "precise_faults",
+    "dual_lsu_pressure",
+    "older_store_fault",
+    "csr_trace",
+    "pmp_parcel_boundary",
+    "htif_smoke",
+    "dv_arithmetic",
+    "pmp_protection_w0_f0",
+    "pmp_protection_w0_f1",
+    "pmp_protection_w1_f0",
+    "pmp_protection_w1_f1",
+    "older_store_fault_negative",
+    "dual_lsu_pressure_negative",
+    "fp_conversion",
+    "fp_conversion_negative",
+    "rv32_smoke",
+    "rv32c_smoke",
+    "rv32_priv_smoke",
+    "coremark"
+  ],
+  "target": "RV32IMFC_Zicsr_Zifencei",
+  "model_inputs": {
+    "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+    "rtl/soc/rv23_pkg.sv": "e7b3249c0f8d82e733221a9d648f104d360e8d089ca07e320c431a3e98adfaab",
+    "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+    "rtl/soc/rv_axi4_if.sv": "e0676106a15a058f7ce10ae89845869ab6b2e7db36a16bfa4324888810c94af4",
+    "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+    "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+    "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+    "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+    "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+    "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+    "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+    "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+    "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+    "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+    "rtl/backend/rv_lsu_cluster.sv": "f006120e88b133889a71e9ba4e916e4cea8592d103e37216d565fc3790c7071e",
+    "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+    "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+    "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+    "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+    "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+    "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+    "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+    "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+    "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+    "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+    "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+    "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+    "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+    "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+    "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+    "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+    "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+    "rtl/frontend/rv_frontend.sv": "32484d8d2871eb7f591f4879205dccb2282240a352fe1cff619329b6ca48051f",
+    "rtl/backend/rv_backend.sv": "aea59f1a5c3950770982f72fd8bb79e3f14ffae5212bb471c59d5eb23b03c469",
+    "rtl/rv_ooo_core.sv": "849963573689fc5b0a71ccb59db04f4fec5f7d999f73a2702acee25c6c4a0db4",
+    "rtl/soc/rv_local_to_axi_bridge.sv": "e3bdb8b256abfce9a8188e3ef26007c1c873da6e853ba0e31e1edba1b07f7ddf",
+    "rtl/soc/rv_axi_to_local_bridge.sv": "4274bd4459249a3ca57ebe2cdee3ada536e049ac686cce6e6a0d23ad1fe297a9",
+    "rtl/soc/rv_axi_error_slave.sv": "c97907ba3e4a15ccfa71e057b8df1cf0b5f77c6d7cc72be04fe2b3c15ef5010b",
+    "rtl/soc/rv_axi_xbar.sv": "dd6f294a4b13d01b65fc70a7fc8413ca297c42a01383efe560d5d9e1d85e03a4",
+    "rtl/soc/rv_soc_addr_decode.sv": "ba429266f7e45ae69429043fded476d02dd28cbb00e3a6ef641cfd8feeb00176",
+    "rtl/soc/rv_sram_1r1w.sv": "424005d980bade9f953a275c47cb69d339cb34e6f84a3a9b42122cb5637c14f7",
+    "rtl/soc/rv_clint.sv": "8949cef49637539a80e4b68fe03d6a7ae219a10f6b502edf26a3dc1d52b8bc39",
+    "rtl/soc/rv_bootrom.sv": "7b3abef365043ad4ef89dd1faf4f4fc7a635a97b2ffb3ef0fe15301fdb5e173e",
+    "rtl/soc/rv_hostif.sv": "2d37827499452a756ee1914fb880751405be1f5666d274c684004961706c18e6",
+    "rtl/soc/rv_plic.sv": "1ff739b8e4b88216fb6011dfa12ed2472a8d19455fbbd70c48fb17981c047d22",
+    "rtl/soc/rv23_cache.sv": "b119cb4ed291cd6ba886394c4e90f2d0913a7f30266cae49d90ee5c8756f62d1",
+    "rtl/soc/rv23_lsu_arbiter.sv": "35b152bcb04245148d55a6d309896cf9f9141c3cf8a8ff38d60357778c53276f",
+    "rtl/soc/rv23_if_adapter.sv": "b92c1eb94154161ed120ae7c297750031b0caaf853e3c286a4fee202c404c55f",
+    "rtl/soc/rv23_sram.sv": "9513f87fcbef0763e575c5f2f6d8f29390edcbe4f8bbbd6f8480db68d308582d",
+    "rtl/soc/rv23_system_bus.sv": "f50d0c26e51d7d47ff7cb450067654e8b99306e33543b9595f864b9b625c93f8",
+    "rtl/soc/rv23_soc_top.sv": "f004c48c9f578fb6dfe99684ee309f150f437b403b2ee3d87da8b400b96f12b6",
+    "tb/e2e/dpi/rv_host_dpi.sv": "7354fcfe2e01b83841d6bfcfdadfe003bed25608d04610249a5698031b448471",
+    "tb/e2e/dpi/rv_commit_trace_logger.sv": "7e02d241845ec5a621a10cc0e21a38ba298c5bbb69777eeb8720bde883e5dc0a",
+    "tb/rv32_program_tb.sv": "db51699c613529a1614cd5b5918beebfe08aeedfba6fca052fa1b93b905edc84",
+    "tb/e2e/dpi/elf_loader.cpp": "29b67284539e940fdb67d2dcbfabb2172f0c2b5e523cfc3b3030e6ba31c76944"
+  },
+  "cases": [
+    {
+      "name": "c_loop",
+      "passed": true,
+      "program": {
+        "name": "c_loop",
+        "elf": "out/programs/c_loop/test.elf",
+        "elf_sha256": "7faf148fb77888473e1716ec000de61ecb5407445b4bc7562c85288b69bd9046",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-fno-unroll-loops",
+          "sw/tests/rv32_c_loop/rv32_start.S",
+          "sw/tests/rv32_c_loop/rv32_loop_smoke.c",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/rv32_c_loop/rv32_start.S": "453af5f623e235c7d35311804c8dc5747d7b287ec95d7bd20aef1acfb325312a",
+          "sw/tests/rv32_c_loop/rv32_loop_smoke.c": "5767b11d6a4d2c6e317fef4c0e799ff8b9ab84a3db971fc53ce97274495e9ce9",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [
+          "009e00b9"
+        ],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 0
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 3.156,
+        "log": "out/programs/c_loop/simulation.log",
+        "log_sha256": "3cbae11fc3bebdfeb9a616d1b7330f202177eb0970bfeef04f32ab85f140f140",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 344,
+        "fp_writes": 68,
+        "lane1_commits": 120,
+        "traps": []
+      }
+    },
+    {
+      "name": "system_contract",
+      "passed": true,
+      "program": {
+        "name": "system_contract",
+        "elf": "out/programs/system_contract/test.elf",
+        "elf_sha256": "8f0b48a187cb68e9335ff71ee48c9832adff640cef8ecb7134a846d204b5644a",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/rv32_system_contract.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/rv32_system_contract.S": "670cd3ae4f50dc12f0c1f4e8802d6d6fbd9463a6fc52a7792fbf0d2fbd924223",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [
+          "52563332"
+        ],
+        "debug": true,
+        "negative": false,
+        "payload_traps": 6
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.233,
+        "log": "out/programs/system_contract/simulation.log",
+        "log_sha256": "e6b9e289e17a46b0ea3afd57737561e1abad06162884c7af61dd81ab9367445c",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 209,
+        "fp_writes": 0,
+        "lane1_commits": 49,
+        "traps": [
+          {
+            "pc": "80000034",
+            "instruction": "00003283",
+            "cause": "2",
+            "tval": "00003283"
+          },
+          {
+            "pc": "80000038",
+            "instruction": "00003023",
+            "cause": "2",
+            "tval": "00003023"
+          },
+          {
+            "pc": "8000003c",
+            "instruction": "0000029b",
+            "cause": "2",
+            "tval": "0000029b"
+          },
+          {
+            "pc": "800000bc",
+            "instruction": "00000000",
+            "cause": "3",
+            "tval": "00000000"
+          },
+          {
+            "pc": "800000d8",
+            "instruction": "00000000",
+            "cause": "7",
+            "tval": "00000000"
+          },
+          {
+            "pc": "80000118",
+            "instruction": "00000000",
+            "cause": "11",
+            "tval": "00000000"
+          }
+        ]
+      }
+    },
+    {
+      "name": "external_access_fault",
+      "passed": true,
+      "program": {
+        "name": "external_access_fault",
+        "elf": "out/programs/external_access_fault/test.elf",
+        "elf_sha256": "c95af2451ca43eae9b775e63a4af75fcf1e84b44ed6bc78b06ac5a8b4f42683b",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/external_access_fault/external_access_fault.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/external_access_fault/external_access_fault.S": "696c08a2bd972fa0b24393ef6ed166da318d74cf44a5fbec487e15dde9caf1e3",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.097,
+        "log": "out/programs/external_access_fault/simulation.log",
+        "log_sha256": "4c97b8d12f6fca173567a95f39205eeb2370411abf33683406c1f941436e6c8f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 129,
+        "fp_writes": 0,
+        "lane1_commits": 19,
+        "traps": [
+          {
+            "pc": "80000012",
+            "instruction": "0002a303",
+            "cause": "5",
+            "tval": "ffffffc8"
+          },
+          {
+            "pc": "8000001a",
+            "instruction": "0002a023",
+            "cause": "7",
+            "tval": "ffffffc8"
+          },
+          {
+            "pc": "80000022",
+            "instruction": "0002a303",
+            "cause": "4",
+            "tval": "ffffffcb"
+          },
+          {
+            "pc": "8000002a",
+            "instruction": "0002a023",
+            "cause": "6",
+            "tval": "ffffffcb"
+          },
+          {
+            "pc": "80000032",
+            "instruction": "0002c303",
+            "cause": "5",
+            "tval": "ffffffcb"
+          },
+          {
+            "pc": "8000003a",
+            "instruction": "00028023",
+            "cause": "7",
+            "tval": "ffffffcb"
+          }
+        ]
+      }
+    },
+    {
+      "name": "precise_faults",
+      "passed": true,
+      "program": {
+        "name": "precise_faults",
+        "elf": "out/programs/precise_faults/test.elf",
+        "elf_sha256": "d12f1c483e8c3285133642fae3071ad0dd527146d38db80b6188a24bc5cab4e6",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/lsu_validation_pipeline/precise_faults.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/lsu_validation_pipeline/precise_faults.S": "f02887708b91f79207db958eb333a6951ff27aff37bd75efec3d81b1227eaef2",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.12,
+        "log": "out/programs/precise_faults/simulation.log",
+        "log_sha256": "8ec7c348eef187d18fab57cf3b0eeabae271188f41c9ef51e34e5344c8aa1e7b",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 154,
+        "fp_writes": 0,
+        "lane1_commits": 22,
+        "traps": [
+          {
+            "pc": "80000044",
+            "instruction": "00092f83",
+            "cause": "4",
+            "tval": "80021001"
+          },
+          {
+            "pc": "8000005c",
+            "instruction": "00092023",
+            "cause": "6",
+            "tval": "80021003"
+          },
+          {
+            "pc": "80000070",
+            "instruction": "00092f83",
+            "cause": "5",
+            "tval": "80030000"
+          },
+          {
+            "pc": "80000088",
+            "instruction": "00092023",
+            "cause": "7",
+            "tval": "80030004"
+          },
+          {
+            "pc": "800000a0",
+            "instruction": "00092f83",
+            "cause": "4",
+            "tval": "80030001"
+          },
+          {
+            "pc": "800000b8",
+            "instruction": "00092023",
+            "cause": "6",
+            "tval": "80030003"
+          },
+          {
+            "pc": "800000fc",
+            "instruction": "00000000",
+            "cause": "3",
+            "tval": "00000000"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dual_lsu_pressure",
+      "passed": true,
+      "program": {
+        "name": "dual_lsu_pressure",
+        "elf": "out/programs/dual_lsu_pressure/test.elf",
+        "elf_sha256": "057ff12f875265c4d93c286e6fe1764f93391008c152af0034aac10344b95f0d",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/lsq_capacity_rotation/dual_lsu_pressure.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/lsq_capacity_rotation/dual_lsu_pressure.S": "75385a29aa5867704e20d39ba9a2203b06a9461d4739eb189eae3b922b53f77e",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 1.623,
+        "log": "out/programs/dual_lsu_pressure/simulation.log",
+        "log_sha256": "ec30166d2145892a2fa334487e4a4d8677354247737645117801b67c5017f59b",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 27415,
+        "fp_writes": 0,
+        "lane1_commits": 10109,
+        "traps": []
+      }
+    },
+    {
+      "name": "older_store_fault",
+      "passed": true,
+      "program": {
+        "name": "older_store_fault",
+        "elf": "out/programs/older_store_fault/test.elf",
+        "elf_sha256": "f3982e69b85cd0bbc0a5e78780e1e351585ec2eb47d41bb755086fd905a05bc9",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/lsq_capacity_rotation/older_store_fault.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/lsq_capacity_rotation/older_store_fault.S": "51e3fd9560258325cc7b9c4436abf58232b07710ddb3809519f68ca889daf88b",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 3.673,
+        "log": "out/programs/older_store_fault/simulation.log",
+        "log_sha256": "6c0ea3628eb62b5040438bd7280054df79ff688143abca3418b1be11d988aada",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 34847,
+        "fp_writes": 0,
+        "lane1_commits": 10879,
+        "traps": [
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          },
+          {
+            "pc": "80000248",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "csr_trace",
+      "passed": true,
+      "program": {
+        "name": "csr_trace",
+        "elf": "out/programs/csr_trace/test.elf",
+        "elf_sha256": "2f67f4c28483cbf195c24f3bdab770e94925ab9053ced74fce4cca4bc7b746fc",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/pmp_fetch/csr_trace.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/csr_trace.S": "f6645f0c3f163dec18d82603b7abd246f71045b312dff01ae875d3ed8382332d",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.06,
+        "log": "out/programs/csr_trace/simulation.log",
+        "log_sha256": "b14706473738aaf2bcbfdfd0ca8c7b4efce8ca2d2da5aafbc29b7cf6fd4948fa",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 60,
+        "fp_writes": 0,
+        "lane1_commits": 2,
+        "traps": [
+          {
+            "pc": "80000038",
+            "instruction": "c0029573",
+            "cause": "2",
+            "tval": "c0029573"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pmp_parcel_boundary",
+      "passed": true,
+      "program": {
+        "name": "pmp_parcel_boundary",
+        "elf": "out/programs/pmp_parcel_boundary/test.elf",
+        "elf_sha256": "5ea4538dd1dacd6d7e7660d2709d087a00538966dcb9c6c69548aeee260fd842",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/pmp_fetch/parcel_boundary.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/parcel_boundary.S": "3fbaa9942a710269c0fd76675cf569516c6a3c1ee689809bb99df6ec37d19d29",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.212,
+        "log": "out/programs/pmp_parcel_boundary/simulation.log",
+        "log_sha256": "922996bd4c71922e1e9d94fd25e04b283c351a081371157add3d1eb174e4ad64",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 63,
+        "fp_writes": 0,
+        "lane1_commits": 2,
+        "traps": []
+      }
+    },
+    {
+      "name": "htif_smoke",
+      "passed": true,
+      "program": {
+        "name": "htif_smoke",
+        "elf": "out/programs/htif_smoke/test.elf",
+        "elf_sha256": "dcf67ed07cf88ac5a7176e6ebee28601b8e1e709f67de75a7c56c57e378a53ac",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/tests/htif_smoke/htif_smoke.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/htif_smoke/htif_smoke.S": "7023b767fe621971408c7bb6e0334824d30f781ca947ce805eaa36c8a16833f6",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.085,
+        "log": "out/programs/htif_smoke/simulation.log",
+        "log_sha256": "5e44e35a98c9ee00e17c8fc1fd4c8dc4fa9db3400d8a8b1291f1f88e76f2078f",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 230,
+        "fp_writes": 0,
+        "lane1_commits": 103,
+        "traps": []
+      }
+    },
+    {
+      "name": "dv_arithmetic",
+      "passed": true,
+      "program": {
+        "name": "dv_arithmetic",
+        "elf": "out/programs/dv_arithmetic/test.elf",
+        "elf_sha256": "1f4654bd2d03b12b3327206a6bb897ccf3473f95de04cd7a505c557bd162ad47",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "sw/imported/dv_arithmetic_smoke/test.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/imported/dv_arithmetic_smoke/test.S": "4f2dd427e7aa3e45bba286d81116bf8de5b7f57b4916748047af1a3d85078427",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.357,
+        "log": "out/programs/dv_arithmetic/simulation.log",
+        "log_sha256": "b8716bba0dad60b2972cdb336409b79b90f99d1f9a68ab9c7605a597b9c36b08",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 373,
+        "fp_writes": 0,
+        "lane1_commits": 151,
+        "traps": []
+      }
+    },
+    {
+      "name": "pmp_protection_w0_f0",
+      "passed": true,
+      "program": {
+        "name": "pmp_protection_w0_f0",
+        "elf": "out/programs/pmp_protection_w0_f0/test.elf",
+        "elf_sha256": "38c32beaf567f90b2a50f1785d11b66c858b9fe443917419dcdc1fe46eee50a0",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DWARM=0",
+          "-DFLUSH=0",
+          "sw/tests/pmp_fetch/protection_change.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/protection_change.S": "8e8bedc07ead95bb498154d471f7149941787e2620a2fdcbe546e4e8319f5f22",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 1,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 1
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.198,
+        "log": "out/programs/pmp_protection_w0_f0/simulation.log",
+        "log_sha256": "f8f34dbe3087972bd8932115b0c2402659780ef3ae448fd2bbacd6afc5f36d15",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 70,
+        "fp_writes": 0,
+        "lane1_commits": 4,
+        "traps": [
+          {
+            "pc": "80000800",
+            "instruction": "00140413",
+            "cause": "1",
+            "tval": "80000800"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pmp_protection_w0_f1",
+      "passed": true,
+      "program": {
+        "name": "pmp_protection_w0_f1",
+        "elf": "out/programs/pmp_protection_w0_f1/test.elf",
+        "elf_sha256": "fa6fa44680a29443c27340313389c7bce222e97d949339fa5a0a8a80633865ed",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DWARM=0",
+          "-DFLUSH=1",
+          "sw/tests/pmp_fetch/protection_change.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/protection_change.S": "8e8bedc07ead95bb498154d471f7149941787e2620a2fdcbe546e4e8319f5f22",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 1,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 1
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.205,
+        "log": "out/programs/pmp_protection_w0_f1/simulation.log",
+        "log_sha256": "96b32c8f629236c3cc5262d1cf5252a282da8b18e04484a0a8209b2c647b642d",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 77,
+        "fp_writes": 0,
+        "lane1_commits": 3,
+        "traps": [
+          {
+            "pc": "80000800",
+            "instruction": "00140413",
+            "cause": "1",
+            "tval": "80000800"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pmp_protection_w1_f0",
+      "passed": true,
+      "program": {
+        "name": "pmp_protection_w1_f0",
+        "elf": "out/programs/pmp_protection_w1_f0/test.elf",
+        "elf_sha256": "ec3bb8335ec57ce241d49b15f32b29ec6e085e62ef51aa74cbc6c8555efa4013",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DWARM=1",
+          "-DFLUSH=0",
+          "sw/tests/pmp_fetch/protection_change.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/protection_change.S": "8e8bedc07ead95bb498154d471f7149941787e2620a2fdcbe546e4e8319f5f22",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 1,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 1
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.189,
+        "log": "out/programs/pmp_protection_w1_f0/simulation.log",
+        "log_sha256": "666e40e82ef0ea015959fe64cddb8560346625ef99b76a8dcede3e5f8b759232",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 92,
+        "fp_writes": 0,
+        "lane1_commits": 4,
+        "traps": [
+          {
+            "pc": "80000800",
+            "instruction": "00140413",
+            "cause": "1",
+            "tval": "80000800"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pmp_protection_w1_f1",
+      "passed": true,
+      "program": {
+        "name": "pmp_protection_w1_f1",
+        "elf": "out/programs/pmp_protection_w1_f1/test.elf",
+        "elf_sha256": "b7cb8c89675e91ce980bbac21e166211a818e30c416093a6c10aba58695cef8f",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DWARM=1",
+          "-DFLUSH=1",
+          "sw/tests/pmp_fetch/protection_change.S",
+          "-T",
+          "sw/tests/htif_smoke/rv32_htif.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/pmp_fetch/protection_change.S": "8e8bedc07ead95bb498154d471f7149941787e2620a2fdcbe546e4e8319f5f22",
+          "sw/tests/htif_smoke/rv32_htif.ld": "4ebc4e0a2356710410734d780f5e75ff8d8da0baf1c6c9abd6a0311e15cc9687"
+        },
+        "htif": true,
+        "expected_exit": 1,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 1
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.2,
+        "log": "out/programs/pmp_protection_w1_f1/simulation.log",
+        "log_sha256": "f34c2f29ea1d4aca3200b41147bf56daa4e1e84215c096b7f9975c8498487a69",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 95,
+        "fp_writes": 0,
+        "lane1_commits": 3,
+        "traps": [
+          {
+            "pc": "80000800",
+            "instruction": "00140413",
+            "cause": "1",
+            "tval": "80000800"
+          }
+        ]
+      }
+    },
+    {
+      "name": "older_store_fault_negative",
+      "passed": true,
+      "program": {
+        "name": "older_store_fault_negative",
+        "elf": "out/programs/older_store_fault_negative/test.elf",
+        "elf_sha256": "17a7ecef3111f10d31d3bdb7ab657dcff3a9644549bb9122a423376f4e975bd4",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DLSQ_FAULT_EXPECTED_CAUSE=7",
+          "sw/tests/lsq_capacity_rotation/older_store_fault.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/lsq_capacity_rotation/older_store_fault.S": "51e3fd9560258325cc7b9c4436abf58232b07710ddb3809519f68ca889daf88b",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": true,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 1,
+        "seconds": 0.17,
+        "log": "out/programs/older_store_fault_negative/simulation.log",
+        "log_sha256": "d50c3ab0be8059ec25111de704549fe44d2619ceaa570083f8cdc31634efdedd",
+        "expected_failure": "ELF reported failure exit code 1",
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 44,
+        "fp_writes": 0,
+        "lane1_commits": 9,
+        "traps": [
+          {
+            "pc": "80000084",
+            "instruction": "0043a023",
+            "cause": "6",
+            "tval": "80020001"
+          }
+        ]
+      }
+    },
+    {
+      "name": "dual_lsu_pressure_negative",
+      "passed": true,
+      "program": {
+        "name": "dual_lsu_pressure_negative",
+        "elf": "out/programs/dual_lsu_pressure_negative/test.elf",
+        "elf_sha256": "c0dcd868b4653684faecd7f88013409d9ed1165b91ea6e0d88ce57684be85e50",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-DLSQ_PRESSURE_WRONG_EXPECTED=1",
+          "sw/tests/lsq_capacity_rotation/dual_lsu_pressure.S",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/lsq_capacity_rotation/dual_lsu_pressure.S": "75385a29aa5867704e20d39ba9a2203b06a9461d4739eb189eae3b922b53f77e",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": true,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 1,
+        "seconds": 0.16,
+        "log": "out/programs/dual_lsu_pressure_negative/simulation.log",
+        "log_sha256": "b26334069975178f5a09b6793657cbc43e36a7257c8272254125a533f7c65876",
+        "expected_failure": "ELF reported failure exit code 1",
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 59,
+        "fp_writes": 0,
+        "lane1_commits": 9,
+        "traps": []
+      }
+    },
+    {
+      "name": "fp_conversion",
+      "passed": true,
+      "program": {
+        "name": "fp_conversion",
+        "elf": "out/programs/fp_conversion/test.elf",
+        "elf_sha256": "50728af8b0d972a6fc98e94e735d47773b66cfbf2982eaf1339142cce3ac8729",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-O2",
+          "-Iout/programs/fp_conversion/oracle_9cbabe3153d1",
+          "sw/tests/fp_conversion_vectors/start.S",
+          "sw/tests/fp_conversion_vectors/test.c",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/fp_conversion_vectors/start.S": "e14726043e7c9b9353e0aa5835e1d233f873e7e9360991ee44c200f28e987527",
+          "sw/tests/fp_conversion_vectors/test.c": "84880ea1ca2896d473ef3a0b37c18df8e7aa675e91b7d2908e25289b711a7c2b",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [
+          "46504356"
+        ],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null,
+        "oracle_sha256": "bf2a9ecc11ee6fc273e1d806909a4cf91d7cb0393e8b5a2de880ac6a1cbc129e"
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 50.466,
+        "log": "out/programs/fp_conversion/simulation.log",
+        "log_sha256": "76853174f824948356453172f2817a7f47abdeba061f0a7dd55654743022d890",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 349241,
+        "fp_writes": 14448,
+        "lane1_commits": 101191,
+        "traps": []
+      }
+    },
+    {
+      "name": "fp_conversion_negative",
+      "passed": true,
+      "program": {
+        "name": "fp_conversion_negative",
+        "elf": "out/programs/fp_conversion_negative/test.elf",
+        "elf_sha256": "c4e1a3f32fcaf84ddc60ade25cd47c2c4ba5c40a67f5ff0a8bf25e6825e64ad8",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-O2",
+          "-Iout/programs/fp_conversion_negative/oracle_9cbabe3153d1",
+          "-DFP_CONVERSION_WRONG_EXPECTED=1",
+          "sw/tests/fp_conversion_vectors/start.S",
+          "sw/tests/fp_conversion_vectors/test.c",
+          "-T",
+          "sw/tests/rv32_c_loop/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/tests/fp_conversion_vectors/start.S": "e14726043e7c9b9353e0aa5835e1d233f873e7e9360991ee44c200f28e987527",
+          "sw/tests/fp_conversion_vectors/test.c": "84880ea1ca2896d473ef3a0b37c18df8e7aa675e91b7d2908e25289b711a7c2b",
+          "sw/tests/rv32_c_loop/rv32_tim.ld": "0221a70a2273000be4f8d365b39dc8fb67f2b415931b4592793b3ecefb93f672"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": true,
+        "payload_traps": null,
+        "oracle_sha256": "bf2a9ecc11ee6fc273e1d806909a4cf91d7cb0393e8b5a2de880ac6a1cbc129e"
+      },
+      "run": {
+        "exit_code": 1,
+        "seconds": 4.448,
+        "log": "out/programs/fp_conversion_negative/simulation.log",
+        "log_sha256": "2b0d305df198bf4062945b94fb3d709d6e03058558131721229e0f21b0bcc49c",
+        "expected_failure": "ELF reported failure exit code 1",
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 107,
+        "fp_writes": 1,
+        "lane1_commits": 29,
+        "traps": []
+      }
+    },
+    {
+      "name": "rv32_smoke",
+      "passed": true,
+      "program": {
+        "name": "rv32_smoke",
+        "elf": "out/programs/rv32_smoke/test.elf",
+        "elf_sha256": "1bf5033fb3f8b9326faea617a0dbe1a750f789d9f0864debe7ad2c1c92a92db5",
+        "inputs": {
+          "scripts/build_rv32_smoke_elf.ps1": "b9f9dc439c5388a16feab02bf57eda34b5191a4c5f7db8c660d9663e097d0cd7"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.059,
+        "log": "out/programs/rv32_smoke/simulation.log",
+        "log_sha256": "8ab92465346656e71d128c2120afec9370a897b82bdb3540ebc14a9e5abc8e57",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 41,
+        "fp_writes": 3,
+        "lane1_commits": 16,
+        "traps": []
+      }
+    },
+    {
+      "name": "rv32c_smoke",
+      "passed": true,
+      "program": {
+        "name": "rv32c_smoke",
+        "elf": "out/programs/rv32c_smoke/test.elf",
+        "elf_sha256": "d5c061746af5c7974e1faefa3e7a72818bfce0683e425d32db4fa7535decf926",
+        "inputs": {
+          "scripts/build_rv32c_smoke_elf.ps1": "be181662af95d1d833de0c1a2167dfcca693e384096e97089e4de1f2d5e7154e"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.053,
+        "log": "out/programs/rv32c_smoke/simulation.log",
+        "log_sha256": "0f2d9abae861f9b5a6316d4d9bde13b449165264aa789dd8b06ea50fcbdb4035",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 31,
+        "fp_writes": 0,
+        "lane1_commits": 10,
+        "traps": []
+      }
+    },
+    {
+      "name": "rv32_priv_smoke",
+      "passed": true,
+      "program": {
+        "name": "rv32_priv_smoke",
+        "elf": "out/programs/rv32_priv_smoke/test.elf",
+        "elf_sha256": "dc191541e5dcf10de4be684ccef3f919166533956e5a035fc5ae3d49a2a7731a",
+        "inputs": {
+          "scripts/build_rv32_priv_smoke_elf.ps1": "c807964185c5646ebf424b1ddb5831d049326610edba4022da1b477911c0f48d"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [],
+        "debug": false,
+        "negative": false,
+        "payload_traps": null
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 0.085,
+        "log": "out/programs/rv32_priv_smoke/simulation.log",
+        "log_sha256": "ee2833f3ab84254ea2bd4cc0f55d6d62fbc722e961090fe020a3c08dd5269df9",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 56,
+        "fp_writes": 0,
+        "lane1_commits": 12,
+        "traps": [
+          {
+            "pc": "80000084",
+            "instruction": "340515f3",
+            "cause": "2",
+            "tval": "340515f3"
+          },
+          {
+            "pc": "8000008c",
+            "instruction": "00000073",
+            "cause": "8",
+            "tval": "00000000"
+          }
+        ]
+      }
+    },
+    {
+      "name": "coremark",
+      "passed": true,
+      "program": {
+        "name": "coremark",
+        "elf": "out/programs/coremark/test.elf",
+        "elf_sha256": "af219383c9c7285e246cf3c3253a222fc4d5b3e0b7afc2cb1d6ba0f7b113b0e2",
+        "compiler_args": [
+          "-march=rv32imfc_zicsr_zifencei",
+          "-mabi=ilp32f",
+          "-mcmodel=medany",
+          "-msmall-data-limit=0",
+          "-O1",
+          "-ffreestanding",
+          "-fno-builtin",
+          "-fno-common",
+          "-fno-asynchronous-unwind-tables",
+          "-fno-unwind-tables",
+          "-nostdlib",
+          "-nostartfiles",
+          "-Wl,--build-id=none",
+          "-Wl,--no-relax",
+          "-O2",
+          "-Isw/benchmarks/coremark/port",
+          "-Isw/benchmarks/coremark/upstream/",
+          "-DPERFORMANCE_RUN=1",
+          "-DITERATIONS=2",
+          "-DTOTAL_DATA_SIZE=2000",
+          "-DMAIN_HAS_NOARGC=1",
+          "-DMEM_METHOD=MEM_STATIC",
+          "-DMULTITHREAD=1",
+          "sw/benchmarks/coremark/rv32_start.S",
+          "sw/benchmarks/coremark/port/core_portme.c",
+          "sw/benchmarks/coremark/upstream/core_list_join.c",
+          "sw/benchmarks/coremark/upstream/core_main.c",
+          "sw/benchmarks/coremark/upstream/core_matrix.c",
+          "sw/benchmarks/coremark/upstream/core_state.c",
+          "sw/benchmarks/coremark/upstream/core_util.c",
+          "-T",
+          "sw/benchmarks/coremark/rv32_tim.ld",
+          "-lgcc"
+        ],
+        "inputs": {
+          "sw/benchmarks/coremark/rv32_start.S": "28d8aa2cba90a9902284d571df17e2c75954bdeafbe435ef83ab2465fee093e7",
+          "sw/benchmarks/coremark/port/core_portme.c": "b2f4871e4bade6aaaff65555899b1c775128bba661fb5176efb48da55c6a35fb",
+          "sw/benchmarks/coremark/upstream/core_list_join.c": "cb85efa5ca7e8537ce90fdce8c13fc01de0457a162fc44ceba5e300e97306418",
+          "sw/benchmarks/coremark/upstream/core_main.c": "c240afdd1bda84af55643ca812fcbb0dd52063a7bae2ebf12f5fc12e487328ff",
+          "sw/benchmarks/coremark/upstream/core_matrix.c": "247761a5bfd88868e4fba4b56646512f03a74ba6d35011b9bf902854f078e98b",
+          "sw/benchmarks/coremark/upstream/core_state.c": "b3e36c4dee73824c36261dd2f405bbd4e49f9eb94dd5bc2dfbd0e17ab3b3c028",
+          "sw/benchmarks/coremark/upstream/core_util.c": "166e9bf09afd290adffe2c6681d913c18373f77e457fae258499fbaad10b04fc",
+          "sw/benchmarks/coremark/rv32_tim.ld": "95a34fd6345b7cf757a5ba7219977a40a3f51fd136095e1b2d852dcff0b63dff"
+        },
+        "htif": false,
+        "expected_exit": 0,
+        "markers": [
+          "434d0001"
+        ],
+        "debug": false,
+        "negative": false,
+        "payload_traps": 0
+      },
+      "run": {
+        "exit_code": 0,
+        "seconds": 36.457,
+        "log": "out/programs/coremark/simulation.log",
+        "log_sha256": "cf549c9f6fe42a400276fa0107b3b4d9d4c30e872021aca8a15f0c47f38d2024",
+        "expected_failure": null,
+        "passed": true
+      },
+      "stats": {
+        "payload_commits": 596268,
+        "fp_writes": 0,
+        "lane1_commits": 233364,
+        "traps": []
+      },
+      "coremark": {
+        "cycles": 528008,
+        "instructions": 579458,
+        "ipc": 1.0974417054287056,
+        "iterations": 2,
+        "packet": [
+          1129119745,
+          2,
+          528008,
+          0,
+          579458,
+          0,
+          59893,
+          59156,
+          8151,
+          36410,
+          29374,
+          9
+        ],
+        "certified_score": false,
+        "memory": "32KiB I + 32KiB D + main AXI + 1MiB SRAM"
+      }
+    }
+  ],
+  "runtime_inputs": {
+    "bootrom_file": "tb/fixtures/bootrom/bootrom_host_jump.hex",
+    "bootrom_sha256": "f926ac865bc7191d6f8c04dd95627be789c17da5ae5f21c57e5d70c4c0344ae5"
+  },
+  "scope": "Cached SRAM SoC ELF, readback, trace and CRC; no ISA/STA certification"
+}

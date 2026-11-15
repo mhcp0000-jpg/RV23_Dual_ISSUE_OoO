@@ -1,0 +1,498 @@
+{
+  "profile": "RVA23S64",
+  "scope": "Implementation traceability, not complete normative/architectural proof",
+  "complete_profile_validation": false,
+  "base": {
+    "isa": "RV64I",
+    "endianness": "little",
+    "rtl": [
+      "rtl/backend/rv_decode2.sv",
+      "rtl/backend/rv_int_alu.sv",
+      "rtl/backend/rv_lsu_cluster.sv",
+      "rtl/backend/rv_fence_controller.sv"
+    ],
+    "checks": [
+      "run_upstream_riscv_tests.py",
+      "run_rva23_scalar.py",
+      "run_fence_order.py"
+    ]
+  },
+  "integration": [
+    "rtl/backend/rv_backend.sv",
+    "rtl/rv_ooo_core.sv",
+    "rtl/soc/rv23_soc_top.sv"
+  ],
+  "groups": [
+    {
+      "requirements": [
+        "M"
+      ],
+      "rtl": [
+        "rtl/backend/rv_decode2.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "rtl/backend/rv_divider.sv"
+      ],
+      "checks": [
+        "run_upstream_riscv_tests.py",
+        "run_rva23_scalar.py"
+      ],
+      "contract": "RV64 signed/unsigned/W multiply and divide; arithmetic corner cases; in-order architectural retirement.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "A",
+        "Za64rs",
+        "Ziccrse",
+        "Ziccamoa"
+      ],
+      "rtl": [
+        "rtl/backend/rv23_atomic_head.sv",
+        "rtl/soc/rv23_atomic_engine.sv",
+        "rtl/soc/rv23_system_bus.sv",
+        "rtl/soc/rv23_sram.sv"
+      ],
+      "checks": [
+        "run_atomic_engine_checks.py",
+        "run_exclusive_checks.py",
+        "run_atomic_integration.py",
+        "run_atomic_sv39_integration.py",
+        "run_upstream_riscv_tests.py",
+        "run_lrsc_progress.py"
+      ],
+      "contract": "W/D LR/SC and AMO; contiguous aligned 64-byte reservation; commit authority, external snoops, eventual constrained-loop progress. Broader concurrent-agent memory-ordering proof remains open.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "F",
+        "D",
+        "Zfhmin",
+        "Zfa"
+      ],
+      "rtl": [
+        "rtl/backend/rv_fp_decode_pkg.sv",
+        "rtl/backend/rv_fpu_rva23.sv",
+        "rtl/backend/rv_fp_format.sv",
+        "rtl/backend/rv_fp_convert.sv",
+        "rtl/backend/rv_fp_round_to_int.sv",
+        "rtl/backend/rv_fp_cvtmod.sv"
+      ],
+      "checks": [
+        "run_fpu_rva23_checks.py",
+        "run_fp_integration.py",
+        "run_fp_state_integration.py",
+        "run_fp_sv39_integration.py",
+        "run_upstream_riscv_tests.py"
+      ],
+      "contract": "H-min/S/D boxing, conversion, rounding and exception flags; FS/SD in real and guest contexts; FP memory faults.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "B",
+        "Zicond"
+      ],
+      "rtl": [
+        "rtl/backend/rv_decode2.sv",
+        "rtl/backend/rv_int_alu.sv"
+      ],
+      "checks": [
+        "run_bitmanip_checks.py",
+        "run_rva23_scalar.py",
+        "run_upstream_riscv_tests.py"
+      ],
+      "contract": "B expands to Zba/Zbb/Zbs; conditional-zero instructions use fixed issue/result timing.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "C",
+        "Zimop",
+        "Zcmop",
+        "Zcb"
+      ],
+      "rtl": [
+        "rtl/frontend/rv_c_expander.sv",
+        "rtl/backend/rv_decode2.sv",
+        "rtl/frontend/rv_fetch_queue.sv"
+      ],
+      "checks": [
+        "run_compressed_profile_checks.py",
+        "run_compressed_d_checks.py",
+        "run_profile_scalar_integration.py",
+        "run_upstream_riscv_tests.py"
+      ],
+      "contract": "Compressed forms for RV64 including D and Zcb, all may-be-operation encodings, original instruction bits retained for precise illegal traps.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zicsr",
+        "Zicntr",
+        "Zihpm"
+      ],
+      "rtl": [
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_rob.sv"
+      ],
+      "checks": [
+        "run_hypervisor_csr_file_checks.py",
+        "run_hpm_counter_checks.py",
+        "run_hpm_csr_file_checks.py",
+        "run_hpm_integration.py"
+      ],
+      "contract": "CSR evaluation is separate from commit; cycle/time/instret and four HPM counters; M/S/H counter controls and privilege filters.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Ziccif"
+      ],
+      "rtl": [
+        "rtl/frontend/rv_fetch_queue.sv",
+        "rtl/soc/rv23_cache.sv",
+        "rtl/soc/rv23_if_adapter.sv",
+        "rtl/soc/rv23_system_bus.sv"
+      ],
+      "checks": [
+        "run_checks.py",
+        "run_extended.py",
+        "run_if_translation_checks.py",
+        "run_upstream_riscv_tests.py",
+        "run_instruction_fetch_atomicity.py"
+      ],
+      "contract": "Main-memory instruction fetch is coherent with authoritative accepted stores. Naturally aligned <=32-bit fetch lies within a single 64-bit bank word. Broader race validation remains open.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zicclsm"
+      ],
+      "rtl": [
+        "rtl/backend/rv23_misaligned_head.sv",
+        "rtl/backend/rv23_memory_head.sv",
+        "rtl/backend/rv_lsq.sv",
+        "rtl/backend/rv23_hypervisor_memory_head.sv"
+      ],
+      "checks": [
+        "run_misaligned_integration.py",
+        "run_misaligned_sv39_integration.py",
+        "run_hypervisor_integration.py",
+        "run_upstream_riscv_tests.py"
+      ],
+      "contract": "Ordinary integer/FP misalignment in main memory; split translation/PMP/attributes validated before stores; IO is not split.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zihintpause",
+        "Zihintntl",
+        "Zicbop"
+      ],
+      "rtl": [
+        "rtl/backend/rv_decode2.sv",
+        "rtl/frontend/rv_c_expander.sv"
+      ],
+      "checks": [
+        "run_profile_scalar_integration.py",
+        "run_cbo_integration.py",
+        "run_compressed_profile_checks.py"
+      ],
+      "contract": "Hints decode as legal inert operations and have no architectural register or memory side effects.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zic64b",
+        "Zicbom",
+        "Zicboz"
+      ],
+      "rtl": [
+        "rtl/backend/rv23_cbo_head.sv",
+        "rtl/soc/rv23_cache.sv",
+        "rtl/soc/rv23_soc_top.sv"
+      ],
+      "checks": [
+        "run_cbo_head_checks.py",
+        "run_cbo_integration.py",
+        "run_cbo_sv39_integration.py",
+        "run_hypervisor_vector_faults.py",
+        "run_cbo_permission_matrix.py"
+      ],
+      "contract": "64-byte cache blocks; zero performs authoritative bus stores, clean drains write-through state, invalidate/flush update real cache tags; CSR permissions and precise faults.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zkt"
+      ],
+      "rtl": [
+        "rtl/backend/rv_int_alu.sv",
+        "rtl/backend/rv_multiplier.sv",
+        "rtl/backend/rv_divider.sv"
+      ],
+      "checks": [
+        "run_scalar_timing_integration.py",
+        "audit_timing_contract.py"
+      ],
+      "contract": "Data-independent execution latency for the mandated scalar set. Finite identical-text/different-data retirement profiles passed; this is not an exhaustive timing proof.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "V",
+        "Zvfhmin",
+        "Zvbb",
+        "Zvkt"
+      ],
+      "rtl": [
+        "rtl/backend/rv_vector_decode_pkg.sv",
+        "rtl/backend/rv_vector_config.sv",
+        "rtl/backend/rv_vector_register_file.sv",
+        "rtl/backend/rv_vector_engine.sv",
+        "rtl/backend/rv23_memory_head.sv"
+      ],
+      "checks": [
+        "run_vector_integration.py",
+        "run_vector_state_integration.py",
+        "run_vector_overlap.py",
+        "run_zvbb_native.py",
+        "run_vector_sv39_integration.py",
+        "run_hypervisor_vector_faults.py",
+        "run_vector_timing_checks.py",
+        "run_vector_timing_negative.py",
+        "run_vector_state_differential.py",
+        "run_vector_fp_differential.py",
+        "audit_vector_state_differential.py",
+        "run_vector_agnostic_differential.py",
+        "audit_vector_agnostic_differential.py"
+      ],
+      "contract": "VLEN128/ELEN64; full vector state/FP/integer/memory ownership and restart. Timing probes cover 231 forms, with an injected data-dependent early-exit control rejected. Full architectural and timing validation remains open.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zawrs"
+      ],
+      "rtl": [
+        "rtl/backend/rv23_wait_reservation.sv",
+        "rtl/backend/rv_backend.sv"
+      ],
+      "checks": [
+        "run_wait_reservation_checks.py",
+        "run_profile_scalar_integration.py",
+        "run_guest_wrs_timeout.py",
+        "run_wrs_debug_wake.py"
+      ],
+      "contract": "STO bounded timeout, NTO reservation/interrupt/debug wake, bounded TW/VTW interception. Unlike WFI, U NTO with TW=0 is permitted.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Supm",
+        "Ssnpm"
+      ],
+      "rtl": [
+        "rtl/soc/rv23_pointer_mask.sv",
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_hypervisor_csrs.sv",
+        "rtl/backend/rv_backend.sv"
+      ],
+      "checks": [
+        "run_pointer_mask_integration.py",
+        "run_hypervisor_access_integration.py",
+        "run_guest_pointer_mask_faults.py"
+      ],
+      "contract": "PMLEN0/7 WARL and effective-privilege context, transformed fault VA, unmasked fetch/HLVX; HUPMM and MPRV+MPV paths integrated.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Zifencei"
+      ],
+      "rtl": [
+        "rtl/backend/rv_fence_controller.sv",
+        "rtl/backend/rv_backend.sv",
+        "rtl/soc/rv23_cache.sv",
+        "rtl/soc/rv23_soc_top.sv"
+      ],
+      "checks": [
+        "run_upstream_riscv_tests.py",
+        "run_checks.py",
+        "run_extended.py"
+      ],
+      "contract": "FENCE.I drains older memory and invalidates I-cache/frontend state. All fences conservatively drain all data classes, which also satisfies FIOM expansions.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Ss1p13",
+        "Svbare",
+        "Sv39",
+        "Svade",
+        "Ssccptr"
+      ],
+      "rtl": [
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "rtl/soc/rv23_page_walker.sv",
+        "rtl/soc/rv23_mmu.sv",
+        "rtl/soc/rv23_translation_port.sv",
+        "rtl/soc/rv23_ptw_arbiter.sv"
+      ],
+      "checks": [
+        "run_supervisor_csr.py",
+        "run_interrupt_csr_boundary.py",
+        "run_mmu_checks.py",
+        "run_sv39_integration.py",
+        "run_privileged_instruction_matrix.py",
+        "run_upstream_privileged_tests.py",
+        "run_ptw_debug_coherence.py"
+      ],
+      "contract": "S state/returns/permissions; Bare and Sv39; software A/D faults; PTE reads pass PMP and the coherent main-memory path. Mandatory machine mconfigptr is implemented as read-only zero. Full Ss1p13 clause audit remains open.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Sstvecd",
+        "Sstvala",
+        "Sscounterenw",
+        "Ssu64xl"
+      ],
+      "rtl": [
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_trap_controller.sv",
+        "rtl/backend/rv_decode2.sv"
+      ],
+      "checks": [
+        "run_supervisor_csr.py",
+        "run_sv39_integration.py",
+        "run_hypervisor_csr_file_checks.py",
+        "run_privileged_instruction_matrix.py",
+        "run_upstream_privileged_tests.py",
+        "run_hypervisor_breakpoint_metadata.py",
+        "run_profile_csr_geometry.py",
+        "run_counter_permission_matrix.py",
+        "run_split_fetch_faults.py"
+      ],
+      "contract": "All 4-byte-aligned direct stvec bases; precise VA/instruction trap values; implemented counter enable bits writable; UXL fixed64.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Svpbmt",
+        "Svinval",
+        "Svnapot"
+      ],
+      "rtl": [
+        "rtl/soc/rv23_page_walker.sv",
+        "rtl/soc/rv23_mmu.sv",
+        "rtl/soc/rv23_translation_port.sv",
+        "rtl/backend/rv_backend.sv",
+        "rtl/soc/rv23_data_translate.sv"
+      ],
+      "checks": [
+        "run_mmu_checks.py",
+        "run_guest_pbmt_precedence.py",
+        "run_svinval_integration.py",
+        "run_vector_sv39_integration.py",
+        "run_privileged_instruction_matrix.py",
+        "run_upstream_privileged_tests.py"
+      ],
+      "contract": "PBMT with M/H enable layers and final VS-stage override, conservative global invalidation, 64-KiB NAPOT leaves; ordering-only Svinval fences ignore TVM/VTVM and trap VU with cause22.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Sstc"
+      ],
+      "rtl": [
+        "rtl/backend/rv_csr_file.sv",
+        "rtl/backend/rv_hypervisor_csrs.sv",
+        "rtl/soc/rv_clint.sv"
+      ],
+      "checks": [
+        "run_supervisor_csr.py",
+        "run_hypervisor_interrupt_integration.py",
+        "run_guest_timer_wrap.py",
+        "run_guest_interrupt_priority.py"
+      ],
+      "contract": "S and VS timer compare, enable/counter gating, htimedelta addition and virtual timer interrupt delivery; CLINT natural64 timer accesses.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Sscofpmf"
+      ],
+      "rtl": [
+        "rtl/backend/rv_hpm_counters.sv",
+        "rtl/backend/rv_csr_file.sv"
+      ],
+      "checks": [
+        "run_hpm_counter_checks.py",
+        "run_hpm_csr_file_checks.py",
+        "run_hpm_integration.py"
+      ],
+      "contract": "HPM OF and MINH/SINH/UINH/VSINH/VUINH, scountovf filtering, a single LCOFIP pending owner and overflow interrupt delivery.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    },
+    {
+      "requirements": [
+        "Sha",
+        "H",
+        "Ssstateen",
+        "Shcounterenw",
+        "Shvstvala",
+        "Shtvala",
+        "Shvstvecd",
+        "Shvsatpa",
+        "Shgatpa"
+      ],
+      "rtl": [
+        "rtl/backend/rv_hypervisor_csrs.sv",
+        "rtl/backend/rv_hypervisor_stateen.sv",
+        "rtl/backend/rv23_hypervisor_memory_head.sv",
+        "rtl/soc/rv23_mmu.sv",
+        "rtl/backend/rv_backend.sv"
+      ],
+      "checks": [
+        "run_hypervisor_integration.py",
+        "run_hypervisor_gstage_integration.py",
+        "run_sv39x4_root.py",
+        "run_guest_superpages.py",
+        "run_guest_stateen.py",
+        "run_hypervisor_sie_isolation.py",
+        "run_hypervisor_interrupt_integration.py",
+        "run_hypervisor_access_integration.py",
+        "run_hypervisor_access_widths.py",
+        "run_hlvx_permissions.py",
+        "run_guest_context_restore.py",
+        "run_hypervisor_vector_faults.py",
+        "run_hypervisor_csr_file_checks.py",
+        "run_privileged_instruction_matrix.py",
+        "run_hypervisor_breakpoint_metadata.py",
+        "run_profile_csr_geometry.py",
+        "run_counter_permission_matrix.py",
+        "run_split_fetch_faults.py"
+      ],
+      "contract": "M/HS/VS/VU state, aliases, delegation, interrupts, HLV/HSV/HLVX, two-stage translation including implicit VS PTE G faults, guest vector restart, all satp modes mirrored in vsatp/hgatp; Hstateen and counter controls. Full H architectural coverage remains open.",
+      "status": "integrated; directed coverage; complete architectural validation remains open"
+    }
+  ],
+  "integration_checks": [
+    "run_profile_hypervisor_replay.py",
+    "run_hypervisor_integration.py",
+    "run_vector_integration.py",
+    "audit_hypervisor_integration.py",
+    "audit_vector_integration.py",
+    "run_hypervisor_mprv_faults.py",
+    "run_rv64_ooo_integration.py",
+    "run_rv64_platform_contract.py",
+    "audit_rv64_ooo_integration.py",
+    "audit_profile_contracts.py",
+    "audit_ptw_debug_coherence.py",
+    "audit_sail_event_comparison.py"
+  ]
+}

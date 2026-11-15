@@ -1,0 +1,198 @@
+[
+  {
+    "path": "rtl/soc/rv_soc_pkg.sv",
+    "sha256": "B8C5AB345000DDF0A0E4813A3F0A9C975901753E79ECE66E34081C741A2BED48"
+  },
+  {
+    "path": "rtl/rv_ooo_pkg.sv",
+    "sha256": "7048FF9825E782DDF389280B106B51C70E9A3F5C5D4B72D5A86040B727ED0DAC"
+  },
+  {
+    "path": "rtl/soc/rv_axi4_if.sv",
+    "sha256": "E0676106A15A058F7CE10AE89845869AB6B2E7DB36A16BFA4324888810C94AF4"
+  },
+  {
+    "path": "rtl/soc/rv_local_mem_if.sv",
+    "sha256": "1280BC837B4544A2B97A6EEFE098A183C46995CDEC7748FD66FD1F4931E538B9"
+  },
+  {
+    "path": "rtl/frontend/rv_c_expander.sv",
+    "sha256": "F076EDABE62BA5321D1EB9EE7A66147444A233036F3A01629D9F85DC7195CB01"
+  },
+  {
+    "path": "rtl/frontend/rv_fetch_queue.sv",
+    "sha256": "4FE0C4F4E6E39D1A46664C05FEA3E764610393EC3F90F58B1DA21EB3960CC47C"
+  },
+  {
+    "path": "rtl/frontend/rv_fetch_target_buffer.sv",
+    "sha256": "8CFABF28BFB56503B7D84D897E607B90B827E96378E1D713AA007BA84A3AD2FD"
+  },
+  {
+    "path": "rtl/frontend/rv_branch_predictor.sv",
+    "sha256": "81D4959EEDC2962340C9A87D30524FB20F8DAD081179E6A0F6D2299C1388964D"
+  },
+  {
+    "path": "rtl/backend/rv_decode2.sv",
+    "sha256": "512B486D657E9143402E984C2B142CC6D7907523E38E6B93BF96B68E75A94E5D"
+  },
+  {
+    "path": "rtl/backend/rv_lsq_order_check.sv",
+    "sha256": "AB5E38B6148E7A0A9C59388B3E01C3AE9CBCB51FDD09DBB2EC76B1CAAB1F6A5C"
+  },
+  {
+    "path": "rtl/backend/rv_lsu_pipe.sv",
+    "sha256": "473204FA56227124332F1C87C37BFB71FE070C3986A3C38FB0FD2316EFCC7030"
+  },
+  {
+    "path": "rtl/backend/rv_lsq.sv",
+    "sha256": "38F926B1DAA3E9AA67EA1EB164A32685EE936FC189A2B811603626AF06657220"
+  },
+  {
+    "path": "rtl/backend/rv_store_buffer.sv",
+    "sha256": "1971D99FD36650CBE1E8774BB74493816524EA5FC7BD87E851167C4CB966F8F3"
+  },
+  {
+    "path": "rtl/backend/rv_lsu_cluster.sv",
+    "sha256": "F006120E88B133889A71E9BA4E916E4CEA8592D103E37216D565FC3790C7071E"
+  },
+  {
+    "path": "rtl/backend/rv_rename2.sv",
+    "sha256": "52A269B564241624363ADAE055E73FACF5FB156D44FE07850B90CDCE43E2D4DE"
+  },
+  {
+    "path": "rtl/backend/rv_phys_regfile.sv",
+    "sha256": "D27CCF25DD91ED79D335FA4EF8ED9F933DEC77011CEAF56DC00798042354D92C"
+  },
+  {
+    "path": "rtl/backend/rv_issue_queue.sv",
+    "sha256": "69AD96F00556E8DCFC433627210570DF9688E41DD4795F5557E18042887A9F3E"
+  },
+  {
+    "path": "rtl/backend/rv_issue_arbiter.sv",
+    "sha256": "F9B07B0D8D8A062F747EB66037D89C805B10CDCDFC7F9422AC7D951884AB12CE"
+  },
+  {
+    "path": "rtl/backend/rv_int_alu.sv",
+    "sha256": "386831F003A4741EC267905C5DA5DB68D23EDF7BC19D2138C7AD921D2099E619"
+  },
+  {
+    "path": "rtl/backend/rv_branch_unit.sv",
+    "sha256": "18DAABB162E55D3C34EF1773DC93F7F83E377E35D5E2AD7C27CB916254E18256"
+  },
+  {
+    "path": "rtl/backend/rv_multiplier.sv",
+    "sha256": "09DDDCA2679B727900A28CD24C56D493B52502522FB4DC031E5E17B62E0CD275"
+  },
+  {
+    "path": "rtl/backend/rv_divider.sv",
+    "sha256": "37B63BF7ED884ED1820C347DCC02D00594F24151E6014D02C010F968F0F0C5D5"
+  },
+  {
+    "path": "rtl/backend/rv_fpu.sv",
+    "sha256": "662412CF4CE33033F3C431E76CAD0FE964E95449254CE3BF229E35EB76E25DC8"
+  },
+  {
+    "path": "rtl/backend/rv_writeback_arbiter.sv",
+    "sha256": "627D4B310B370DC0D2A77338B0C69B92F45291067C0E02A2583F4FA4B7D70FA9"
+  },
+  {
+    "path": "rtl/backend/rv_branch_recovery.sv",
+    "sha256": "6875B6709CBA8AE1954D42B22C2BF345874372100F79FB2D8F89E828F0CA17F2"
+  },
+  {
+    "path": "rtl/backend/rv_exec_result_buffer.sv",
+    "sha256": "72C076533BFAD23794B450FA13B56FBDC74208DEB450F0CEB1E92EB076171C45"
+  },
+  {
+    "path": "rtl/backend/rv_csr_file.sv",
+    "sha256": "1F0F5D01A4A9FBFE84C3327D8B0551C1358267EC3FAC33B6841DF89BE061FD04"
+  },
+  {
+    "path": "rtl/backend/rv_pmp.sv",
+    "sha256": "34C68E7BE2F0C57E64EA2C2BE7A10A96622905790CE845BD7B47DC64B1B53040"
+  },
+  {
+    "path": "rtl/backend/rv_trap_controller.sv",
+    "sha256": "D282FD8ADF81BCC37E97BE81E042269BDC15E55492E6B5B20778476F1C537159"
+  },
+  {
+    "path": "rtl/backend/rv_fence_controller.sv",
+    "sha256": "D79F1783009FF7A5DF6B2AD569FC4547A10A3E63C0C04CE94722B846AF50504F"
+  },
+  {
+    "path": "rtl/backend/rv_rob.sv",
+    "sha256": "5C5C4656302D53F456C2C46FEBE827B8DA273059E59B118D3DBD37536551681C"
+  },
+  {
+    "path": "rtl/frontend/rv_frontend.sv",
+    "sha256": "32484D8D2871EB7F591F4879205DCCB2282240A352FE1CFF619329B6CA48051F"
+  },
+  {
+    "path": "rtl/backend/rv_backend.sv",
+    "sha256": "758D7B5B2E128BDC645DE343EECC7ACA6DB9A9FE0C740C35AD0DDD594B22F147"
+  },
+  {
+    "path": "rtl/rv_ooo_core.sv",
+    "sha256": "E89A876D61281A3A0AC39C038016403CED2ADFDB747799BBE731926E005B8A0A"
+  },
+  {
+    "path": "rtl/soc/rv_local_to_axi_bridge.sv",
+    "sha256": "E3BDB8B256ABFCE9A8188E3EF26007C1C873DA6E853BA0E31E1EDBA1B07F7DDF"
+  },
+  {
+    "path": "rtl/soc/rv_axi_to_local_bridge.sv",
+    "sha256": "4274BD4459249A3CA57EBE2CDEE3ADA536E049AC686CCE6E6A0D23AD1FE297A9"
+  },
+  {
+    "path": "rtl/soc/rv_axi_error_slave.sv",
+    "sha256": "C97907BA3E4A15CCFA71E057B8DF1CF0B5F77C6D7CC72BE04FE2B3C15EF5010B"
+  },
+  {
+    "path": "rtl/soc/rv_axi_xbar.sv",
+    "sha256": "CEE0704C7A5872F73FA98F2C815C96629A39C6B8B00B9E8EFA0E30AF129C52DB"
+  },
+  {
+    "path": "rtl/soc/rv_soc_map_check.sv",
+    "sha256": "8C7C2B9F3B872B95A9E67261074DFAD8CFB8E8D6E20DCD8425C12B7FC0D5FAD0"
+  },
+  {
+    "path": "rtl/soc/rv_soc_addr_decode.sv",
+    "sha256": "80136B49567F51397328E4ED46E8288D3913E19BC753867EB1C51E93F89CB959"
+  },
+  {
+    "path": "rtl/soc/rv_sram_1r1w.sv",
+    "sha256": "424005D980BADE9F953A275C47CB69D339CB34E6F84A3A9B42122CB5637C14F7"
+  },
+  {
+    "path": "rtl/soc/rv_tim_2bank.sv",
+    "sha256": "A3C236614A674526A8882F0AD0033E213CAD56FE1EE29B9B312B0259F6CEB567"
+  },
+  {
+    "path": "rtl/soc/rv_clint.sv",
+    "sha256": "8949CEF49637539A80E4B68FE03D6A7AE219A10F6B502EDF26A3DC1D52B8BC39"
+  },
+  {
+    "path": "rtl/soc/rv_bootrom.sv",
+    "sha256": "7B3ABEF365043AD4EF89DD1FAF4F4FC7A635A97B2FFB3EF0FE15301FDB5E173E"
+  },
+  {
+    "path": "rtl/soc/rv_hostif.sv",
+    "sha256": "2D37827499452A756EE1914FB880751405BE1F5666D274C684004961706C18E6"
+  },
+  {
+    "path": "rtl/soc/rv_plic.sv",
+    "sha256": "1FF739B8E4B88216FB6011DFA12ED2472A8D19455FBBD70C48FB17981C047D22"
+  },
+  {
+    "path": "rtl/soc/rv_d_fabric.sv",
+    "sha256": "66DB9A52A8F31A63D19F415E29BF21948AE005ABF49CF99A07041B0DD84315BD"
+  },
+  {
+    "path": "rtl/soc/rv_i_fabric.sv",
+    "sha256": "14839DB933BE40E2293F30E2ECA0E2D37F3493F8C4D2EAE9F1DC36C6A3D56FFF"
+  },
+  {
+    "path": "rtl/soc/rv_soc_top.sv",
+    "sha256": "7693F480B9AD93406C2CDBD4BF308721A620E3D7377ABD2CE1703B96A3F48C00"
+  }
+]

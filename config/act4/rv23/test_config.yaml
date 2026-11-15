@@ -1,0 +1,10 @@
+name: rv23-RVA23S64
+compiler_exe: 
+  C:/rv_toolchains/xpack-riscv-none-elf-gcc-15.2.0-1/bin/riscv-none-elf-gcc.exe
+objdump_exe: 
+  C:/rv_toolchains/xpack-riscv-none-elf-gcc-15.2.0-1/bin/riscv-none-elf-objdump.exe
+ref_model_exe: C:/rv_workspaces/rv23/out/act4/sail-0.16/sail_act4_reference.exe
+ref_model_type: sail
+udb_config: rv23.yaml
+linker_script: link.ld
+dut_include_dir: .

@@ -1,0 +1,5097 @@
+{
+  "scope": "Encoding classification only; vector state and execution pending",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_v",
+      "file": "config/vector_opcode_tables/rv_v",
+      "sha256": "a260265cf952fa0025382b97c125c47bd3f42fa167805da0ee97b09c16ba7cba"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/riscv/riscv-opcodes/master/extensions/rv_zvbb",
+      "file": "config/vector_opcode_tables/rv_zvbb",
+      "sha256": "8caadc210a5b202c550d9eb5c4f0c7116ddaf1f44ec41b5f03c9e2f3a1168393"
+    }
+  ],
+  "generator_sha256": "c32bff37a8b25b5af929f60d46b303010f820a799c91c282fc7130bccfc57f7c",
+  "rtl_sha256": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
+  "integer_operations": [
+    "vadd",
+    "vsub",
+    "vrsub",
+    "vminu",
+    "vmin",
+    "vmaxu",
+    "vmax",
+    "vand",
+    "vor",
+    "vxor",
+    "vrgather",
+    "vslideup",
+    "vslidedown",
+    "vadc",
+    "vmadc",
+    "vsbc",
+    "vmsbc",
+    "vmerge",
+    "vmv",
+    "vmseq",
+    "vmsne",
+    "vmsltu",
+    "vmslt",
+    "vmsleu",
+    "vmsle",
+    "vmsgtu",
+    "vmsgt",
+    "vsaddu",
+    "vsadd",
+    "vssubu",
+    "vssub",
+    "vsll",
+    "vsmul",
+    "vsrl",
+    "vsra",
+    "vssrl",
+    "vssra",
+    "vnsrl",
+    "vnsra",
+    "vnclipu",
+    "vnclip",
+    "vrgatherei16",
+    "vwredsumu",
+    "vwredsum",
+    "vmv1r",
+    "vmv2r",
+    "vmv4r",
+    "vmv8r",
+    "vredsum",
+    "vredand",
+    "vredor",
+    "vredxor",
+    "vredminu",
+    "vredmin",
+    "vredmaxu",
+    "vredmax",
+    "vaaddu",
+    "vaadd",
+    "vasubu",
+    "vasub",
+    "vzext",
+    "vsext",
+    "vcompress",
+    "vmandn",
+    "vmand",
+    "vmor",
+    "vmxor",
+    "vmorn",
+    "vmnand",
+    "vmnor",
+    "vmxnor",
+    "vmsbf",
+    "vmsof",
+    "vmsif",
+    "viota",
+    "vid",
+    "vcpop",
+    "vfirst",
+    "vdivu",
+    "vdiv",
+    "vremu",
+    "vrem",
+    "vmulhu",
+    "vmul",
+    "vmulhsu",
+    "vmulh",
+    "vmadd",
+    "vnmsub",
+    "vmacc",
+    "vnmsac",
+    "vwaddu",
+    "vwadd",
+    "vwsubu",
+    "vwsub",
+    "vwmulu",
+    "vwmulsu",
+    "vwmul",
+    "vwmaccu",
+    "vwmacc",
+    "vwmaccsu",
+    "vslide1up",
+    "vslide1down",
+    "vwmaccus",
+    "vandn",
+    "vbrev",
+    "vbrev8",
+    "vrev8",
+    "vclz",
+    "vctz",
+    "vrol",
+    "vror",
+    "vwsll"
+  ],
+  "instructions": [
+    {
+      "name": "vsetivli",
+      "enum": "V_VSETIVLI",
+      "mask": 3221254271,
+      "match": 3221254231,
+      "arguments": [
+        "zimm10",
+        "zimm5",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsetvli",
+      "enum": "V_VSETVLI",
+      "mask": 2147512447,
+      "match": 28759,
+      "arguments": [
+        "zimm11",
+        "rs1",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsetvl",
+      "enum": "V_VSETVL",
+      "mask": 4261441663,
+      "match": 2147512407,
+      "arguments": [
+        "rs2",
+        "rs1",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vlm.v",
+      "enum": "V_VLM_V",
+      "mask": 4293947519,
+      "match": 45088775,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsm.v",
+      "enum": "V_VSM_V",
+      "mask": 4293947519,
+      "match": 45088807,
+      "arguments": [
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle8.v",
+      "enum": "V_VLE8_V",
+      "mask": 502296703,
+      "match": 7,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle16.v",
+      "enum": "V_VLE16_V",
+      "mask": 502296703,
+      "match": 20487,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle32.v",
+      "enum": "V_VLE32_V",
+      "mask": 502296703,
+      "match": 24583,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle64.v",
+      "enum": "V_VLE64_V",
+      "mask": 502296703,
+      "match": 28679,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vse8.v",
+      "enum": "V_VSE8_V",
+      "mask": 502296703,
+      "match": 39,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vse16.v",
+      "enum": "V_VSE16_V",
+      "mask": 502296703,
+      "match": 20519,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vse32.v",
+      "enum": "V_VSE32_V",
+      "mask": 502296703,
+      "match": 24615,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vse64.v",
+      "enum": "V_VSE64_V",
+      "mask": 502296703,
+      "match": 28711,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vluxei8.v",
+      "enum": "V_VLUXEI8_V",
+      "mask": 469790847,
+      "match": 67108871,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vluxei16.v",
+      "enum": "V_VLUXEI16_V",
+      "mask": 469790847,
+      "match": 67129351,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vluxei32.v",
+      "enum": "V_VLUXEI32_V",
+      "mask": 469790847,
+      "match": 67133447,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vluxei64.v",
+      "enum": "V_VLUXEI64_V",
+      "mask": 469790847,
+      "match": 67137543,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsuxei8.v",
+      "enum": "V_VSUXEI8_V",
+      "mask": 469790847,
+      "match": 67108903,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsuxei16.v",
+      "enum": "V_VSUXEI16_V",
+      "mask": 469790847,
+      "match": 67129383,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsuxei32.v",
+      "enum": "V_VSUXEI32_V",
+      "mask": 469790847,
+      "match": 67133479,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsuxei64.v",
+      "enum": "V_VSUXEI64_V",
+      "mask": 469790847,
+      "match": 67137575,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vlse8.v",
+      "enum": "V_VLSE8_V",
+      "mask": 469790847,
+      "match": 134217735,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vlse16.v",
+      "enum": "V_VLSE16_V",
+      "mask": 469790847,
+      "match": 134238215,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vlse32.v",
+      "enum": "V_VLSE32_V",
+      "mask": 469790847,
+      "match": 134242311,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vlse64.v",
+      "enum": "V_VLSE64_V",
+      "mask": 469790847,
+      "match": 134246407,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsse8.v",
+      "enum": "V_VSSE8_V",
+      "mask": 469790847,
+      "match": 134217767,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsse16.v",
+      "enum": "V_VSSE16_V",
+      "mask": 469790847,
+      "match": 134238247,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsse32.v",
+      "enum": "V_VSSE32_V",
+      "mask": 469790847,
+      "match": 134242343,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsse64.v",
+      "enum": "V_VSSE64_V",
+      "mask": 469790847,
+      "match": 134246439,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vloxei8.v",
+      "enum": "V_VLOXEI8_V",
+      "mask": 469790847,
+      "match": 201326599,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vloxei16.v",
+      "enum": "V_VLOXEI16_V",
+      "mask": 469790847,
+      "match": 201347079,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vloxei32.v",
+      "enum": "V_VLOXEI32_V",
+      "mask": 469790847,
+      "match": 201351175,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vloxei64.v",
+      "enum": "V_VLOXEI64_V",
+      "mask": 469790847,
+      "match": 201355271,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsoxei8.v",
+      "enum": "V_VSOXEI8_V",
+      "mask": 469790847,
+      "match": 201326631,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsoxei16.v",
+      "enum": "V_VSOXEI16_V",
+      "mask": 469790847,
+      "match": 201347111,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsoxei32.v",
+      "enum": "V_VSOXEI32_V",
+      "mask": 469790847,
+      "match": 201351207,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsoxei64.v",
+      "enum": "V_VSOXEI64_V",
+      "mask": 469790847,
+      "match": 201355303,
+      "arguments": [
+        "nf",
+        "vm",
+        "vs2",
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle8ff.v",
+      "enum": "V_VLE8FF_V",
+      "mask": 502296703,
+      "match": 16777223,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle16ff.v",
+      "enum": "V_VLE16FF_V",
+      "mask": 502296703,
+      "match": 16797703,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle32ff.v",
+      "enum": "V_VLE32FF_V",
+      "mask": 502296703,
+      "match": 16801799,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vle64ff.v",
+      "enum": "V_VLE64FF_V",
+      "mask": 502296703,
+      "match": 16805895,
+      "arguments": [
+        "nf",
+        "vm",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl1re8.v",
+      "enum": "V_VL1RE8_V",
+      "mask": 4293947519,
+      "match": 41943047,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl1re16.v",
+      "enum": "V_VL1RE16_V",
+      "mask": 4293947519,
+      "match": 41963527,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl1re32.v",
+      "enum": "V_VL1RE32_V",
+      "mask": 4293947519,
+      "match": 41967623,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl1re64.v",
+      "enum": "V_VL1RE64_V",
+      "mask": 4293947519,
+      "match": 41971719,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl2re8.v",
+      "enum": "V_VL2RE8_V",
+      "mask": 4293947519,
+      "match": 578813959,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl2re16.v",
+      "enum": "V_VL2RE16_V",
+      "mask": 4293947519,
+      "match": 578834439,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl2re32.v",
+      "enum": "V_VL2RE32_V",
+      "mask": 4293947519,
+      "match": 578838535,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl2re64.v",
+      "enum": "V_VL2RE64_V",
+      "mask": 4293947519,
+      "match": 578842631,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl4re8.v",
+      "enum": "V_VL4RE8_V",
+      "mask": 4293947519,
+      "match": 1652555783,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl4re16.v",
+      "enum": "V_VL4RE16_V",
+      "mask": 4293947519,
+      "match": 1652576263,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl4re32.v",
+      "enum": "V_VL4RE32_V",
+      "mask": 4293947519,
+      "match": 1652580359,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl4re64.v",
+      "enum": "V_VL4RE64_V",
+      "mask": 4293947519,
+      "match": 1652584455,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl8re8.v",
+      "enum": "V_VL8RE8_V",
+      "mask": 4293947519,
+      "match": 3800039431,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl8re16.v",
+      "enum": "V_VL8RE16_V",
+      "mask": 4293947519,
+      "match": 3800059911,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl8re32.v",
+      "enum": "V_VL8RE32_V",
+      "mask": 4293947519,
+      "match": 3800064007,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vl8re64.v",
+      "enum": "V_VL8RE64_V",
+      "mask": 4293947519,
+      "match": 3800068103,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vs1r.v",
+      "enum": "V_VS1R_V",
+      "mask": 4293947519,
+      "match": 41943079,
+      "arguments": [
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vs2r.v",
+      "enum": "V_VS2R_V",
+      "mask": 4293947519,
+      "match": 578813991,
+      "arguments": [
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vs4r.v",
+      "enum": "V_VS4R_V",
+      "mask": 4293947519,
+      "match": 1652555815,
+      "arguments": [
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vs8r.v",
+      "enum": "V_VS8R_V",
+      "mask": 4293947519,
+      "match": 3800039463,
+      "arguments": [
+        "rs1",
+        "vs3"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfadd.vf",
+      "enum": "V_VFADD_VF",
+      "mask": 4227887231,
+      "match": 20567,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsub.vf",
+      "enum": "V_VFSUB_VF",
+      "mask": 4227887231,
+      "match": 134238295,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmin.vf",
+      "enum": "V_VFMIN_VF",
+      "mask": 4227887231,
+      "match": 268456023,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmax.vf",
+      "enum": "V_VFMAX_VF",
+      "mask": 4227887231,
+      "match": 402673751,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnj.vf",
+      "enum": "V_VFSGNJ_VF",
+      "mask": 4227887231,
+      "match": 536891479,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnjn.vf",
+      "enum": "V_VFSGNJN_VF",
+      "mask": 4227887231,
+      "match": 604000343,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnjx.vf",
+      "enum": "V_VFSGNJX_VF",
+      "mask": 4227887231,
+      "match": 671109207,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfslide1up.vf",
+      "enum": "V_VFSLIDE1UP_VF",
+      "mask": 4227887231,
+      "match": 939544663,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfslide1down.vf",
+      "enum": "V_VFSLIDE1DOWN_VF",
+      "mask": 4227887231,
+      "match": 1006653527,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmv.s.f",
+      "enum": "V_VFMV_S_F",
+      "mask": 4293947519,
+      "match": 1107316823,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmerge.vfm",
+      "enum": "V_VFMERGE_VFM",
+      "mask": 4261441663,
+      "match": 1543524439,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmv.v.f",
+      "enum": "V_VFMV_V_F",
+      "mask": 4293947519,
+      "match": 1577078871,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfeq.vf",
+      "enum": "V_VMFEQ_VF",
+      "mask": 4227887231,
+      "match": 1610633303,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfle.vf",
+      "enum": "V_VMFLE_VF",
+      "mask": 4227887231,
+      "match": 1677742167,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmflt.vf",
+      "enum": "V_VMFLT_VF",
+      "mask": 4227887231,
+      "match": 1811959895,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfne.vf",
+      "enum": "V_VMFNE_VF",
+      "mask": 4227887231,
+      "match": 1879068759,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfgt.vf",
+      "enum": "V_VMFGT_VF",
+      "mask": 4227887231,
+      "match": 1946177623,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfge.vf",
+      "enum": "V_VMFGE_VF",
+      "mask": 4227887231,
+      "match": 2080395351,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfdiv.vf",
+      "enum": "V_VFDIV_VF",
+      "mask": 4227887231,
+      "match": 2147504215,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfrdiv.vf",
+      "enum": "V_VFRDIV_VF",
+      "mask": 4227887231,
+      "match": 2214613079,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmul.vf",
+      "enum": "V_VFMUL_VF",
+      "mask": 4227887231,
+      "match": 2415939671,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfrsub.vf",
+      "enum": "V_VFRSUB_VF",
+      "mask": 4227887231,
+      "match": 2617266263,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmadd.vf",
+      "enum": "V_VFMADD_VF",
+      "mask": 4227887231,
+      "match": 2684375127,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmadd.vf",
+      "enum": "V_VFNMADD_VF",
+      "mask": 4227887231,
+      "match": 2751483991,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmsub.vf",
+      "enum": "V_VFMSUB_VF",
+      "mask": 4227887231,
+      "match": 2818592855,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmsub.vf",
+      "enum": "V_VFNMSUB_VF",
+      "mask": 4227887231,
+      "match": 2885701719,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmacc.vf",
+      "enum": "V_VFMACC_VF",
+      "mask": 4227887231,
+      "match": 2952810583,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmacc.vf",
+      "enum": "V_VFNMACC_VF",
+      "mask": 4227887231,
+      "match": 3019919447,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmsac.vf",
+      "enum": "V_VFMSAC_VF",
+      "mask": 4227887231,
+      "match": 3087028311,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmsac.vf",
+      "enum": "V_VFNMSAC_VF",
+      "mask": 4227887231,
+      "match": 3154137175,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwadd.vf",
+      "enum": "V_VFWADD_VF",
+      "mask": 4227887231,
+      "match": 3221246039,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwsub.vf",
+      "enum": "V_VFWSUB_VF",
+      "mask": 4227887231,
+      "match": 3355463767,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwadd.wf",
+      "enum": "V_VFWADD_WF",
+      "mask": 4227887231,
+      "match": 3489681495,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwsub.wf",
+      "enum": "V_VFWSUB_WF",
+      "mask": 4227887231,
+      "match": 3623899223,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmul.vf",
+      "enum": "V_VFWMUL_VF",
+      "mask": 4227887231,
+      "match": 3758116951,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmacc.vf",
+      "enum": "V_VFWMACC_VF",
+      "mask": 4227887231,
+      "match": 4026552407,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwnmacc.vf",
+      "enum": "V_VFWNMACC_VF",
+      "mask": 4227887231,
+      "match": 4093661271,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmsac.vf",
+      "enum": "V_VFWMSAC_VF",
+      "mask": 4227887231,
+      "match": 4160770135,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwnmsac.vf",
+      "enum": "V_VFWNMSAC_VF",
+      "mask": 4227887231,
+      "match": 4227878999,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfadd.vv",
+      "enum": "V_VFADD_VV",
+      "mask": 4227887231,
+      "match": 4183,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfredusum.vs",
+      "enum": "V_VFREDUSUM_VS",
+      "mask": 4227887231,
+      "match": 67113047,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsub.vv",
+      "enum": "V_VFSUB_VV",
+      "mask": 4227887231,
+      "match": 134221911,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfredosum.vs",
+      "enum": "V_VFREDOSUM_VS",
+      "mask": 4227887231,
+      "match": 201330775,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmin.vv",
+      "enum": "V_VFMIN_VV",
+      "mask": 4227887231,
+      "match": 268439639,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfredmin.vs",
+      "enum": "V_VFREDMIN_VS",
+      "mask": 4227887231,
+      "match": 335548503,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmax.vv",
+      "enum": "V_VFMAX_VV",
+      "mask": 4227887231,
+      "match": 402657367,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfredmax.vs",
+      "enum": "V_VFREDMAX_VS",
+      "mask": 4227887231,
+      "match": 469766231,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnj.vv",
+      "enum": "V_VFSGNJ_VV",
+      "mask": 4227887231,
+      "match": 536875095,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnjn.vv",
+      "enum": "V_VFSGNJN_VV",
+      "mask": 4227887231,
+      "match": 603983959,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsgnjx.vv",
+      "enum": "V_VFSGNJX_VV",
+      "mask": 4227887231,
+      "match": 671092823,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmv.f.s",
+      "enum": "V_VFMV_F_S",
+      "mask": 4262457471,
+      "match": 1107300439,
+      "arguments": [
+        "vs2",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfeq.vv",
+      "enum": "V_VMFEQ_VV",
+      "mask": 4227887231,
+      "match": 1610616919,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfle.vv",
+      "enum": "V_VMFLE_VV",
+      "mask": 4227887231,
+      "match": 1677725783,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmflt.vv",
+      "enum": "V_VMFLT_VV",
+      "mask": 4227887231,
+      "match": 1811943511,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmfne.vv",
+      "enum": "V_VMFNE_VV",
+      "mask": 4227887231,
+      "match": 1879052375,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfdiv.vv",
+      "enum": "V_VFDIV_VV",
+      "mask": 4227887231,
+      "match": 2147487831,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmul.vv",
+      "enum": "V_VFMUL_VV",
+      "mask": 4227887231,
+      "match": 2415923287,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmadd.vv",
+      "enum": "V_VFMADD_VV",
+      "mask": 4227887231,
+      "match": 2684358743,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmadd.vv",
+      "enum": "V_VFNMADD_VV",
+      "mask": 4227887231,
+      "match": 2751467607,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmsub.vv",
+      "enum": "V_VFMSUB_VV",
+      "mask": 4227887231,
+      "match": 2818576471,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmsub.vv",
+      "enum": "V_VFNMSUB_VV",
+      "mask": 4227887231,
+      "match": 2885685335,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmacc.vv",
+      "enum": "V_VFMACC_VV",
+      "mask": 4227887231,
+      "match": 2952794199,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmacc.vv",
+      "enum": "V_VFNMACC_VV",
+      "mask": 4227887231,
+      "match": 3019903063,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfmsac.vv",
+      "enum": "V_VFMSAC_VV",
+      "mask": 4227887231,
+      "match": 3087011927,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfnmsac.vv",
+      "enum": "V_VFNMSAC_VV",
+      "mask": 4227887231,
+      "match": 3154120791,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.xu.f.v",
+      "enum": "V_VFCVT_XU_F_V",
+      "mask": 4228903039,
+      "match": 1207963735,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.x.f.v",
+      "enum": "V_VFCVT_X_F_V",
+      "mask": 4228903039,
+      "match": 1207996503,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.f.xu.v",
+      "enum": "V_VFCVT_F_XU_V",
+      "mask": 4228903039,
+      "match": 1208029271,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.f.x.v",
+      "enum": "V_VFCVT_F_X_V",
+      "mask": 4228903039,
+      "match": 1208062039,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.rtz.xu.f.v",
+      "enum": "V_VFCVT_RTZ_XU_F_V",
+      "mask": 4228903039,
+      "match": 1208160343,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfcvt.rtz.x.f.v",
+      "enum": "V_VFCVT_RTZ_X_F_V",
+      "mask": 4228903039,
+      "match": 1208193111,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.xu.f.v",
+      "enum": "V_VFWCVT_XU_F_V",
+      "mask": 4228903039,
+      "match": 1208225879,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.x.f.v",
+      "enum": "V_VFWCVT_X_F_V",
+      "mask": 4228903039,
+      "match": 1208258647,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.f.xu.v",
+      "enum": "V_VFWCVT_F_XU_V",
+      "mask": 4228903039,
+      "match": 1208291415,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.f.x.v",
+      "enum": "V_VFWCVT_F_X_V",
+      "mask": 4228903039,
+      "match": 1208324183,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.f.f.v",
+      "enum": "V_VFWCVT_F_F_V",
+      "mask": 4228903039,
+      "match": 1208356951,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.rtz.xu.f.v",
+      "enum": "V_VFWCVT_RTZ_XU_F_V",
+      "mask": 4228903039,
+      "match": 1208422487,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwcvt.rtz.x.f.v",
+      "enum": "V_VFWCVT_RTZ_X_F_V",
+      "mask": 4228903039,
+      "match": 1208455255,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.xu.f.w",
+      "enum": "V_VFNCVT_XU_F_W",
+      "mask": 4228903039,
+      "match": 1208488023,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.x.f.w",
+      "enum": "V_VFNCVT_X_F_W",
+      "mask": 4228903039,
+      "match": 1208520791,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.f.xu.w",
+      "enum": "V_VFNCVT_F_XU_W",
+      "mask": 4228903039,
+      "match": 1208553559,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.f.x.w",
+      "enum": "V_VFNCVT_F_X_W",
+      "mask": 4228903039,
+      "match": 1208586327,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.f.f.w",
+      "enum": "V_VFNCVT_F_F_W",
+      "mask": 4228903039,
+      "match": 1208619095,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.rod.f.f.w",
+      "enum": "V_VFNCVT_ROD_F_F_W",
+      "mask": 4228903039,
+      "match": 1208651863,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.rtz.xu.f.w",
+      "enum": "V_VFNCVT_RTZ_XU_F_W",
+      "mask": 4228903039,
+      "match": 1208684631,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfncvt.rtz.x.f.w",
+      "enum": "V_VFNCVT_RTZ_X_F_W",
+      "mask": 4228903039,
+      "match": 1208717399,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfsqrt.v",
+      "enum": "V_VFSQRT_V",
+      "mask": 4228903039,
+      "match": 1275072599,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfrsqrt7.v",
+      "enum": "V_VFRSQRT7_V",
+      "mask": 4228903039,
+      "match": 1275203671,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfrec7.v",
+      "enum": "V_VFREC7_V",
+      "mask": 4228903039,
+      "match": 1275236439,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfclass.v",
+      "enum": "V_VFCLASS_V",
+      "mask": 4228903039,
+      "match": 1275596887,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwadd.vv",
+      "enum": "V_VFWADD_VV",
+      "mask": 4227887231,
+      "match": 3221229655,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwredusum.vs",
+      "enum": "V_VFWREDUSUM_VS",
+      "mask": 4227887231,
+      "match": 3288338519,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwsub.vv",
+      "enum": "V_VFWSUB_VV",
+      "mask": 4227887231,
+      "match": 3355447383,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwredosum.vs",
+      "enum": "V_VFWREDOSUM_VS",
+      "mask": 4227887231,
+      "match": 3422556247,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwadd.wv",
+      "enum": "V_VFWADD_WV",
+      "mask": 4227887231,
+      "match": 3489665111,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwsub.wv",
+      "enum": "V_VFWSUB_WV",
+      "mask": 4227887231,
+      "match": 3623882839,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmul.vv",
+      "enum": "V_VFWMUL_VV",
+      "mask": 4227887231,
+      "match": 3758100567,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmacc.vv",
+      "enum": "V_VFWMACC_VV",
+      "mask": 4227887231,
+      "match": 4026536023,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwnmacc.vv",
+      "enum": "V_VFWNMACC_VV",
+      "mask": 4227887231,
+      "match": 4093644887,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwmsac.vv",
+      "enum": "V_VFWMSAC_VV",
+      "mask": 4227887231,
+      "match": 4160753751,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfwnmsac.vv",
+      "enum": "V_VFWNMSAC_VV",
+      "mask": 4227887231,
+      "match": 4227862615,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadd.vx",
+      "enum": "V_VADD_VX",
+      "mask": 4227887231,
+      "match": 16471,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsub.vx",
+      "enum": "V_VSUB_VX",
+      "mask": 4227887231,
+      "match": 134234199,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrsub.vx",
+      "enum": "V_VRSUB_VX",
+      "mask": 4227887231,
+      "match": 201343063,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vminu.vx",
+      "enum": "V_VMINU_VX",
+      "mask": 4227887231,
+      "match": 268451927,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmin.vx",
+      "enum": "V_VMIN_VX",
+      "mask": 4227887231,
+      "match": 335560791,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmaxu.vx",
+      "enum": "V_VMAXU_VX",
+      "mask": 4227887231,
+      "match": 402669655,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmax.vx",
+      "enum": "V_VMAX_VX",
+      "mask": 4227887231,
+      "match": 469778519,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vand.vx",
+      "enum": "V_VAND_VX",
+      "mask": 4227887231,
+      "match": 603996247,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vor.vx",
+      "enum": "V_VOR_VX",
+      "mask": 4227887231,
+      "match": 671105111,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vxor.vx",
+      "enum": "V_VXOR_VX",
+      "mask": 4227887231,
+      "match": 738213975,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrgather.vx",
+      "enum": "V_VRGATHER_VX",
+      "mask": 4227887231,
+      "match": 805322839,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslideup.vx",
+      "enum": "V_VSLIDEUP_VX",
+      "mask": 4227887231,
+      "match": 939540567,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslidedown.vx",
+      "enum": "V_VSLIDEDOWN_VX",
+      "mask": 4227887231,
+      "match": 1006649431,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadc.vxm",
+      "enum": "V_VADC_VXM",
+      "mask": 4261441663,
+      "match": 1073758295,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vxm",
+      "enum": "V_VMADC_VXM",
+      "mask": 4261441663,
+      "match": 1140867159,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vx",
+      "enum": "V_VMADC_VX",
+      "mask": 4261441663,
+      "match": 1174421591,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsbc.vxm",
+      "enum": "V_VSBC_VXM",
+      "mask": 4261441663,
+      "match": 1207976023,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsbc.vxm",
+      "enum": "V_VMSBC_VXM",
+      "mask": 4261441663,
+      "match": 1275084887,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsbc.vx",
+      "enum": "V_VMSBC_VX",
+      "mask": 4261441663,
+      "match": 1308639319,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmerge.vxm",
+      "enum": "V_VMERGE_VXM",
+      "mask": 4261441663,
+      "match": 1543520343,
+      "arguments": [
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv.v.x",
+      "enum": "V_VMV_V_X",
+      "mask": 4293947519,
+      "match": 1577074775,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmseq.vx",
+      "enum": "V_VMSEQ_VX",
+      "mask": 4227887231,
+      "match": 1610629207,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsne.vx",
+      "enum": "V_VMSNE_VX",
+      "mask": 4227887231,
+      "match": 1677738071,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsltu.vx",
+      "enum": "V_VMSLTU_VX",
+      "mask": 4227887231,
+      "match": 1744846935,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmslt.vx",
+      "enum": "V_VMSLT_VX",
+      "mask": 4227887231,
+      "match": 1811955799,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsleu.vx",
+      "enum": "V_VMSLEU_VX",
+      "mask": 4227887231,
+      "match": 1879064663,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsle.vx",
+      "enum": "V_VMSLE_VX",
+      "mask": 4227887231,
+      "match": 1946173527,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsgtu.vx",
+      "enum": "V_VMSGTU_VX",
+      "mask": 4227887231,
+      "match": 2013282391,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsgt.vx",
+      "enum": "V_VMSGT_VX",
+      "mask": 4227887231,
+      "match": 2080391255,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsaddu.vx",
+      "enum": "V_VSADDU_VX",
+      "mask": 4227887231,
+      "match": 2147500119,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsadd.vx",
+      "enum": "V_VSADD_VX",
+      "mask": 4227887231,
+      "match": 2214608983,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssubu.vx",
+      "enum": "V_VSSUBU_VX",
+      "mask": 4227887231,
+      "match": 2281717847,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssub.vx",
+      "enum": "V_VSSUB_VX",
+      "mask": 4227887231,
+      "match": 2348826711,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsll.vx",
+      "enum": "V_VSLL_VX",
+      "mask": 4227887231,
+      "match": 2483044439,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsmul.vx",
+      "enum": "V_VSMUL_VX",
+      "mask": 4227887231,
+      "match": 2617262167,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsrl.vx",
+      "enum": "V_VSRL_VX",
+      "mask": 4227887231,
+      "match": 2684371031,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsra.vx",
+      "enum": "V_VSRA_VX",
+      "mask": 4227887231,
+      "match": 2751479895,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssrl.vx",
+      "enum": "V_VSSRL_VX",
+      "mask": 4227887231,
+      "match": 2818588759,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssra.vx",
+      "enum": "V_VSSRA_VX",
+      "mask": 4227887231,
+      "match": 2885697623,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsrl.wx",
+      "enum": "V_VNSRL_WX",
+      "mask": 4227887231,
+      "match": 2952806487,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsra.wx",
+      "enum": "V_VNSRA_WX",
+      "mask": 4227887231,
+      "match": 3019915351,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclipu.wx",
+      "enum": "V_VNCLIPU_WX",
+      "mask": 4227887231,
+      "match": 3087024215,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclip.wx",
+      "enum": "V_VNCLIP_WX",
+      "mask": 4227887231,
+      "match": 3154133079,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadd.vv",
+      "enum": "V_VADD_VV",
+      "mask": 4227887231,
+      "match": 87,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsub.vv",
+      "enum": "V_VSUB_VV",
+      "mask": 4227887231,
+      "match": 134217815,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vminu.vv",
+      "enum": "V_VMINU_VV",
+      "mask": 4227887231,
+      "match": 268435543,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmin.vv",
+      "enum": "V_VMIN_VV",
+      "mask": 4227887231,
+      "match": 335544407,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmaxu.vv",
+      "enum": "V_VMAXU_VV",
+      "mask": 4227887231,
+      "match": 402653271,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmax.vv",
+      "enum": "V_VMAX_VV",
+      "mask": 4227887231,
+      "match": 469762135,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vand.vv",
+      "enum": "V_VAND_VV",
+      "mask": 4227887231,
+      "match": 603979863,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vor.vv",
+      "enum": "V_VOR_VV",
+      "mask": 4227887231,
+      "match": 671088727,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vxor.vv",
+      "enum": "V_VXOR_VV",
+      "mask": 4227887231,
+      "match": 738197591,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrgather.vv",
+      "enum": "V_VRGATHER_VV",
+      "mask": 4227887231,
+      "match": 805306455,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrgatherei16.vv",
+      "enum": "V_VRGATHEREI16_VV",
+      "mask": 4227887231,
+      "match": 939524183,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadc.vvm",
+      "enum": "V_VADC_VVM",
+      "mask": 4261441663,
+      "match": 1073741911,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vvm",
+      "enum": "V_VMADC_VVM",
+      "mask": 4261441663,
+      "match": 1140850775,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vv",
+      "enum": "V_VMADC_VV",
+      "mask": 4261441663,
+      "match": 1174405207,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsbc.vvm",
+      "enum": "V_VSBC_VVM",
+      "mask": 4261441663,
+      "match": 1207959639,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsbc.vvm",
+      "enum": "V_VMSBC_VVM",
+      "mask": 4261441663,
+      "match": 1275068503,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsbc.vv",
+      "enum": "V_VMSBC_VV",
+      "mask": 4261441663,
+      "match": 1308622935,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmerge.vvm",
+      "enum": "V_VMERGE_VVM",
+      "mask": 4261441663,
+      "match": 1543503959,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv.v.v",
+      "enum": "V_VMV_V_V",
+      "mask": 4293947519,
+      "match": 1577058391,
+      "arguments": [
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmseq.vv",
+      "enum": "V_VMSEQ_VV",
+      "mask": 4227887231,
+      "match": 1610612823,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsne.vv",
+      "enum": "V_VMSNE_VV",
+      "mask": 4227887231,
+      "match": 1677721687,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsltu.vv",
+      "enum": "V_VMSLTU_VV",
+      "mask": 4227887231,
+      "match": 1744830551,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmslt.vv",
+      "enum": "V_VMSLT_VV",
+      "mask": 4227887231,
+      "match": 1811939415,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsleu.vv",
+      "enum": "V_VMSLEU_VV",
+      "mask": 4227887231,
+      "match": 1879048279,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsle.vv",
+      "enum": "V_VMSLE_VV",
+      "mask": 4227887231,
+      "match": 1946157143,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsaddu.vv",
+      "enum": "V_VSADDU_VV",
+      "mask": 4227887231,
+      "match": 2147483735,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsadd.vv",
+      "enum": "V_VSADD_VV",
+      "mask": 4227887231,
+      "match": 2214592599,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssubu.vv",
+      "enum": "V_VSSUBU_VV",
+      "mask": 4227887231,
+      "match": 2281701463,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssub.vv",
+      "enum": "V_VSSUB_VV",
+      "mask": 4227887231,
+      "match": 2348810327,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsll.vv",
+      "enum": "V_VSLL_VV",
+      "mask": 4227887231,
+      "match": 2483028055,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsmul.vv",
+      "enum": "V_VSMUL_VV",
+      "mask": 4227887231,
+      "match": 2617245783,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsrl.vv",
+      "enum": "V_VSRL_VV",
+      "mask": 4227887231,
+      "match": 2684354647,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsra.vv",
+      "enum": "V_VSRA_VV",
+      "mask": 4227887231,
+      "match": 2751463511,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssrl.vv",
+      "enum": "V_VSSRL_VV",
+      "mask": 4227887231,
+      "match": 2818572375,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssra.vv",
+      "enum": "V_VSSRA_VV",
+      "mask": 4227887231,
+      "match": 2885681239,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsrl.wv",
+      "enum": "V_VNSRL_WV",
+      "mask": 4227887231,
+      "match": 2952790103,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsra.wv",
+      "enum": "V_VNSRA_WV",
+      "mask": 4227887231,
+      "match": 3019898967,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclipu.wv",
+      "enum": "V_VNCLIPU_WV",
+      "mask": 4227887231,
+      "match": 3087007831,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclip.wv",
+      "enum": "V_VNCLIP_WV",
+      "mask": 4227887231,
+      "match": 3154116695,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwredsumu.vs",
+      "enum": "V_VWREDSUMU_VS",
+      "mask": 4227887231,
+      "match": 3221225559,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwredsum.vs",
+      "enum": "V_VWREDSUM_VS",
+      "mask": 4227887231,
+      "match": 3288334423,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadd.vi",
+      "enum": "V_VADD_VI",
+      "mask": 4227887231,
+      "match": 12375,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrsub.vi",
+      "enum": "V_VRSUB_VI",
+      "mask": 4227887231,
+      "match": 201338967,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vand.vi",
+      "enum": "V_VAND_VI",
+      "mask": 4227887231,
+      "match": 603992151,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vor.vi",
+      "enum": "V_VOR_VI",
+      "mask": 4227887231,
+      "match": 671101015,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vxor.vi",
+      "enum": "V_VXOR_VI",
+      "mask": 4227887231,
+      "match": 738209879,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrgather.vi",
+      "enum": "V_VRGATHER_VI",
+      "mask": 4227887231,
+      "match": 805318743,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslideup.vi",
+      "enum": "V_VSLIDEUP_VI",
+      "mask": 4227887231,
+      "match": 939536471,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslidedown.vi",
+      "enum": "V_VSLIDEDOWN_VI",
+      "mask": 4227887231,
+      "match": 1006645335,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vadc.vim",
+      "enum": "V_VADC_VIM",
+      "mask": 4261441663,
+      "match": 1073754199,
+      "arguments": [
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vim",
+      "enum": "V_VMADC_VIM",
+      "mask": 4261441663,
+      "match": 1140863063,
+      "arguments": [
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadc.vi",
+      "enum": "V_VMADC_VI",
+      "mask": 4261441663,
+      "match": 1174417495,
+      "arguments": [
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmerge.vim",
+      "enum": "V_VMERGE_VIM",
+      "mask": 4261441663,
+      "match": 1543516247,
+      "arguments": [
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv.v.i",
+      "enum": "V_VMV_V_I",
+      "mask": 4293947519,
+      "match": 1577070679,
+      "arguments": [
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmseq.vi",
+      "enum": "V_VMSEQ_VI",
+      "mask": 4227887231,
+      "match": 1610625111,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsne.vi",
+      "enum": "V_VMSNE_VI",
+      "mask": 4227887231,
+      "match": 1677733975,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsleu.vi",
+      "enum": "V_VMSLEU_VI",
+      "mask": 4227887231,
+      "match": 1879060567,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsle.vi",
+      "enum": "V_VMSLE_VI",
+      "mask": 4227887231,
+      "match": 1946169431,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsgtu.vi",
+      "enum": "V_VMSGTU_VI",
+      "mask": 4227887231,
+      "match": 2013278295,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsgt.vi",
+      "enum": "V_VMSGT_VI",
+      "mask": 4227887231,
+      "match": 2080387159,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsaddu.vi",
+      "enum": "V_VSADDU_VI",
+      "mask": 4227887231,
+      "match": 2147496023,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsadd.vi",
+      "enum": "V_VSADD_VI",
+      "mask": 4227887231,
+      "match": 2214604887,
+      "arguments": [
+        "vm",
+        "vs2",
+        "simm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsll.vi",
+      "enum": "V_VSLL_VI",
+      "mask": 4227887231,
+      "match": 2483040343,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv1r.v",
+      "enum": "V_VMV1R_V",
+      "mask": 4262457471,
+      "match": 2650812503,
+      "arguments": [
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv2r.v",
+      "enum": "V_VMV2R_V",
+      "mask": 4262457471,
+      "match": 2650845271,
+      "arguments": [
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv4r.v",
+      "enum": "V_VMV4R_V",
+      "mask": 4262457471,
+      "match": 2650910807,
+      "arguments": [
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv8r.v",
+      "enum": "V_VMV8R_V",
+      "mask": 4262457471,
+      "match": 2651041879,
+      "arguments": [
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsrl.vi",
+      "enum": "V_VSRL_VI",
+      "mask": 4227887231,
+      "match": 2684366935,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsra.vi",
+      "enum": "V_VSRA_VI",
+      "mask": 4227887231,
+      "match": 2751475799,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssrl.vi",
+      "enum": "V_VSSRL_VI",
+      "mask": 4227887231,
+      "match": 2818584663,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vssra.vi",
+      "enum": "V_VSSRA_VI",
+      "mask": 4227887231,
+      "match": 2885693527,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsrl.wi",
+      "enum": "V_VNSRL_WI",
+      "mask": 4227887231,
+      "match": 2952802391,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnsra.wi",
+      "enum": "V_VNSRA_WI",
+      "mask": 4227887231,
+      "match": 3019911255,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclipu.wi",
+      "enum": "V_VNCLIPU_WI",
+      "mask": 4227887231,
+      "match": 3087020119,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnclip.wi",
+      "enum": "V_VNCLIP_WI",
+      "mask": 4227887231,
+      "match": 3154128983,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredsum.vs",
+      "enum": "V_VREDSUM_VS",
+      "mask": 4227887231,
+      "match": 8279,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredand.vs",
+      "enum": "V_VREDAND_VS",
+      "mask": 4227887231,
+      "match": 67117143,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredor.vs",
+      "enum": "V_VREDOR_VS",
+      "mask": 4227887231,
+      "match": 134226007,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredxor.vs",
+      "enum": "V_VREDXOR_VS",
+      "mask": 4227887231,
+      "match": 201334871,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredminu.vs",
+      "enum": "V_VREDMINU_VS",
+      "mask": 4227887231,
+      "match": 268443735,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredmin.vs",
+      "enum": "V_VREDMIN_VS",
+      "mask": 4227887231,
+      "match": 335552599,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredmaxu.vs",
+      "enum": "V_VREDMAXU_VS",
+      "mask": 4227887231,
+      "match": 402661463,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vredmax.vs",
+      "enum": "V_VREDMAX_VS",
+      "mask": 4227887231,
+      "match": 469770327,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vaaddu.vv",
+      "enum": "V_VAADDU_VV",
+      "mask": 4227887231,
+      "match": 536879191,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vaadd.vv",
+      "enum": "V_VAADD_VV",
+      "mask": 4227887231,
+      "match": 603988055,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vasubu.vv",
+      "enum": "V_VASUBU_VV",
+      "mask": 4227887231,
+      "match": 671096919,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vasub.vv",
+      "enum": "V_VASUB_VV",
+      "mask": 4227887231,
+      "match": 738205783,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv.x.s",
+      "enum": "V_VMV_X_S",
+      "mask": 4262457471,
+      "match": 1107304535,
+      "arguments": [
+        "vs2",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vzext.vf8",
+      "enum": "V_VZEXT_VF8",
+      "mask": 4228903039,
+      "match": 1208033367,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsext.vf8",
+      "enum": "V_VSEXT_VF8",
+      "mask": 4228903039,
+      "match": 1208066135,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vzext.vf4",
+      "enum": "V_VZEXT_VF4",
+      "mask": 4228903039,
+      "match": 1208098903,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsext.vf4",
+      "enum": "V_VSEXT_VF4",
+      "mask": 4228903039,
+      "match": 1208131671,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vzext.vf2",
+      "enum": "V_VZEXT_VF2",
+      "mask": 4228903039,
+      "match": 1208164439,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vsext.vf2",
+      "enum": "V_VSEXT_VF2",
+      "mask": 4228903039,
+      "match": 1208197207,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vcompress.vm",
+      "enum": "V_VCOMPRESS_VM",
+      "mask": 4261441663,
+      "match": 1577066583,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmandn.mm",
+      "enum": "V_VMANDN_MM",
+      "mask": 4261441663,
+      "match": 1644175447,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmand.mm",
+      "enum": "V_VMAND_MM",
+      "mask": 4261441663,
+      "match": 1711284311,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmor.mm",
+      "enum": "V_VMOR_MM",
+      "mask": 4261441663,
+      "match": 1778393175,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmxor.mm",
+      "enum": "V_VMXOR_MM",
+      "mask": 4261441663,
+      "match": 1845502039,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmorn.mm",
+      "enum": "V_VMORN_MM",
+      "mask": 4261441663,
+      "match": 1912610903,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmnand.mm",
+      "enum": "V_VMNAND_MM",
+      "mask": 4261441663,
+      "match": 1979719767,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmnor.mm",
+      "enum": "V_VMNOR_MM",
+      "mask": 4261441663,
+      "match": 2046828631,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmxnor.mm",
+      "enum": "V_VMXNOR_MM",
+      "mask": 4261441663,
+      "match": 2113937495,
+      "arguments": [
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsbf.m",
+      "enum": "V_VMSBF_M",
+      "mask": 4228903039,
+      "match": 1342218327,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsof.m",
+      "enum": "V_VMSOF_M",
+      "mask": 4228903039,
+      "match": 1342251095,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmsif.m",
+      "enum": "V_VMSIF_M",
+      "mask": 4228903039,
+      "match": 1342283863,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "viota.m",
+      "enum": "V_VIOTA_M",
+      "mask": 4228903039,
+      "match": 1342709847,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vid.v",
+      "enum": "V_VID_V",
+      "mask": 4261408895,
+      "match": 1342742615,
+      "arguments": [
+        "vm",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vcpop.m",
+      "enum": "V_VCPOP_M",
+      "mask": 4228903039,
+      "match": 1074274391,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vfirst.m",
+      "enum": "V_VFIRST_M",
+      "mask": 4228903039,
+      "match": 1074307159,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vdivu.vv",
+      "enum": "V_VDIVU_VV",
+      "mask": 4227887231,
+      "match": 2147491927,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vdiv.vv",
+      "enum": "V_VDIV_VV",
+      "mask": 4227887231,
+      "match": 2214600791,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vremu.vv",
+      "enum": "V_VREMU_VV",
+      "mask": 4227887231,
+      "match": 2281709655,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrem.vv",
+      "enum": "V_VREM_VV",
+      "mask": 4227887231,
+      "match": 2348818519,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulhu.vv",
+      "enum": "V_VMULHU_VV",
+      "mask": 4227887231,
+      "match": 2415927383,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmul.vv",
+      "enum": "V_VMUL_VV",
+      "mask": 4227887231,
+      "match": 2483036247,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulhsu.vv",
+      "enum": "V_VMULHSU_VV",
+      "mask": 4227887231,
+      "match": 2550145111,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulh.vv",
+      "enum": "V_VMULH_VV",
+      "mask": 4227887231,
+      "match": 2617253975,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadd.vv",
+      "enum": "V_VMADD_VV",
+      "mask": 4227887231,
+      "match": 2751471703,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnmsub.vv",
+      "enum": "V_VNMSUB_VV",
+      "mask": 4227887231,
+      "match": 2885689431,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmacc.vv",
+      "enum": "V_VMACC_VV",
+      "mask": 4227887231,
+      "match": 3019907159,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnmsac.vv",
+      "enum": "V_VNMSAC_VV",
+      "mask": 4227887231,
+      "match": 3154124887,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwaddu.vv",
+      "enum": "V_VWADDU_VV",
+      "mask": 4227887231,
+      "match": 3221233751,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwadd.vv",
+      "enum": "V_VWADD_VV",
+      "mask": 4227887231,
+      "match": 3288342615,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsubu.vv",
+      "enum": "V_VWSUBU_VV",
+      "mask": 4227887231,
+      "match": 3355451479,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsub.vv",
+      "enum": "V_VWSUB_VV",
+      "mask": 4227887231,
+      "match": 3422560343,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwaddu.wv",
+      "enum": "V_VWADDU_WV",
+      "mask": 4227887231,
+      "match": 3489669207,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwadd.wv",
+      "enum": "V_VWADD_WV",
+      "mask": 4227887231,
+      "match": 3556778071,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsubu.wv",
+      "enum": "V_VWSUBU_WV",
+      "mask": 4227887231,
+      "match": 3623886935,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsub.wv",
+      "enum": "V_VWSUB_WV",
+      "mask": 4227887231,
+      "match": 3690995799,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmulu.vv",
+      "enum": "V_VWMULU_VV",
+      "mask": 4227887231,
+      "match": 3758104663,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmulsu.vv",
+      "enum": "V_VWMULSU_VV",
+      "mask": 4227887231,
+      "match": 3892322391,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmul.vv",
+      "enum": "V_VWMUL_VV",
+      "mask": 4227887231,
+      "match": 3959431255,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmaccu.vv",
+      "enum": "V_VWMACCU_VV",
+      "mask": 4227887231,
+      "match": 4026540119,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmacc.vv",
+      "enum": "V_VWMACC_VV",
+      "mask": 4227887231,
+      "match": 4093648983,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmaccsu.vv",
+      "enum": "V_VWMACCSU_VV",
+      "mask": 4227887231,
+      "match": 4227866711,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vaaddu.vx",
+      "enum": "V_VAADDU_VX",
+      "mask": 4227887231,
+      "match": 536895575,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vaadd.vx",
+      "enum": "V_VAADD_VX",
+      "mask": 4227887231,
+      "match": 604004439,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vasubu.vx",
+      "enum": "V_VASUBU_VX",
+      "mask": 4227887231,
+      "match": 671113303,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vasub.vx",
+      "enum": "V_VASUB_VX",
+      "mask": 4227887231,
+      "match": 738222167,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmv.s.x",
+      "enum": "V_VMV_S_X",
+      "mask": 4293947519,
+      "match": 1107320919,
+      "arguments": [
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslide1up.vx",
+      "enum": "V_VSLIDE1UP_VX",
+      "mask": 4227887231,
+      "match": 939548759,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vslide1down.vx",
+      "enum": "V_VSLIDE1DOWN_VX",
+      "mask": 4227887231,
+      "match": 1006657623,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vdivu.vx",
+      "enum": "V_VDIVU_VX",
+      "mask": 4227887231,
+      "match": 2147508311,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vdiv.vx",
+      "enum": "V_VDIV_VX",
+      "mask": 4227887231,
+      "match": 2214617175,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vremu.vx",
+      "enum": "V_VREMU_VX",
+      "mask": 4227887231,
+      "match": 2281726039,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vrem.vx",
+      "enum": "V_VREM_VX",
+      "mask": 4227887231,
+      "match": 2348834903,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulhu.vx",
+      "enum": "V_VMULHU_VX",
+      "mask": 4227887231,
+      "match": 2415943767,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmul.vx",
+      "enum": "V_VMUL_VX",
+      "mask": 4227887231,
+      "match": 2483052631,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulhsu.vx",
+      "enum": "V_VMULHSU_VX",
+      "mask": 4227887231,
+      "match": 2550161495,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmulh.vx",
+      "enum": "V_VMULH_VX",
+      "mask": 4227887231,
+      "match": 2617270359,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmadd.vx",
+      "enum": "V_VMADD_VX",
+      "mask": 4227887231,
+      "match": 2751488087,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnmsub.vx",
+      "enum": "V_VNMSUB_VX",
+      "mask": 4227887231,
+      "match": 2885705815,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vmacc.vx",
+      "enum": "V_VMACC_VX",
+      "mask": 4227887231,
+      "match": 3019923543,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vnmsac.vx",
+      "enum": "V_VNMSAC_VX",
+      "mask": 4227887231,
+      "match": 3154141271,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwaddu.vx",
+      "enum": "V_VWADDU_VX",
+      "mask": 4227887231,
+      "match": 3221250135,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwadd.vx",
+      "enum": "V_VWADD_VX",
+      "mask": 4227887231,
+      "match": 3288358999,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsubu.vx",
+      "enum": "V_VWSUBU_VX",
+      "mask": 4227887231,
+      "match": 3355467863,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsub.vx",
+      "enum": "V_VWSUB_VX",
+      "mask": 4227887231,
+      "match": 3422576727,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwaddu.wx",
+      "enum": "V_VWADDU_WX",
+      "mask": 4227887231,
+      "match": 3489685591,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwadd.wx",
+      "enum": "V_VWADD_WX",
+      "mask": 4227887231,
+      "match": 3556794455,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsubu.wx",
+      "enum": "V_VWSUBU_WX",
+      "mask": 4227887231,
+      "match": 3623903319,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwsub.wx",
+      "enum": "V_VWSUB_WX",
+      "mask": 4227887231,
+      "match": 3691012183,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmulu.vx",
+      "enum": "V_VWMULU_VX",
+      "mask": 4227887231,
+      "match": 3758121047,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmulsu.vx",
+      "enum": "V_VWMULSU_VX",
+      "mask": 4227887231,
+      "match": 3892338775,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmul.vx",
+      "enum": "V_VWMUL_VX",
+      "mask": 4227887231,
+      "match": 3959447639,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmaccu.vx",
+      "enum": "V_VWMACCU_VX",
+      "mask": 4227887231,
+      "match": 4026556503,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmacc.vx",
+      "enum": "V_VWMACC_VX",
+      "mask": 4227887231,
+      "match": 4093665367,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmaccus.vx",
+      "enum": "V_VWMACCUS_VX",
+      "mask": 4227887231,
+      "match": 4160774231,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vwmaccsu.vx",
+      "enum": "V_VWMACCSU_VX",
+      "mask": 4227887231,
+      "match": 4227883095,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "V"
+    },
+    {
+      "name": "vandn.vv",
+      "enum": "V_VANDN_VV",
+      "mask": 4227887231,
+      "match": 67108951,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vandn.vx",
+      "enum": "V_VANDN_VX",
+      "mask": 4227887231,
+      "match": 67125335,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vbrev.v",
+      "enum": "V_VBREV_V",
+      "mask": 4228903039,
+      "match": 1208295511,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vbrev8.v",
+      "enum": "V_VBREV8_V",
+      "mask": 4228903039,
+      "match": 1208229975,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vrev8.v",
+      "enum": "V_VREV8_V",
+      "mask": 4228903039,
+      "match": 1208262743,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vclz.v",
+      "enum": "V_VCLZ_V",
+      "mask": 4228903039,
+      "match": 1208361047,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vctz.v",
+      "enum": "V_VCTZ_V",
+      "mask": 4228903039,
+      "match": 1208393815,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vcpop.v",
+      "enum": "V_VCPOP_V",
+      "mask": 4228903039,
+      "match": 1208426583,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vrol.vv",
+      "enum": "V_VROL_VV",
+      "mask": 4227887231,
+      "match": 1409286231,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vrol.vx",
+      "enum": "V_VROL_VX",
+      "mask": 4227887231,
+      "match": 1409302615,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vror.vv",
+      "enum": "V_VROR_VV",
+      "mask": 4227887231,
+      "match": 1342177367,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vror.vx",
+      "enum": "V_VROR_VX",
+      "mask": 4227887231,
+      "match": 1342193751,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vror.vi",
+      "enum": "V_VROR_VI",
+      "mask": 4160778367,
+      "match": 1342189655,
+      "arguments": [
+        "zimm6hi",
+        "vm",
+        "vs2",
+        "zimm6lo",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vwsll.vv",
+      "enum": "V_VWSLL_VV",
+      "mask": 4227887231,
+      "match": 3556769879,
+      "arguments": [
+        "vm",
+        "vs2",
+        "vs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vwsll.vx",
+      "enum": "V_VWSLL_VX",
+      "mask": 4227887231,
+      "match": 3556786263,
+      "arguments": [
+        "vm",
+        "vs2",
+        "rs1",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    },
+    {
+      "name": "vwsll.vi",
+      "enum": "V_VWSLL_VI",
+      "mask": 4227887231,
+      "match": 3556782167,
+      "arguments": [
+        "vm",
+        "vs2",
+        "zimm5",
+        "vd"
+      ],
+      "extension": "ZVBB"
+    }
+  ]
+}

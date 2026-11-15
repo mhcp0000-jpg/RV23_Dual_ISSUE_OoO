@@ -1,0 +1,637 @@
+module rv_csr_file_tb;
+  import rv_ooo_pkg::*;
+
+  logic clk, rst_n;
+  logic csr_valid, csr_execute, csr_commit, csr_rs1_zero;
+  logic [11:0] csr_addr;
+  csr_cmd_e csr_cmd;
+  logic [31:0] csr_operand, csr_rdata;
+  logic csr_ready, csr_illegal, csr_write_effect;
+  logic trap_valid, trap_ready, trap_is_interrupt;
+  logic [31:0] trap_pc, trap_tval, trap_next_pc, trap_vector;
+  logic [5:0] trap_cause;
+  logic mret_valid, mret_commit, mret_ready, mret_illegal;
+  logic [31:0] mret_pc;
+  logic wfi_valid, wfi_illegal, wfi_wake;
+  logic irq_software, irq_timer, irq_external;
+  logic [63:0] mtime;
+  logic interrupt_pending;
+  logic [5:0] interrupt_cause;
+  logic [1:0] retire_count;
+  logic fflags_accrue_valid;
+  logic [4:0] fflags_accrue;
+  privilege_e privilege;
+  logic [31:0] mstatus, mtvec, mepc;
+  logic [2:0] frm;
+  logic [4:0] fflags;
+  logic [7:0][7:0] pmpcfg;
+  logic [7:0][29:0] pmpaddr;
+  logic flush_all;
+
+  always #5 clk = ~clk;
+
+  rv_csr_file #(
+    .XLEN(32), .HAS_SMODE(1'b0), .PMP_ENTRIES(8),
+    .RESET_MTVEC(32'h8000_0000), .HART_ID(32'd3)
+  ) u_dut (
+    .clk_i(clk), .rst_ni(rst_n),
+    .csr_valid_i(csr_valid), .csr_execute_i(csr_execute),
+    .csr_commit_i(csr_commit),
+    .csr_addr_i(csr_addr), .csr_cmd_i(csr_cmd),
+    .csr_operand_i(csr_operand), .csr_rs1_is_zero_i(csr_rs1_zero),
+    .csr_ready_o(csr_ready), .csr_rdata_o(csr_rdata),
+    .csr_illegal_o(csr_illegal), .csr_write_effect_o(csr_write_effect),
+    .trap_valid_i(trap_valid), .trap_ready_o(trap_ready),
+    .trap_pc_i(trap_pc), .trap_cause_i(trap_cause),
+    .trap_tval_i(trap_tval), .trap_is_interrupt_i(trap_is_interrupt),
+    .trap_next_pc_i(trap_next_pc), .trap_vector_o(trap_vector),
+    .mret_valid_i(mret_valid), .mret_commit_i(mret_commit),
+    .mret_ready_o(mret_ready), .mret_pc_o(mret_pc),
+    .mret_illegal_o(mret_illegal), .wfi_valid_i(wfi_valid),
+    .wfi_illegal_o(wfi_illegal), .wfi_wake_o(wfi_wake),
+    .irq_software_i(irq_software), .irq_timer_i(irq_timer),
+    .irq_external_i(irq_external), .mtime_i(mtime),
+    .interrupt_pending_o(interrupt_pending),
+    .interrupt_cause_o(interrupt_cause), .retire_count_i(retire_count),
+    .fflags_accrue_valid_i(fflags_accrue_valid),
+    .fflags_accrue_i(fflags_accrue), .flush_all_i(flush_all),
+    .privilege_o(privilege),
+    .mstatus_o(mstatus), .mtvec_o(mtvec), .mepc_o(mepc),
+    .frm_o(frm), .fflags_o(fflags), .pmpcfg_o(pmpcfg),
+    .pmpaddr_o(pmpaddr)
+  );
+
+  task automatic idle_inputs;
+    csr_valid = 1'b0;
+    csr_execute = 1'b0;
+    csr_commit = 1'b0;
+    csr_addr = '0;
+    csr_cmd = CSR_CMD_NONE;
+    csr_operand = '0;
+    csr_rs1_zero = 1'b0;
+    trap_valid = 1'b0;
+    trap_pc = '0;
+    trap_cause = '0;
+    trap_tval = '0;
+    trap_is_interrupt = 1'b0;
+    trap_next_pc = '0;
+    mret_valid = 1'b0;
+    mret_commit = 1'b0;
+    wfi_valid = 1'b0;
+    irq_software = 1'b0;
+    irq_timer = 1'b0;
+    irq_external = 1'b0;
+    mtime = 64'h0123_4567_89ab_cdef;
+    retire_count = '0;
+    fflags_accrue_valid = 1'b0;
+    fflags_accrue = '0;
+    flush_all = 1'b0;
+  endtask
+
+  task automatic write_csr(input logic [11:0] address,
+                           input logic [31:0] value);
+    @(negedge clk);
+    csr_valid = 1'b1;
+    csr_execute = 1'b1;
+    csr_commit = 1'b0;
+    csr_addr = address;
+    csr_cmd = CSR_CMD_WRITE;
+    csr_operand = value;
+    csr_rs1_zero = 1'b0;
+    #1;
+    if (csr_illegal || !csr_write_effect)
+      $fatal(1, "legal CSR write rejected: %h", address);
+    @(posedge clk);
+    @(negedge clk);
+    csr_execute = 1'b0;
+    csr_commit = 1'b1;
+    @(posedge clk);
+    @(negedge clk);
+    csr_valid = 1'b0;
+    csr_commit = 1'b0;
+    csr_cmd = CSR_CMD_NONE;
+  endtask
+
+  task automatic read_csr(input logic [11:0] address,
+                          output logic [31:0] value,
+                          output logic illegal);
+    csr_valid = 1'b1;
+    csr_execute = 1'b0;
+    csr_commit = 1'b0;
+    csr_addr = address;
+    csr_cmd = CSR_CMD_SET;
+    csr_operand = '0;
+    csr_rs1_zero = 1'b1;
+    #1;
+    value = csr_rdata;
+    illegal = csr_illegal;
+    csr_valid = 1'b0;
+    csr_execute = 1'b0;
+    csr_cmd = CSR_CMD_NONE;
+  endtask
+
+  // Capture a transaction without committing it so edge-priority corners can
+  // overlap its commit with FP flag accrual and trap/MRET delivery.
+  task automatic stage_csr_write(input logic [11:0] address,
+                                 input logic [31:0] operand);
+    @(negedge clk);
+    csr_valid = 1;
+    csr_execute = 1;
+    csr_commit = 0;
+    csr_addr = address;
+    csr_cmd = CSR_CMD_WRITE;
+    csr_operand = operand;
+    csr_rs1_zero = 0;
+    #1;
+    if (csr_illegal || !csr_write_effect)
+      $fatal(1, "Priority test could not stage CSR %h", address);
+    @(posedge clk);
+    @(negedge clk);
+    csr_valid = 0;
+    csr_execute = 0;
+    csr_cmd = CSR_CMD_NONE;
+  endtask
+
+  task automatic expect_csr(input logic [11:0] address,
+                            input logic [31:0] expected);
+    logic [31:0] actual;
+    logic illegal;
+    read_csr(address, actual, illegal);
+    if (illegal || actual !== expected)
+      $fatal(1, "CSR %h got=%h expected=%h illegal=%b",
+             address, actual, expected, illegal);
+  endtask
+
+  task automatic check_rmw(input csr_cmd_e command,
+                           input logic zero_source,
+                           input logic [31:0] operand,
+                           input logic [31:0] before_value,
+                           input logic [31:0] after_value);
+    @(negedge clk);
+    csr_valid = 1;
+    csr_execute = 1;
+    csr_addr = 12'h340;
+    csr_cmd = command;
+    csr_rs1_zero = zero_source;
+    csr_operand = operand;
+    #1;
+    if (csr_illegal || csr_rdata !== before_value ||
+        csr_write_effect !== ((command == CSR_CMD_WRITE) || !zero_source))
+      $fatal(1, "CSR RMW old-value/write-intent mismatch");
+    @(posedge clk);
+    @(negedge clk);
+    csr_execute = 0;
+    // Live request inputs must not replace the captured transaction.
+    csr_addr = 12'h343;
+    csr_operand = 32'hbad0_bad0;
+    csr_commit = 1;
+    @(posedge clk);
+    @(negedge clk);
+    csr_valid = 0;
+    csr_commit = 0;
+    expect_csr(12'h340, after_value);
+  endtask
+
+  initial begin : p_test
+    logic [31:0] value;
+    logic illegal;
+    logic [63:0] counter_vector;
+    logic [63:0] counter_expected;
+    // Independent arithmetic oracle: all increment values and every byte
+    // carry boundary, including modulo-2^64 wrap. No clock/state mutation.
+    for (int byte_boundary = 1; byte_boundary <= 8; byte_boundary++) begin
+      counter_vector = (64'hffff_ffff_ffff_ffff >> (64-byte_boundary*8));
+      for (int inc = 0; inc < 4; inc++) begin
+        counter_expected = counter_vector + 64'(inc);
+        if (u_dut.increment_counter(counter_vector, 2'(inc)) !== counter_expected)
+          $fatal(1, "CSR counter byte carry boundary %0d increment %0d", byte_boundary, inc);
+      end
+    end
+    for (int sample = 0; sample < 100000; sample++) begin
+      counter_vector = {$urandom, $urandom};
+      for (int inc = 0; inc < 4; inc++) begin
+        counter_expected = counter_vector + 64'(inc);
+        if (u_dut.increment_counter(counter_vector, 2'(inc)) !== counter_expected)
+          $fatal(1, "CSR counter arithmetic mismatch vector=%h increment=%0d", counter_vector, inc);
+      end
+    end
+    $display("CSR counter 400032 arithmetic vectors PASS");
+    clk = 1'b0;
+    rst_n = 1'b0;
+    idle_inputs();
+    repeat (3) @(posedge clk);
+    @(negedge clk);
+    rst_n = 1'b1;
+    #1;
+    if ((privilege != PRIV_M) || (mtvec != 32'h8000_0000))
+      $fatal(1, "CSR reset privilege/mtvec is wrong");
+
+    // FS resets to Off. Even with an implemented F extension, direct FCSR
+    // access is illegal until privileged software enables floating-point
+    // architectural state in mstatus.
+    read_csr(12'h003, value, illegal);
+    if (!illegal)
+      $fatal(1, "FCSR access was accepted while mstatus.FS was Off");
+
+    // Evaluation without commit must return the old value but not mutate it.
+    csr_valid = 1'b1;
+    csr_execute = 1'b0;
+    csr_addr = 12'h340;
+    csr_cmd = CSR_CMD_WRITE;
+    csr_operand = 32'hdead_beef;
+    #1;
+    if ((csr_rdata != 0) || !csr_write_effect)
+      $fatal(1, "CSR evaluate result is wrong");
+    @(posedge clk);
+    @(negedge clk);
+    csr_valid = 1'b0;
+    csr_execute = 1'b0;
+    read_csr(12'h340, value, illegal);
+    if (illegal || (value != 0))
+      $fatal(1, "CSR changed without commit");
+    write_csr(12'h340, 32'hdead_beef);
+    read_csr(12'h340, value, illegal);
+    if (illegal || (value != 32'hdead_beef))
+      $fatal(1, "committed mscratch write was lost");
+
+    // Enable every machine interrupt and global delivery.  The architectural
+    // priority is MEIP > MSIP > MTIP, while any locally enabled source wakes
+    // WFI even before it is selected for trap delivery.
+    write_csr(12'h304, 32'h0000_0888);
+    write_csr(12'h300, 32'h0000_0008);
+    irq_timer = 1'b1;
+    irq_software = 1'b1;
+    irq_external = 1'b1;
+    #1;
+    if (!interrupt_pending || !wfi_wake || (interrupt_cause != 6'd11))
+      $fatal(1, "MEIP priority/eligibility is wrong");
+    irq_external = 1'b0;
+    #1;
+    if (!interrupt_pending || (interrupt_cause != 6'd3))
+      $fatal(1, "MSIP priority over MTIP is wrong");
+    irq_software = 1'b0;
+    #1;
+    if (!interrupt_pending || (interrupt_cause != 6'd7))
+      $fatal(1, "MTIP fallback eligibility is wrong");
+    irq_timer = 1'b0;
+    irq_software = 1'b1;
+
+    // Vectored mtvec selects BASE + 4*cause for an interrupt.
+    write_csr(12'h305, 32'h8000_0001);
+    trap_valid = 1'b1;
+    trap_is_interrupt = 1'b1;
+    trap_cause = 6'd3;
+    trap_next_pc = 32'h1000_0044;
+    #1;
+    if (trap_vector != 32'h8000_000c)
+      $fatal(1, "vectored trap target is wrong");
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 1'b0;
+    irq_software = 1'b0;
+    if ((mepc != 32'h1000_0044) || mstatus[3])
+      $fatal(1, "trap entry state is wrong");
+    read_csr(12'h342, value, illegal);
+    if (illegal || (value != 32'h8000_0003))
+      $fatal(1, "interrupt mcause is wrong: %h", value);
+
+    // Set MPIE and MPP=U, then MRET into U mode.
+    write_csr(12'h300, 32'h0000_2080); // FS=Initial, MPIE=1, MPP=U
+    mret_valid = 1'b1;
+    mret_commit = 1'b1;
+    #1;
+    if (mret_illegal || (mret_pc != 32'h1000_0044))
+      $fatal(1, "legal MRET evaluation failed");
+    @(posedge clk);
+    @(negedge clk);
+    mret_valid = 1'b0;
+    mret_commit = 1'b0;
+    if (privilege != PRIV_U)
+      $fatal(1, "MRET did not enter U mode");
+
+    csr_valid = 1'b1;
+    csr_addr = 12'h300;
+    csr_cmd = CSR_CMD_SET;
+    csr_rs1_zero = 1'b1;
+    #1;
+    if (!csr_illegal)
+      $fatal(1, "U-mode machine CSR access was accepted");
+    csr_valid = 1'b0;
+    read_csr(12'hC00, value, illegal);
+    if (!illegal)
+      $fatal(1, "U-mode cycle read ignored mcounteren");
+
+    // A U-mode synchronous trap returns to M and captures fault PC/tval.
+    trap_valid = 1'b1;
+    trap_pc = 32'h2000_0002;
+    trap_cause = 6'd8;
+    trap_tval = 32'h55aa_aa55;
+    trap_is_interrupt = 1'b0;
+    #1;
+    if (trap_vector != 32'h8000_0000)
+      $fatal(1, "exception incorrectly used vectored offset");
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 1'b0;
+    if ((privilege != PRIV_M) || (mepc != 32'h2000_0002))
+      $fatal(1, "U-mode trap entry failed");
+
+    // Counter enable is honored after returning to U.
+    write_csr(12'h306, 32'h1);
+    mret_valid = 1'b1;
+    mret_commit = 1'b1;
+    @(posedge clk);
+    @(negedge clk);
+    mret_valid = 1'b0;
+    mret_commit = 1'b0;
+    read_csr(12'hC00, value, illegal);
+    if (illegal)
+      $fatal(1, "enabled U-mode cycle read was rejected");
+
+    // User floating-point CSRs remain legal and accrue flags at commit.
+    write_csr(12'h003, 32'h0000_0061); // frm=3, fflags=1
+    fflags_accrue_valid = 1'b1;
+    fflags_accrue = 5'b10100;
+    @(posedge clk);
+    @(negedge clk);
+    fflags_accrue_valid = 1'b0;
+    if ((frm != 3) || (fflags != 5'b10101))
+      $fatal(1, "FCSR write/accrue semantics are wrong");
+
+    // Return from U to M before machine-CSR corner checks.
+    trap_valid = 1;
+    trap_is_interrupt = 0;
+    trap_pc = 32'h8000_0102;
+    trap_cause = 8;
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 0;
+
+    write_csr(12'h340, 32'h55aa_00ff);
+    check_rmw(CSR_CMD_SET, 0, 32'h0000_ff00, 32'h55aa_00ff, 32'h55aa_ffff);
+    check_rmw(CSR_CMD_CLEAR, 0, 32'h00ff_00ff, 32'h55aa_ffff, 32'h5500_ff00);
+    check_rmw(CSR_CMD_SET, 1, 0, 32'h5500_ff00, 32'h5500_ff00);
+    check_rmw(CSR_CMD_CLEAR, 1, 0, 32'h5500_ff00, 32'h5500_ff00);
+    check_rmw(CSR_CMD_WRITE, 1, 0, 32'h5500_ff00, 0);
+    $display("CSR corners: RMW old-value, x0 suppression, captured payload PASS");
+
+    // A non-x0 register holding zero still expresses write intent on CSRRS/C.
+    for (int cmd = 1; cmd <= 3; cmd++) begin
+      for (int zero_src = 0; zero_src < 2; zero_src++) begin
+        csr_valid = 1;
+        csr_addr = 12'hf14;
+        csr_cmd = csr_cmd_e'(cmd);
+        csr_operand = 0;
+        csr_rs1_zero = (zero_src != 0);
+        #1;
+        if (csr_rdata !== 3 || csr_illegal !==
+            ((csr_cmd == CSR_CMD_WRITE) || !csr_rs1_zero) || csr_write_effect)
+          $fatal(1, "Read-only CSR zero-source corner failed");
+      end
+    end
+    csr_valid = 0;
+    read_csr(12'h777, value, illegal);
+    if (!illegal) $fatal(1, "Unknown CSR accepted");
+
+    // Captured speculative transaction is canceled before a delayed commit.
+    @(negedge clk);
+    csr_valid = 1; csr_execute = 1; csr_addr = 12'h340;
+    csr_cmd = CSR_CMD_WRITE; csr_operand = 32'hfeed_face;
+    @(posedge clk);
+    @(negedge clk);
+    csr_valid = 0; csr_execute = 0; flush_all = 1;
+    @(posedge clk);
+    @(negedge clk);
+    flush_all = 0; csr_commit = 1;
+    @(posedge clk);
+    @(negedge clk);
+    csr_commit = 0;
+    expect_csr(12'h340, 0);
+    $display("CSR corners: read-only access, unknown address, flush cancellation PASS");
+
+    write_csr(12'h305, 32'h8000_0203);
+    expect_csr(12'h305, 32'h8000_0200);
+    write_csr(12'h341, 32'h8000_0103);
+    expect_csr(12'h341, 32'h8000_0102);
+    write_csr(12'h304, 32'hffff_ffff);
+    expect_csr(12'h304, 32'h888);
+    write_csr(12'h306, 32'hffff_ffff);
+    expect_csr(12'h306, 7);
+    write_csr(12'h300, 32'h0000_0800); // unsupported MPP=S -> U
+    if (mstatus[12:11] != PRIV_U) $fatal(1, "MPP WARL failed");
+    write_csr(12'h300, 32'h0000_6000);
+    expect_csr(12'h300, 32'h8000_6000); // SD reflects FS=Dirty
+    write_csr(12'h003, 32'hffff_ffff);
+    expect_csr(12'h003, 32'hff);
+    write_csr(12'h001, 0);
+    expect_csr(12'h003, 32'he0);
+    write_csr(12'h002, 2);
+    expect_csr(12'h003, 32'h40);
+    // Clear and accrue all flag combinations; frm writes must preserve flags.
+    for (int bits = 0; bits < 32; bits++) begin
+      write_csr(12'h001, bits);
+      fflags_accrue = 5'h15;
+      fflags_accrue_valid = 1;
+      @(posedge clk);
+      @(negedge clk);
+      fflags_accrue_valid = 0;
+      expect_csr(12'h001, bits | 32'h15);
+      write_csr(12'h002, 2);
+      expect_csr(12'h003, 32'h40 | bits | 32'h15);
+    end
+    $display("CSR corners: WARL masks, mepc halfword, FCSR aliases/SD PASS");
+
+    // Instret counts both retire lanes. Test carry using architectural writes
+    // to initialize the counter, without hierarchical state forcing.
+    write_csr(12'hb82, 32'h1234);
+    write_csr(12'hb02, 32'hffff_fffe);
+    retire_count = 2;
+    @(posedge clk);
+    @(negedge clk);
+    retire_count = 0;
+    expect_csr(12'hb02, 0);
+    expect_csr(12'hb82, 32'h1235);
+    expect_csr(12'hc02, 0);
+    expect_csr(12'hc82, 32'h1235);
+    expect_csr(12'hc01, 32'h89ab_cdef);
+    expect_csr(12'hc81, 32'h0123_4567);
+
+    // Nested synchronous exceptions overwrite the one architectural trap
+    // context; software must save it when nesting is wanted.
+    write_csr(12'h300, 8);
+    trap_valid = 1; trap_pc = 32'h8000_0222; trap_cause = 7;
+    trap_tval = 32'hdead_0000;
+    @(posedge clk);
+    @(negedge clk);
+    if (mstatus[3] || !mstatus[7] || mstatus[12:11] != PRIV_M)
+      $fatal(1, "First trap status push failed");
+    trap_pc = 32'h8000_0332; trap_cause = 5; trap_tval = 32'hbad0_0000;
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 0;
+    expect_csr(12'h341, 32'h8000_0332);
+    expect_csr(12'h342, 5);
+    expect_csr(12'h343, 32'hbad0_0000);
+    if (mstatus[7]) $fatal(1, "Nested trap MPIE should capture cleared MIE");
+    write_csr(12'h300, 32'h0002_0080); // MPRV, MPIE, MPP=U
+    mret_valid = 1; mret_commit = 1;
+    @(posedge clk);
+    @(negedge clk);
+    mret_valid = 0; mret_commit = 0;
+    if (privilege != PRIV_U || mstatus[17] || !mstatus[3] || !mstatus[7])
+      $fatal(1, "MRET privilege/MPRV/status restoration failed");
+    mret_valid = 1;
+    #1;
+    if (!mret_illegal) $fatal(1, "U-mode MRET accepted");
+    mret_valid = 0;
+    trap_valid = 1;
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 0;
+    $display("CSR corners: counters, nested trap, MRET/MPRV PASS");
+
+    // Baseline PMP has no extension using bits 6:5: they read as zero.
+    write_csr(12'h3a0, 32'h0000_007f);
+    expect_csr(12'h3a0, 32'h0000_001f);
+    write_csr(12'h3a0, 32'h0000_000a); // reserved R=0,W=1 -> no permission
+    expect_csr(12'h3a0, 8);
+    write_csr(12'h3b0, 32'h111);
+    write_csr(12'h3b1, 32'h222);
+    write_csr(12'h3a0, 32'h0000_8900); // locked TOR entry1 locks addr0 too
+    write_csr(12'h3b0, 32'h333);
+    write_csr(12'h3b1, 32'h444);
+    write_csr(12'h3a0, 0);
+    expect_csr(12'h3b0, 32'h111);
+    expect_csr(12'h3b1, 32'h222);
+    expect_csr(12'h3a0, 32'h8900);
+    $display("CSR corners: PMP reserved bits, WARL, TOR neighbor lock PASS");
+
+    // MIE=0 suppresses M-mode delivery, but locally enabled sources wake WFI.
+    write_csr(12'h300, 32'h0020_0000); // TW=1, MIE=0, MPP=U
+    write_csr(12'h304, 8);
+    irq_software = 1; wfi_valid = 1;
+    #1;
+    if (interrupt_pending || !wfi_wake || wfi_illegal)
+      $fatal(1, "M-mode WFI local/global interrupt gates failed");
+    mret_valid = 1; mret_commit = 1;
+    @(posedge clk);
+    @(negedge clk);
+    mret_valid = 0; mret_commit = 0;
+    #1;
+    if (!interrupt_pending || !wfi_illegal)
+      $fatal(1, "U-mode TW or machine interrupt global eligibility failed");
+    wfi_valid = 0; irq_software = 0;
+    $display("CSR corners: WFI/TW and U-mode interrupt eligibility PASS");
+
+    // Return to M before checking simultaneous architectural events. Trap
+    // and MRET suppress CSR writes, but do NOT suppress commit flag accrual.
+    trap_valid = 1;
+    trap_is_interrupt = 0;
+    trap_pc = 32'h8000_0440;
+    trap_cause = 8;
+    @(posedge clk);
+    @(negedge clk);
+    trap_valid = 0;
+    for (int priority_case = 0; priority_case < 4; priority_case++) begin
+      logic [4:0] expected_flags;
+      logic [2:0] expected_frm;
+      write_csr(12'h300, 32'h0000_7800); // FS=Dirty, MPP=M for legal MRET.
+      write_csr(12'h003, 32'h61);       // frm=3, old fflags=1.
+      stage_csr_write(priority_case == 3 ? 12'h002 : 12'h003,
+                      priority_case == 3 ? 32'h4 : 32'h42);
+      csr_commit = 1;
+      fflags_accrue_valid = 1;
+      fflags_accrue = 5'h10;
+      trap_valid = (priority_case == 0);
+      mret_valid = (priority_case == 1);
+      mret_commit = (priority_case == 1);
+      #1;
+      if (mret_valid && mret_illegal)
+        $fatal(1, "Priority corner unexpectedly rejected MRET");
+      @(posedge clk);
+      @(negedge clk);
+      expected_flags = priority_case == 2 ? 5'h02 : 5'h11;
+      expected_frm = priority_case < 2 ? 3'd3 :
+                     priority_case == 2 ? 3'd2 : 3'd4;
+      if (fflags !== expected_flags || frm !== expected_frm)
+        $fatal(1, "FP CSR priority case%0d flags=%h/%h frm=%h/%h",
+               priority_case, fflags, expected_flags, frm, expected_frm);
+      csr_commit = 0;
+      fflags_accrue_valid = 0;
+      trap_valid = 0;
+      mret_valid = 0;
+      mret_commit = 0;
+      flush_all = 1; // Discard a CSR transaction held by trap/MRET priority.
+      @(posedge clk);
+      @(negedge clk);
+      flush_all = 0;
+    end
+    $display("CSR corners: trap/MRET/CSR-write/FP-accrual edge priority PASS");
+
+    // Architectural counter writes overlap ordinary counting on this edge.
+    // Observe old state, never force it. Low-half writes retain OLD high bits;
+    // high-half writes retain INCREMENTED low bits. Trap/legal MRET suppress
+    // writes but counters still advance. Flush clears the pending flag, but a
+    // simultaneous commit consumes its OLD value, as for other pending CSRs.
+    for (int counter_address = 0; counter_address < 4; counter_address++) begin
+      for (int priority_case = 0; priority_case < 4; priority_case++) begin
+        for (int inc = 0; inc < 4; inc++) begin
+          logic [11:0] address;
+          logic [31:0] write_value;
+          logic [63:0] old_cycle, old_instret, expected_cycle, expected_instret;
+          case (counter_address)
+            0: address = 12'hb00;
+            1: address = 12'hb02;
+            2: address = 12'hb80;
+            default: address = 12'hb82;
+          endcase
+          write_value = 32'hffff_fffc | 32'(inc);
+          write_csr(12'h300, 32'h0000_1800); // MPP=M keeps MRET legal.
+          stage_csr_write(address, write_value);
+          csr_commit = 1;
+          retire_count = 2'(inc);
+          trap_valid = (priority_case == 0);
+          mret_valid = (priority_case == 1);
+          mret_commit = (priority_case == 1);
+          flush_all = (priority_case == 3);
+          #1;
+          if (mret_valid && mret_illegal)
+            $fatal(1, "Counter priority test requires legal MRET");
+          old_cycle = u_dut.mcycle_q;
+          old_instret = u_dut.minstret_q;
+          expected_cycle = old_cycle + 64'd1;
+          expected_instret = old_instret + 64'(inc);
+          if (priority_case >= 2) begin
+            case (address)
+              12'hb00: expected_cycle = {old_cycle[63:32], write_value};
+              12'hb02: expected_instret = {old_instret[63:32], write_value};
+              12'hb80: expected_cycle[63:32] = write_value;
+              12'hb82: expected_instret[63:32] = write_value;
+              default: $fatal(1, "Invalid counter test address");
+            endcase
+          end
+          @(posedge clk);
+          @(negedge clk);
+          if (u_dut.mcycle_q !== expected_cycle ||
+              u_dut.minstret_q !== expected_instret)
+            $fatal(1, "Counter %h priority=%0d inc=%0d cycle=%h/%h instret=%h/%h",
+                   address, priority_case, inc, u_dut.mcycle_q, expected_cycle,
+                   u_dut.minstret_q, expected_instret);
+          csr_commit = 0;
+          retire_count = 0;
+          trap_valid = 0;
+          mret_valid = 0;
+          mret_commit = 0;
+          flush_all = 1;
+          @(posedge clk);
+          @(negedge clk);
+          flush_all = 0;
+        end
+      end
+    end
+    $display("CSR counters: 64 low/high-write/count/trap/MRET/flush priority cases PASS");
+
+    $display("rv_csr_file_tb PASS");
+    $finish;
+  end
+endmodule

@@ -1,0 +1,125 @@
+{
+  "passed": true,
+  "target": "RV32IMFC_Zicsr_Zifencei / ilp32f",
+  "gates": [
+    {
+      "gate": "RV32 default and requested memory/cache geometry",
+      "passed": true
+    },
+    {
+      "gate": "Current RV32 boot, memory, cache faults/capacity and 3072 seeded transactions",
+      "passed": true
+    },
+    {
+      "gate": "58 block/backend cases including ROB sequence pressure, 113600 static + 113600 dynamic FP vectors and negative controls",
+      "passed": true
+    },
+    {
+      "gate": "AXI AR/AW stall lock and pre-fix failure reproduction",
+      "passed": true
+    },
+    {
+      "gate": "22 RV32 ELF cases, actual IRQ/SMC/debug, PMP warm/fence, negative software controls, CoreMark CRC",
+      "passed": true
+    },
+    {
+      "gate": "Exact-ELF 2/10-iteration cache cycle recovery and identical timed-body retirement metadata",
+      "passed": true
+    }
+  ],
+  "source_sha256": {
+    "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+    "rtl/soc/rv23_pkg.sv": "e7b3249c0f8d82e733221a9d648f104d360e8d089ca07e320c431a3e98adfaab",
+    "rtl/rv_ooo_pkg.sv": "7048ff9825e782ddf389280b106b51c70e9a3f5c5d4b72d5a86040b727ed0dac",
+    "rtl/soc/rv_axi4_if.sv": "e0676106a15a058f7ce10ae89845869ab6b2e7db36a16bfa4324888810c94af4",
+    "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+    "rtl/frontend/rv_c_expander.sv": "f076edabe62ba5321d1eb9ee7a66147444a233036f3a01629d9f85dc7195cb01",
+    "rtl/frontend/rv_fetch_queue.sv": "4fe0c4f4e6e39d1a46664c05fea3e764610393ec3f90f58b1da21eb3960cc47c",
+    "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+    "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+    "rtl/backend/rv_decode2.sv": "512b486d657e9143402e984c2b142cc6d7907523e38e6b93bf96b68e75a94e5d",
+    "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+    "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+    "rtl/backend/rv_lsq.sv": "38f926b1daa3e9aa67ea1eb164a32685ee936fc189a2b811603626af06657220",
+    "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+    "rtl/backend/rv_lsu_cluster.sv": "f006120e88b133889a71e9ba4e916e4cea8592d103e37216d565fc3790c7071e",
+    "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+    "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+    "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+    "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+    "rtl/backend/rv_int_alu.sv": "386831f003a4741ec267905c5da5db68d23edf7bc19d2138c7ad921d2099e619",
+    "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+    "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+    "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+    "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+    "rtl/backend/rv_writeback_arbiter.sv": "627d4b310b370dc0d2a77338b0c69b92f45291067c0e02a2583f4fa4b7d70fa9",
+    "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+    "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+    "rtl/backend/rv_csr_file.sv": "1f0f5d01a4a9fbfe84c3327d8b0551c1358267ec3fac33b6841df89be061fd04",
+    "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+    "rtl/backend/rv_trap_controller.sv": "d282fd8adf81bcc37e97be81e042269bdc15e55492e6b5b20778476f1c537159",
+    "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+    "rtl/backend/rv_rob.sv": "dd1077ed52dce936fe37542a790b2c017c1ac6ddbd95aa0f290364df5fc45eae",
+    "rtl/frontend/rv_frontend.sv": "32484d8d2871eb7f591f4879205dccb2282240a352fe1cff619329b6ca48051f",
+    "rtl/backend/rv_backend.sv": "aea59f1a5c3950770982f72fd8bb79e3f14ffae5212bb471c59d5eb23b03c469",
+    "rtl/rv_ooo_core.sv": "849963573689fc5b0a71ccb59db04f4fec5f7d999f73a2702acee25c6c4a0db4",
+    "rtl/soc/rv_local_to_axi_bridge.sv": "e3bdb8b256abfce9a8188e3ef26007c1c873da6e853ba0e31e1edba1b07f7ddf",
+    "rtl/soc/rv_axi_to_local_bridge.sv": "4274bd4459249a3ca57ebe2cdee3ada536e049ac686cce6e6a0d23ad1fe297a9",
+    "rtl/soc/rv_axi_error_slave.sv": "c97907ba3e4a15ccfa71e057b8df1cf0b5f77c6d7cc72be04fe2b3c15ef5010b",
+    "rtl/soc/rv_axi_xbar.sv": "dd6f294a4b13d01b65fc70a7fc8413ca297c42a01383efe560d5d9e1d85e03a4",
+    "rtl/soc/rv_soc_addr_decode.sv": "ba429266f7e45ae69429043fded476d02dd28cbb00e3a6ef641cfd8feeb00176",
+    "rtl/soc/rv_sram_1r1w.sv": "424005d980bade9f953a275c47cb69d339cb34e6f84a3a9b42122cb5637c14f7",
+    "rtl/soc/rv_clint.sv": "8949cef49637539a80e4b68fe03d6a7ae219a10f6b502edf26a3dc1d52b8bc39",
+    "rtl/soc/rv_bootrom.sv": "7b3abef365043ad4ef89dd1faf4f4fc7a635a97b2ffb3ef0fe15301fdb5e173e",
+    "rtl/soc/rv_hostif.sv": "2d37827499452a756ee1914fb880751405be1f5666d274c684004961706c18e6",
+    "rtl/soc/rv_plic.sv": "1ff739b8e4b88216fb6011dfa12ed2472a8d19455fbbd70c48fb17981c047d22",
+    "rtl/soc/rv23_cache.sv": "b119cb4ed291cd6ba886394c4e90f2d0913a7f30266cae49d90ee5c8756f62d1",
+    "rtl/soc/rv23_lsu_arbiter.sv": "35b152bcb04245148d55a6d309896cf9f9141c3cf8a8ff38d60357778c53276f",
+    "rtl/soc/rv23_if_adapter.sv": "b92c1eb94154161ed120ae7c297750031b0caaf853e3c286a4fee202c404c55f",
+    "rtl/soc/rv23_sram.sv": "9513f87fcbef0763e575c5f2f6d8f29390edcbe4f8bbbd6f8480db68d308582d",
+    "rtl/soc/rv23_system_bus.sv": "f50d0c26e51d7d47ff7cb450067654e8b99306e33543b9595f864b9b625c93f8",
+    "rtl/soc/rv23_soc_top.sv": "f004c48c9f578fb6dfe99684ee309f150f437b403b2ee3d87da8b400b96f12b6"
+  },
+  "coremark": {
+    "cycles": 528008,
+    "instructions": 579458,
+    "ipc": 1.0974417054287056,
+    "iterations": 2,
+    "packet": [
+      1129119745,
+      2,
+      528008,
+      0,
+      579458,
+      0,
+      59893,
+      59156,
+      8151,
+      36410,
+      29374,
+      9
+    ],
+    "certified_score": false,
+    "memory": "32KiB I + 32KiB D + main AXI + 1MiB SRAM"
+  },
+  "cache_performance": [
+    {
+      "iterations": 2,
+      "speedup": 4.95796086422933,
+      "before_ipc": 0.2213494086543769,
+      "after_ipc": 1.0974417054287056
+    },
+    {
+      "iterations": 10,
+      "speedup": 4.988276210285739,
+      "before_ipc": 0.22181603128913957,
+      "after_ipc": 1.106479631939612
+    }
+  ],
+  "limits": [
+    "Not full ISA certification/long differential",
+    "No standard JTAG Debug Module",
+    "No Linux/MMU/S-mode/A/D/V",
+    "No timing/STA or historical IPC claim"
+  ]
+}
