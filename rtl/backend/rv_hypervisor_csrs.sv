@@ -159,7 +159,13 @@ module rv_hypervisor_csrs #(
         12'h644:hvip_q[2]<=csr_write_data_i[2];
         12'h645:hvip_q<=csr_write_data_i&V_INTERRUPTS;
         12'h64a:htinst_q<=csr_write_data_i;
-        12'h680:if(csr_write_data_i[63:60] inside {4'd0,4'd8})hgatp_q<={csr_write_data_i[63:60],16'b0,csr_write_data_i[43:2],2'b0};
+        12'h680:begin
+          // An unsupported MODE leaves MODE unchanged. The aligned root PPN
+          // is still written, and VMID and reserved bits stay read-only zero.
+          if(csr_write_data_i[63:60] inside {4'd0,4'd8})
+            hgatp_q[63:60]<=csr_write_data_i[63:60];
+          hgatp_q[59:0]<={16'b0,csr_write_data_i[43:2],2'b0};
+        end
         12'h34a:mtinst_q<=csr_write_data_i;
         12'h34b:mtval2_q<=csr_write_data_i;
         12'h200:vsstatus_q<=csr_write_data_i&STATUS_MASK;

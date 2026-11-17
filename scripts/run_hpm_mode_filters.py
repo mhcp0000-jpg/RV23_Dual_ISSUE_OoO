@@ -18,6 +18,10 @@ ALL_FILTERS = 0x1f << 58
 DELTA = 10
 MARKER = '0x48504d35'
 OVERFLOW_MARKER = '0x48504d4f'
+VISIBILITY_MARKER = '0x48504d56'
+OVERFLOW_FLAGS = 0x58
+VISIBILITY_MASKS = (0, 0x28, 0x50, 0x78)
+VISIBILITY_MODES = (('M', 0, 0), ('HS', 1 << 11, 9), ('VS', (1 << 39) | (1 << 11), 10))
 
 
 def fixture():
@@ -210,11 +214,86 @@ def trace_overflow(trace):
     return traps
 
 
+def visibility_cases():
+    for mode, status, cause in VISIBILITY_MODES:
+        for m_enable in VISIBILITY_MASKS:
+            for h_enable in VISIBILITY_MASKS:
+                mask = 0x78 if mode == 'M' else m_enable
+                if mode == 'VS':
+                    mask &= h_enable
+                yield dict(mode=mode, status=status, cause=cause, m_enable=m_enable,
+                           h_enable=h_enable, value=OVERFLOW_FLAGS & mask)
+
+
+def visibility_fixture():
+    lines = [
+        '.section .text.init,"ax"', '.option norvc', '.option norelax',
+        '.globl _start', '_start:', 'la t0,trap', 'csrw mtvec,t0',
+        'li t0,-1', 'csrw pmpaddr0,t0', 'li t0,31', 'csrw pmpcfg0,t0',
+        'csrw medeleg,zero', 'csrw mie,zero', 'csrw scounteren,zero',
+        'li t0,0x78', 'csrw mcountinhibit,t0', 'li t0,-1',
+        'csrw mhpmcounter3,t0', 'csrw mhpmcounter4,t0', 'csrw mhpmcounter6,t0',
+        'li t0,0x8000000000000001',
+        'csrw mhpmevent3,t0', 'csrw mhpmevent4,t0', 'csrw mhpmevent6,t0',
+        'csrw mhpmevent31,t0', 'csrr t0,mip', 'li t1,0x2000',
+        'and t0,t0,t1', 'bnez t0,fail',
+    ]
+    for index, case in enumerate(visibility_cases()):
+        lines += [
+            f'setup_{index}:', f'li s0,{index + 1}', f'li s1,{case["cause"]}',
+            f'li t0,{case["m_enable"]}', 'csrw mcounteren,t0',
+            f'li t0,{case["h_enable"]}', 'csrw hcounteren,t0',
+        ]
+        if case['mode'] != 'M':
+            lines += [f'la t0,probe_{index}', 'csrw mepc,t0',
+                      f'li t0,{case["status"]}', 'csrw mstatus,t0',
+                      f'la s2,ecall_{index}', f'la s3,setup_{index + 1}', 'mret']
+        lines += [f'probe_{index}:', 'csrr a0,scountovf',
+                  f'li t0,{case["value"]}', 'bne a0,t0,fail']
+        if case['mode'] != 'M':
+            lines += [f'ecall_{index}:', 'ecall', 'j fail']
+    lines += [
+        f'setup_{index + 1}:', 'lui t0,0x10000', f'li t1,{VISIBILITY_MARKER}',
+        'sw t1,0xc(t0)', 'sw zero,0x14(t0)', 'halt: j halt',
+        'trap:', 'csrr t0,mcause', 'bne t0,s1,fail',
+        'csrr t0,mepc', 'bne t0,s2,fail', 'jr s3',
+        'fail:', 'lui t0,0x10000', 'sw s0,0xc(t0)', 'sw a0,0xc(t0)',
+        'li t1,1', 'sw t1,0x14(t0)', 'j halt',
+    ]
+    return '\n'.join(lines) + '\n'
+
+
+def trace_visibility(trace):
+    cases = list(visibility_cases())
+    observed = []
+    traps = []
+    with trace.open(newline='') as stream:
+        for row in csv.DictReader(stream):
+            if int(row['pc'], 16) < 0x80000000:
+                continue
+            if row['trap'] == '1':
+                assert int(row['instruction'], 16) == 0x73
+                traps.append(int(row['cause']))
+            elif int(row['instruction'], 16) == 0xda002573:  # csrr a0,scountovf
+                assert row['gpr_we'] == '1' and int(row['rd']) == 10
+                observed.append(int(row['wdata'], 16))
+    assert observed == [case['value'] for case in cases], observed
+    assert traps == [case['cause'] for case in cases if case['cause']], traps
+    return dict(cases=cases, ecalls=len(traps))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--machine-overflow', action='store_true')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--machine-overflow', action='store_true')
+    group.add_argument('--overflow-visibility', action='store_true')
     args = parser.parse_args()
-    name = 'hpm_machine_overflow' if args.machine_overflow else 'hpm_mode_filters'
+    if args.machine_overflow:
+        name, build_fixture, marker = 'hpm_machine_overflow', overflow_fixture, OVERFLOW_MARKER
+    elif args.overflow_visibility:
+        name, build_fixture, marker = 'hpm_overflow_visibility', visibility_fixture, VISIBILITY_MARKER
+    else:
+        name, build_fixture, marker = 'hpm_mode_filters', fixture, MARKER
     folder = ROOT / 'out/rva23' / name
     folder.mkdir(parents=True, exist_ok=True)
     source, elf, trace = (folder / name for name in ('test.S', 'test.elf', 'commit.csv'))
@@ -234,8 +313,7 @@ def main():
             assert sha(ROOT / path) == digest, path
 
     fresh()
-    assembly = overflow_fixture() if args.machine_overflow else fixture()
-    source.write_text(assembly, encoding='utf-8')
+    source.write_text(build_fixture(), encoding='utf-8')
     with Simulator() as sim:
         compile_run, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', '-march=rv64gcvh', '-mabi=lp64d',
             '-nostdlib', '-nostartfiles', '-Wl,--no-relax', '-Wl,--build-id=none',
@@ -244,9 +322,13 @@ def main():
             f'+trace_file={trace.relative_to(ROOT).as_posix()}', '+quiet_commit',
             '+timeout_cycles=1000000', '+expected_exit_code=0'], folder / 'simulation.log', 120)
     fresh()
-    marker = OVERFLOW_MARKER if args.machine_overflow else MARKER
     assert 'PASS rv32_program_tb' in log and f'data={marker}' in log
-    evidence = {'traps': trace_overflow(trace)} if args.machine_overflow else {'modes': trace_modes(trace)}
+    if args.machine_overflow:
+        evidence = {'traps': trace_overflow(trace)}
+    elif args.overflow_visibility:
+        evidence = {'visibility': trace_visibility(trace)}
+    else:
+        evidence = {'modes': trace_modes(trace)}
     dump(folder / 'report.json', dict(
         passed=True, model=model, runtime_inputs=runtime, generator_sha256=sha(__file__),
         source_sha256=sha(source), elf_sha256=sha(elf), trace_sha256=sha(trace),

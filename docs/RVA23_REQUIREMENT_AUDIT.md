@@ -171,6 +171,8 @@ destination data and CSR reads. Explicit flag expectations cover invalid,
 divide by zero, overflow, underflow and inexact. The report records hashes
 of the ELF, traces, model reports and configuration under
 `out/rva23/vector_fp_differential/report.json`.
+The combined audit runs `run_vector_fp_differential.py --check` to validate
+the saved inputs and rerun the trace comparison.
 
 The vector-state differential follow-up uses 22 identical ELF pairs across
 the legal SEW/LMUL combinations of the implemented VLEN128/ELEN64 configuration.
@@ -285,9 +287,11 @@ case membership, and the LR/SC placement report. Its result is
 on the same H/V SoC. S/VS trap-vector registers each preserved 76 aligned bases
 in the canonical Sv39 low/high ranges, including walking address bits and range
 endpoints, with Direct mode. The test separately checks Bare/Sv39 in satp and
-vsatp, Bare/Sv39x4 in hgatp, whole-register preservation on unsupported MODE
-writes from both supported starting modes, and UXL=64 in physical/virtual
-supervisor status. Current RTL register assignments preserve vector BASE bits
+vsatp, Bare/Sv39x4 in hgatp, and UXL=64 in physical/virtual supervisor status.
+An unsupported satp/vsatp MODE preserves the whole register. An unsupported
+hgatp MODE preserves MODE and updates the aligned root PPN. The earlier
+geometry oracle incorrectly required hgatp to preserve the whole register.
+Current RTL register assignments preserve vector BASE bits
 and accept Direct mode; translation MODE support is symmetrical for satp and
 vsatp. These checks strengthen Sstvecd, Shvstvecd, Shvsatpa, Shgatpa, Svbare,
 Sv39 and Ssu64xl evidence. They complement the existing actual trap/page-walk
@@ -357,3 +361,24 @@ combined execution audit passed. The audit includes 25 scalar ELF replays,
 all 2,746 ACT4 ELFs, the 1 MiB OpenSBI probe and the 32 MiB Linux replay with
 `/init` and orderly power-off. The report is `out/rva23/requirement_traceability.json`.
 See the [HS interrupt CSR check](RVA23_PROFILE_CONTRACT_REVIEW.md#csr-쓰기와-sret-직후-인터럽트).
+
+## Current hgatp revision
+
+The same CSR geometry ELF failed case 218 before the fix and passed all 279
+cases after it. The current RTL passed the 70-step functional checkpoint, six
+RV32 release gates, 663 checked-in ACT4 cases, 2,083 generated vector ACT4
+cases and 40 supplemental H/Sv39x4/PMP cases. The ADD-to-SUB negative control
+was rejected. The combined integration audit passed with execution evidence
+for all 59 rows covering RV64I and the 58 mandatory named requirements.
+
+The 1 MiB SoC passed the original OpenSBI handoff ELF. The 32 MiB Linux 6.12
+demonstration reused the same OpenSBI ELF, Linux Image and DTB before and after
+the CSR change. Both executions retired 21,822,717 instructions. The current
+boot audit records S-mode entry, the U-mode vector instruction, successful
+`/init` vector computation and orderly power-off in
+`out/linux_bringup/hgatp_vector/boot_audit.json`.
+
+The clause audit now includes the Sscofpmf `scountovf` visibility matrix and
+the Sstc timer compare read/write permission matrix. See the
+[profile contract review](RVA23_PROFILE_CONTRACT_REVIEW.md) for the executed
+conditions and the clauses still open.

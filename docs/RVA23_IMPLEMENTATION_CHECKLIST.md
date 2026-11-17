@@ -33,7 +33,7 @@
 - [x] Ziccif 지향성 케이스에서 64바이트 I-cache 라인의 정렬된 32비트 위치 16개를 검사했다. 각 위치에서 디버그 AXI 쓰기와 해당 라인의 refill이 29회씩 겹쳤다. retire한 명령은 쓰기 전후 인코딩 중 하나였고, 최종 쓰기 뒤 `FENCE.I`를 실행한 후 새 명령이 retire했다. 실행은 `scripts/run_instruction_fetch_atomicity.py`를 사용한다.
 - [x] 같은 production H/V SoC에서 LR/SC의 W/D 정렬 주소 24개와 반복문의 I-cache 라인 위치 3개를 조합한 72개 배치를 실행했다. 각 배치가 16회 갱신해 총 1,152회 성공했고 SC 시도도 1,152회였다. 라인 끝 62바이트 위치의 32비트 LR 명령은 실제로 다음 라인에 걸쳐 retire했다. `scripts/run_lrsc_progress.py`와 `out/rva23/lrsc_progress/report.json`은 유한 실행 근거이며 보편적인 진행성 증명은 아니다.
 - [x] `scripts/run_counter_permission_matrix.py --form read|high|write_zero`의 세 실행에서 M/HS/VS/U/VU, M/H/S enable 8개 조합, cycle/time/instret/HPM3..6과 RAZ HPM31을 검사했다. 전체 960개 케이스와 1,793개 정확한 trap을 통과했다. M 차단 cause 2, 게스트 H/S 차단 cause 22, RV64 high-half 접근과 읽기 전용 CSR의 zero 쓰기 cause 2를 검사했다. CSR enable readback과 trap의 PC·명령 tval·MPP/MPV도 검사했다. `scripts/audit_profile_contracts.py`는 이 근거와 LR/SC 근거를 현재 RTL·모델·ELF·trace·로그 해시에 대조한다.
-- [x] `scripts/run_profile_csr_geometry.py`의 279개 CSR 케이스를 같은 H/V SoC에서 통과했다. S/VS trap-vector 각각 76개 정렬된 주소(낮은/높은 Sv39 canonical 범위와 주소 비트 이동)를 보존하고 Direct 모드를 지원한다. `satp`/`vsatp`의 Bare·Sv39와 `hgatp`의 Bare·Sv39x4를 읽고, 나머지 MODE 쓰기가 기존 CSR 전체를 보존하는지 확인했다. 물리/가상 S 상태의 UXL=64와 `sstateen0..3`/`hstateen0..3`의 존재·쓰기·WARL readback도 확인했다. 이 케이스는 M 모드 CSR roundtrip이며 실제 S/VS trap 실행과 page walk를 대신하지 않는다.
+- [x] `scripts/run_profile_csr_geometry.py`의 M 모드 CSR 검사 279개를 같은 H/V SoC에서 통과했다. S/VS trap-vector 각각 76개 정렬된 주소의 Direct 모드 readback을 확인했다. `satp`/`vsatp`의 Bare·Sv39와 `hgatp`의 Bare·Sv39x4를 읽고, 미지원 MODE에서 `satp`/`vsatp`는 전체 값을, `hgatp`는 MODE를 유지하는지 확인했다. 물리/가상 S 상태의 UXL=64와 `sstateen0..3`/`hstateen0..3`의 존재·쓰기·WARL readback도 확인했다.
 - [x] `scripts/run_ptw_debug_coherence.py`로 외부 debug AXI가 resident PTE를 수정한 뒤 S 모드의 `SFENCE.VMA`와 실제 page walk가 새 값을 읽는지 통과했다. 16회 remap(코어 정지 8회·실행 중 8회), 64/32비트 쓰기, 실제 walker 응답 17회(최초 cold miss 포함), PTW cache hit 16회와 resident snoop 16회를 확인했다. `scripts/check_ptw_debug_coherence_negative.py`는 해당 PTE의 snoop update만 제거한 캐시 복사본에서 같은 ELF/TB로 첫 remap의 stale PTE를 검출했다. `scripts/audit_ptw_debug_coherence.py --with-negative`의 현재 소스·모델·ELF·trace·로그 해시 대조도 통과했다. 이는 외부 쓰기와 fence로 순서를 정한 S-mode 사례이며 모든 동시 page-walk 경합의 증명은 아니다.
 - [x] 변경 RTL의 70단계 기능 회귀와 RV32 릴리스 게이트 6개가 모두 통과했다. 기존 TIM 성능 ELF의 SHA-256도 보존본과 일치한다.
 - [x] 기존 Sail trace에서 빠졌던 interrupt-before-fetch와 waiting WFI를 별도 observer에서 기록했다. 원본 model/driver/ELF/trace는 보존했고, 같은 Sail 라이브러리와 기존 RTL trace에서 특권 ELF 16개·2,554개 이벤트의 PC/명령/trap/cause/64비트 scalar writeback이 모두 일치했다. 인터럽트/WFI 이벤트를 제거한 두 복사본은 해당 위치에서 거부했다. `scripts/audit_sail_event_comparison.py`의 현재 아티팩트 해시·케이스·실제 비교·누락 검출 대조도 통과했다. 전체 특권 상태나 사이클 동등성 증명은 아니다.
@@ -83,7 +83,37 @@ Svpbmt RTL 수정 이전의 ACT4와 Linux 결과는 이전 RTL의 실행 근거�
 - [x] 같은 Linux 6.12 Image로 수정된 32 MiB RTL을 부팅했다. S 모드 진입, U 모드 `/init` 실행, `RV23 LINUX INIT PASS`, 전원 종료와 호스트 종료 코드 0을 확인했다. `scripts/audit_linux_boot.py --variant pbmt_fixed --require-isa`가 통과했으며, 실행 근거는 `out/linux_bringup/pbmt_fixed/boot_audit.json`에 있다.
 - [x] HS `sie`에 가상 인터럽트 비트를 썼을 때 발생한 잘못된 HS VSEI를 수정했다. 같은 ELF로 수정 전 오동작과 수정 후 HS cause 10 및 VS cause 9 전달을 확인했다. [인터럽트 검증 기록](RVA23_PROFILE_CONTRACT_REVIEW.md#csr-쓰기와-sret-직후-인터럽트)
 - [x] HS `sie` 수정 후 RV64 기능 회귀 70단계와 RV32 릴리스 6개 게이트를 통과했다. 종전과 동일한 ACT4 ELF 2,746개도 전부 통과했고, 생성 벡터 ELF 2,083개의 이름과 SHA-256을 이전 실행과 대조했다.
-- [x] 현재 1 MiB RTL에서 OpenSBI의 S 모드·DTB·타이머 인계를 재검증했다. 별도 32 MiB RTL은 동일 Linux 6.12 Image로 S 모드에 진입하고 U 모드 `/init`을 실행한 뒤 정상 종료했다. 최신 Linux 부팅 감사는 `out/linux_bringup/hs_sie_fixed/boot_audit.json`이다.
+- [x] HS `sie` 수정 후 1 MiB RTL에서 OpenSBI의 S 모드·DTB·타이머 인계를 재검증했다. 별도 32 MiB RTL은 동일 Linux 6.12 Image로 S 모드에 진입하고 U 모드 `/init`을 실행한 뒤 정상 종료했다. 해당 부팅 감사는 `out/linux_bringup/hs_sie_fixed/boot_audit.json`이다.
+- [x] 벡터의 혼합 EEW 소스 겹침 수정 후에도 동일 ACT4 ELF 2,746개와 최신 ACT4 H·PMP ELF 40개를 통과했다. Linux를 다시 부팅했고 감사 결과는 `out/linux_bringup/mixed_eew/boot_audit.json`이다.
+- [x] VS·VU 및 MPRV+MPV에서 비정렬 접근의 페이지 경계 예외를 검사했다. VS/G-stage 변환 실패 16건과 PMP가 VS/G-stage PTE 읽기를 막은 접근 예외 8건에서 예외 메타데이터가 정확했다. 실패한 접근은 앞쪽 페이지와 load 목적 레지스터를 보존했다. 근거는 `out/rva23/guest_misaligned/report.json`이다.
+- [x] Sstvala·Shvstvala의 압축 illegal-instruction 값을 확인했다. 예약된 `C.ADDI4SPN`과 FS=Off의 압축 D 명령 네 가지를 포함한 88개 사례에서 M/HS/VS trap handler가 EPC와 tval을 검증했다. 감사는 176개 trap과 RTL·ELF·trace 해시를 대조한다.
+- [x] Sstvecd·Shvstvecd의 Direct 모드에서 Sv39 하위·상위 주소의 12곳에 실제 트랩을 전달했다. 페이지의 마지막 4바이트에서 시작하는 handler를 포함해 첫 실행 PC와 SRET 복귀를 확인했다.
+- [x] Bare/Sv39에서 U 모드가 `ECALL`로 HS 테스트 서비스에 `PMLEN=0→7→0`을 요청했다. 여섯 요청의 CSR 설정과 동일 태그 주소의 정상 load/store 4건, 예외 8건이 확인됐다. 같은 ELF에서 U→HS 및 HS→M의 `ECALL`과 RV64I little-endian 바이트 순서를 확인했다.
+- [x] VS-stage와 G-stage에서 각각 `VLSEG2E32FF`의 첫 segment fault와 후속 segment의 길이 단축을 확인했다. 마스크를 포함한 8개 사례와 두 번의 같은 PC 재실행이 통과했고, 동일 ELF에서 Sail·RTL 실행 이벤트 2,987개를 대조했다.
+- [x] `vl=0`, `vill=1`에서 `VL4RE64`·`VS4R`의 네 레지스터 전송을 확인했다. VS/G 페이지 예외 4건에서 각 EEW의 `vstart`로 복귀했고, 이미 완료된 앞 32바이트는 다시 읽거나 쓰지 않았다. 동일 ELF에서 Sail·RTL 3,467개 이벤트가 일치했다.
+- [x] SRAM과 CLINT `MSIP` 사이의 FENCE 여섯 조합을 검증했다. 전체 SoC의 LSU 요청·응답 계측에서 선행 접근 응답이 FENCE retire보다 먼저, 후속 접근 요청이 retire 이후에 발생했다.
+- [x] 네 가지 `AMOADD.D` 순서 인코딩과 `LR.D.AQ`·`SC.D.RL`에서 선행 SRAM 쓰기 응답, atomic 요청·응답 및 retire, 후속 SRAM 읽기 요청 순서를 확인했다. SC 성공과 최종 메모리 값도 검사했다.
+- [x] 서로 다른 폭의 저장이 겹치고 두 번째 저장의 주소 또는 값이 늦게 준비되는 96개 사례를 확인했다. SRAM load 576개가 바이트 기준값과 일치했고, 동일 ELF에서 Sail·RTL 이벤트 8,578개를 대조했다.
+- [x] `hgatp` 미지원 MODE 쓰기의 RTL과 테스트 기대값을 바로잡았다. 수정 전 모델이 218번 사례에서 실패한 동일 ELF를 수정 후 전체 SoC에서 통과시켰다. CSR 단위와 279개 CSR geometry 사례가 통과했다.
+- [x] HS의 G-stage·VS-stage `HINVAL` 및 VS의 `SINVAL.VMA` 뒤 동일한 두 게스트 주소에서 새 코드를 실행했다. 같은 ELF로 Sail과 수정 후 RTL 이벤트 2,880개를 대조했다.
+- [x] `hgatp` 수정 후 production 2-issue OoO 및 캐시 뱅크 검증을 재실행했다. dual issue·execute·retire 각 4회, younger bypass 6회, I/D 동시 뱅크 읽기 104회/2회와 AXI64 SRAM refill 8개를 현재 trace에서 감사했다.
+- [x] `hgatp` 수정 후 RV64 기능 회귀 70단계 및 체크인 ACT4 663개, 추가 H·Sv39x4·PMP 40개를 재검증했다.
+- [x] `hgatp` 수정 후 생성 벡터 ACT4 2,083개를 동일 ELF로 재검증했다. ADD→SUB 대조군을 거부했고 현재 RTL의 통합 감사에 반영했다.
+- [x] `hgatp` 수정 후 RV32 릴리스 게이트 6개와 1 MiB OpenSBI 인계를 재검증했다. 인계는 `scripts/run_opensbi_handoff.py --reuse-probe-firmware`로 보관한 ELF를 그대로 사용했다.
+- [x] 32 MiB 벡터 부팅에서 Linux가 V를 `AT_HWCAP`에 노출했다. U 모드 `/init`은 벡터 계산 결과를 검사하고 시스템을 정상 종료했다. `hgatp` 수정 후 `--variant hgatp_vector --reuse-firmware-from vector`로 같은 OpenSBI ELF를 재생했다. `scripts/audit_linux_boot.py --variant hgatp_vector --require-isa`가 커널·DTB 및 내장 `/init`의 U 모드 벡터 명령을 대조했다.
+- [x] Sscofpmf의 `scountovf` 읽기를 M·HS·VS에서 `mcounteren`과 `hcounteren`의 48개 조합으로 검증했다. CSR 쓰기로 OF를 설정해도 LCOFIP가 0을 유지하는지, 구현하지 않은 카운터 31의 OF가 0인지 확인했다.
+- [x] Sstc의 `stimecmp`·`vstimecmp` 읽기와 쓰기를 다섯 모드 및 M/H의 STCE·TM 비트 조합으로 검증했다. 320개 접근의 읽기 값, 쓰기 후 readback 및 예외 cause·EPC·tval을 확인했다.
+- [x] RVV 스칼라 이동 120건의 `vl`·`vstart`·LMUL 경계와 불법 명령 6건의 `vstart` 보존을 같은 ELF로 검증했다. Sail과 RTL의 실행 이벤트 2,915개가 일치했다.
+- [x] 전체 H/V SoC에서 RVV 타입·AVL 조합 928건과 설정 전환 13건을 검증했다. `vtype`·`vl`·`vstart`를 확인했고 같은 ELF의 Sail·RTL 실행 이벤트 16,908개가 일치했다.
+- [x] M·HS의 HLV.D·HLVX.WU·HSV.D 96건에서 SPVP, VS PTE의 U 비트와 HS/VS SUM을 바꿔 확인했다. 페이지 예외 36건과 허용된 접근 60건을 확인했고 같은 ELF의 Sail·RTL 실행 이벤트 5,801개가 일치했다.
+- [x] Bare와 Sv39 주소 별칭의 공유 SRAM 접근 8건에서 스칼라 부분 쓰기·AMO와 벡터 load/store를 교차 실행했다. 뱅크와 캐시 라인 경계에서 최신 데이터 및 인접 워드 보존을 확인했다.
+- [x] Sv39에서 스칼라 load와 unordered indexed 벡터 load/store의 Svade A/D 예외 3건을 매핑 복구 후 같은 PC에서 재시도했다. 앞선 결과와 후속 store의 예외 시점 상태, 미매핑 페이지의 마스크 사례 두 건을 확인했다.
+- [x] RVV 고정소수점 곱셈과 좁히기의 반올림·포화 검사 392건을 통과했다. 결과 원소 1,568개와 제외된 원소 및 `vxsat` 보존을 확인했다.
+- [x] Sv39·Sv39x4 중간 PTE의 예약 비트 및 G·RSW를 S·VS·G-stage의 네 경로에서 검증했다. 정상 load/store 32건과 예외 112건의 cause·주소를 확인했고 같은 ELF의 Sail·RTL 이벤트 9,997개가 일치했다.
+- [x] 128바이트 벡터 store 실행 중 PLIC 인터럽트를 전달했다. 벡터 retire, 인터럽트 진입, 복귀 후 스칼라 store 순서를 trace와 SRAM 쓰기에서 확인했다.
+- [x] MRET·SRET 복귀 13건에서 스칼라와 벡터 load가 실제 권한의 Sv39 매핑을 사용했다. M 복귀의 MPRV 유지와 하위 권한 복귀의 해제를 확인했다.
+- [x] Svnapot S·VS·G·VS+G 경로에서 64 KiB 내 4 KiB 하위 페이지 16개의 변환과 재매핑을 확인했다. 예약 인코딩 예외 90건, 경계를 넘는 벡터 load와 첫·마지막 하위 페이지의 명령 실행을 검증했다.
+- [x] SRAM을 PMA·NC·IO로 동시에 매핑하고 스칼라·벡터 교차 접근 12건을 검증했다. 속성에 맞춰 fence와 비캐시 별칭의 CBO.FLUSH를 실행했고, AXI에서 라인 재충전과 비캐시 읽기를 확인했다.
 
 - [ ] 위의 `확인 필요` 항목을 규격 조항별로 나눠 실행·예외·상태·순서 검증 근거를 연결한다. 확장 이름 58개 매핑과 ACT 통과를 전체 규격 충족으로 확대 해석하지 않는다.
   - 프로파일 추가 조건의 RTL 근거와 실행 범위는 [RVA23_PROFILE_CONTRACT_REVIEW](RVA23_PROFILE_CONTRACT_REVIEW.md)에 세분했다. 이 표는 기본 ISA/V/H/Ss1p13 전체 조항 감사를 대신하지 않는다.

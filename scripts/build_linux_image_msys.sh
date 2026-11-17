@@ -3,15 +3,27 @@
 set -euo pipefail
 export MSYS=winsymlinks:sys
 workspace=/c/rv_workspaces/rv23
-output=$workspace/out/linux_bringup
-source=$output/linux-6.12
+base=$workspace/out/linux_bringup
+source=$base/linux-6.12
+output=$base
+init_flags=(-march=rv64i)
+isa_config=(-d RISCV_ISA_V -d FPU)
+case ${1:-scalar} in
+    scalar) ;;
+    vector)
+        output=$base/vector
+        init_flags=(-march=rv64gcv -DRV23_LINUX_VECTOR=1)
+        isa_config=(-e RISCV_ISA_V -e FPU -e INITRAMFS_COMPRESSION_GZIP)
+        ;;
+    *) echo 'usage: build_linux_image_msys.sh [scalar|vector]' >&2; exit 2 ;;
+esac
 build=$output/kbuild-native
 gcc=/c/rv_toolchains/xpack-riscv-none-elf-gcc-15.2.0-1/bin/riscv-none-elf-gcc.exe
 cd "$workspace"
 test -f "$source/arch/riscv/Kconfig"
 mkdir -p "$build"
 
-"$gcc" -march=rv64i -mabi=lp64 -nostdlib -static -Wl,--no-relax \
+"$gcc" "${init_flags[@]}" -mabi=lp64 -nostdlib -static -Wl,--no-relax \
     -o "$output/init.elf" tb/fixtures/opensbi/linux_init.S
 cat > "$output/initramfs.list" <<EOF
 dir /dev 755 0 0
@@ -66,7 +78,11 @@ if [[ ! -f $build/.config ]]; then
 fi
 "$source/scripts/config" --file "$build/.config" -e PRINTK -e TTY \
     -e SERIAL_EARLYCON_RISCV_SBI -e RISCV_SBI_V01 -e BINFMT_ELF -e BLK_DEV_INITRD \
-    -d RISCV_ISA_V -d FPU --set-str INITRAMFS_SOURCE "$output/initramfs.list"
+    "${isa_config[@]}" --set-str INITRAMFS_SOURCE "$output/initramfs.list"
 make "${make_args[@]}" olddefconfig
+if [[ ${1:-scalar} == vector ]]; then
+    grep -qx 'CONFIG_RISCV_ISA_V=y' "$build/.config"
+    grep -qx 'CONFIG_FPU=y' "$build/.config"
+fi
 make "${make_args[@]}" Image
 sha256sum "$build/arch/riscv/boot/Image"

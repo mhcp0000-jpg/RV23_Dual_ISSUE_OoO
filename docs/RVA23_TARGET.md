@@ -14,10 +14,14 @@ program order and their 64-bit results match the oracle. The content-bound
 pipeline/commit audit is `out/rva23/rv64_ooo/audit.json`. It includes 104
 instruction-bank pairs, two next-cycle dual D-cache responses, and eight
 64-bit AXI reads to refill the tested SRAM line.
-The latest RTL fix limits HS `sie` to delegated HS interrupt bits. A same-ELF
+The HS `sie` fix limits it to delegated HS interrupt bits. A same-ELF
 test reproduced the spurious virtual external interrupt on the previous model
 and passed HS/VS delivery on the corrected model. Full regression, ACT4 and
 boot results for that revision are tracked in the implementation checklist.
+The latest `hgatp` fix preserves MODE and writes the aligned root PPN when
+software requests an unsupported MODE. The saved CSR ELF fails case 218 on
+the old model and passes on the corrected SoC. The [current checklist](RVA23_IMPLEMENTATION_CHECKLIST.md)
+tracks the new regression, ACT4 and Linux replay.
 The preceding privileged checkpoint includes breakpoint GVA and the base
 16-entry PMP CSR group (eight usable entries), 390 native privilege cases,
 642 precise traps, 33 breakpoint contexts and ten MPRV fault cases. The older

@@ -15,9 +15,13 @@ def fresh():
 fresh()
 contexts=[('VS','HS'),('VU','HS'),('VS','M'),('VU','M'),('M','M'),('HS','M'),('U','M'),
           ('HS','HS'),('U','HS'),('VS','VS'),('VU','VS')]
+forms=[('ebreak',0x100073,4,3),('c.ebreak',0x9002,2,3),('illegal',0xffffffff,4,2),
+       ('reserved_c.addi4spn',0x0004,2,2),
+       ('fs_off_c.fld',0x2404,2,2),('fs_off_c.fsd',0xa000,2,2),
+       ('fs_off_c.fldsp',0x2002,2,2),('fs_off_c.fsdsp',0xa01a,2,2)]
 cases=[]
 for mode,target in contexts:
-    for name,opcode,length,cause in [('ebreak',0x100073,4,3),('c.ebreak',0x9002,2,3),('illegal',0xffffffff,4,2)]:
+    for name,opcode,length,cause in forms:
         cases.append(dict(id=len(cases)+1,mode=mode,target=target,name=name,opcode=opcode,length=length,cause=cause))
 lines=['.section .text.init,"ax"','.option norvc','.globl _start','_start:',
        '  lui t0,0x02000','  sw zero,0(t0)','  li t0,-1','  csrw pmpaddr0,t0',
@@ -26,6 +30,9 @@ for case in cases:
     n=case['id'];mode=case['mode'];target=case['target'];virtual=mode in ['VS','VU']
     priv=3 if mode=='M' else 1 if mode in ['HS','VS'] else 0
     status=(priv<<11)|(int(virtual)<<39)|(1<<38) # seed old GVA=1; trap must replace it
+    # Test the guest FS gate independently of the host FS gate.
+    if virtual and case['name'].startswith('fs_off_'):
+        status |= 1<<13
     lines += [f'setup_{n}:',f'  li s0,{n}',f'  li s1,{case["cause"]}',
               f'  la s3,probe_{n}',f'  la s4,after_{n}',f'  la s11,after_{n}',
               f'  la s5,{"finish" if n==len(cases) else "setup_"+str(n+1)}',
@@ -39,7 +46,7 @@ for case in cases:
               '  li t0,0x140','  csrw hstatus,t0','  csrw vsstatus,zero',
               f'  li t0,{status}','  csrw mstatus,t0']
     if case['cause']==3:lines.append('  mv s2,s3')
-    else:lines.append('  li s2,0xffffffff')
+    else:lines.append(f'  li s2,{case["opcode"]:#x}')
     if mode=='M':lines.append(f'  j probe_{n}')
     else:lines += [f'  la t0,probe_{n}','  csrw mepc,t0','  mret']
     lines += [f'probe_{n}:',f'  {".hword" if case["length"]==2 else ".word"} {case["opcode"]}',
@@ -85,7 +92,10 @@ with Simulator() as sim:
         traps=[row for row in csv.DictReader(stream) if row['trap']=='1' and int(row['pc'],16)>=0x80000000]
     expected=[value for case in cases for value in [case['cause'],11 if case['mode']=='M' else 10 if case['mode']=='VS' else 9 if case['mode']=='HS' else 8]]
     assert [int(row['cause']) for row in traps]==expected
-    dump(folder/'report.json',dict(passed=True,scope='Native M/HS/VS/U/VU EBREAK/C.EBREAK/illegal instruction trap values, GVA/MPV/SPV/SPVP, delegation and returns',
+    for case,row in zip(cases,traps[::2],strict=True):
+        expected_tval=int(row['pc'],16) if case['cause']==3 else case['opcode']
+        assert int(row['instruction'],16)==case['opcode'] and int(row['tval'],16)==expected_tval,(case,row)
+    dump(folder/'report.json',dict(passed=True,scope='Native M/HS/VS/U/VU EBREAK/C.EBREAK and original 16/32-bit illegal instruction trap values, GVA/MPV/SPV/SPVP, delegation and returns',
         model=model,runtime_inputs=runtime,generator_sha256=sha(__file__),source_sha256=sha(source),
         cases_sha256=sha(folder/'cases.json'),elf_sha256=sha(elf),trace_sha256=sha(trace),
         compile=compile_record,run=run,case_count=len(cases),traps=traps))

@@ -6,13 +6,15 @@ import re
 import subprocess
 import sys
 
-from audit_linux_boot import verify_boot_log, verify_firmware_payload
-from sim_runner import GCC, ROOT, Simulator, dump, sha
+from audit_linux_boot import verify_boot_log, verify_firmware_payload, verify_vector_initramfs
+from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 
 
 MSYS = 'C:/rv_toolchains/msys-act4/msys64'
 WORKSPACE = 'C:/rv_workspaces/rv23'
 OPEN_SBI_COMMIT = 'a32a91069119e7a5aa31e6bc51d5e00860be3d80'
+LINUX_SUPM_ARCHIVE = 'out/linux_bringup/downloads/linux-6.14.tar.xz'
+LINUX_SUPM_ARCHIVE_SHA256 = 'a294b683e7b161bb0517bb32ec7ed1d2ea7603dfbabad135170ed12d00c47670'
 
 
 def save_report(path, report):
@@ -28,7 +30,8 @@ def run_linux(sim, folder, report, timeout):
         [ROOT / model['binary'], f'+elf={elf}', '+quiet_commit', '+htif',
          '+linux_watch', '+timeout_cycles=100000000', '+elf_verify=0'],
         folder / 'rtl.log', timeout)
-    report['boot_witnesses'] = verify_boot_log(log)
+    report['boot_witnesses'] = verify_boot_log(
+        log, vector=report.get('linux_vector', False), supm=report.get('linux_supm', False))
     model['passed'] = True
     report['passed'] = True
     print('PASS Linux boot, initramfs /init and SBI power-off', flush=True)
@@ -52,18 +55,91 @@ def reuse_linux_build(report_path, folder, image, base_model_hash):
     return report
 
 
+def reuse_linux_firmware(folder, image, variant, vector, supm):
+    source = ROOT / 'out/linux_bringup' / variant / 'firmware'
+    previous = json.loads((source / 'report.json').read_bytes())
+    assert previous['opensbi_commit'] == OPEN_SBI_COMMIT and previous.get('linux_vector', False) == vector
+    assert previous.get('linux_supm', False) == supm
+    assert sha(image) == previous['linux_image_sha256']
+    firmware = ROOT / previous['elf']
+    assert sha(firmware) == previous['elf_sha256']
+    for path, digest in previous['inputs'].items():
+        assert sha(ROOT / path) == digest, path
+    dtb = (source / 'rv23.dtb').read_bytes()
+    verify_firmware_payload(firmware.read_bytes(), image.read_bytes(), dtb)
+    (folder / 'rv23.dtb').write_bytes(dtb)
+    inherited = ('elf', 'elf_sha256', 'inputs', 'linux_image', 'linux_image_sha256', 'linux_vector',
+                 'linux_vector_init', 'linux_vector_initramfs', 'linux_supm')
+    return {key: previous[key] for key in inherited if key in previous}
+
+
+def boot_linux_case(sim, folder, report, report_path, args):
+    variant_args = ['--variant', args.variant] if args.variant else []
+    sim.run([sys.executable, '-X', 'utf8', 'scripts/build_linux_sim_model.py', report['elf'], *variant_args],
+            folder / 'linux-model-build.log', 1500)
+    report['boot_model'] = json.loads((folder.parent / 'rtl/model.json').read_bytes())
+    save_report(report_path, report)
+    run_linux(sim, folder, report, args.boot_timeout)
+
+
+def boot_probe(sim, output, report, base):
+    folder = ROOT / output
+    elf = report['elf']
+    symbols = subprocess.check_output([f'{MSYS}/ucrt64/bin/llvm-nm.exe', f'{WORKSPACE}/{elf}'], text=True)
+    mailboxes = {fields[-1]: int(fields[0], 16) for line in symbols.splitlines()
+                 if len(fields := line.split()) == 3 and fields[-1] in ('tohost', 'fromhost')}
+    assert set(mailboxes) == {'tohost', 'fromhost'} and len(set(mailboxes.values())) == 2
+    assert all(0x80020000 <= address <= 0x800ffff8 and address % 8 == 0 for address in mailboxes.values())
+    template = (ROOT / 'tb/e2e/rv_act4_program_tb.sv').read_text(encoding='utf-8')
+    marker = 'rv_host_dpi #(.HTIF_ENABLE(1),'
+    assert template.count(marker) == 1
+    ports = ''.join(f".{name.upper()}_ADDR(32'h{address:08x})," for name, address in mailboxes.items())
+    boot_tb = f'{output}/rv_act4_program_tb.sv'
+    (ROOT / boot_tb).write_text(template.replace(marker, marker + ports), encoding='utf-8')
+    files = (ROOT / 'rtl/filelist.f').read_text(encoding='utf-8').splitlines() + [
+        'tb/e2e/dpi/rv_host_dpi.sv', 'tb/e2e/dpi/rv_commit_trace_logger.sv',
+        boot_tb, 'tb/e2e/dpi/elf_loader.cpp']
+    model = sim.build('opensbi_handoff_htif', base['top'], files, base['params'])
+    report['boot_model'] = model
+    report['mailboxes'] = mailboxes
+    report['run'], log = sim.run([ROOT / model['binary'], f'+elf={elf}', '+quiet_commit', '+htif',
+                                 '+timeout_cycles=6000000', '+elf_verify=0',
+                                 f'+trace_file={output}/retire.csv'], folder / 'rtl.log', 900)
+    assert 'OPENSBI S-MODE DTB AND TIMER PASS' in log and 'PASS rv_act4_program_tb' in log, log[-1500:]
+    assert sha(ROOT / elf) == report['elf_sha256'] and model['inputs'] == source_inputs(files)
+    model['passed'] = True
+    report['passed'] = True
+    print('PASS OpenSBI handoff, SBI BASE/TIME, and supervisor timer interrupt', flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--linux-image', help='RV64 Linux Image with built-in initramfs')
     parser.add_argument('--variant', help='Preserve earlier results in a separate named Linux run')
+    parser.add_argument('--linux-vector', action='store_true',
+                        help='Advertise V in the DTB and require vector /init output')
+    parser.add_argument('--linux-supm', action='store_true',
+                        help='Advertise Ssnpm and require the Linux 6.14 Supm /init probe')
     parser.add_argument('--reuse-build', action='store_true',
                         help='Rerun a failed Linux simulation with its verified existing firmware and model')
+    parser.add_argument('--reuse-firmware-from', help='Build a fresh RTL model and replay the exact firmware from this Linux variant')
+    parser.add_argument('--reuse-probe-firmware', action='store_true',
+                        help='Replay the saved 1 MiB S-mode probe ELF on a fresh RTL model')
     parser.add_argument('--boot-timeout', type=int, default=7200,
                         help='Host timeout in seconds for Linux simulation before any environment scaling')
     args = parser.parse_args()
     linux = args.linux_image is not None
     if args.reuse_build and not linux:
         parser.error('--reuse-build requires --linux-image')
+    if args.reuse_probe_firmware and linux:
+        parser.error('--reuse-probe-firmware applies to the 1 MiB probe')
+    if args.reuse_firmware_from and (not linux or not args.variant or args.variant == args.reuse_firmware_from
+                                    or args.reuse_build or not re.fullmatch(r'[a-z][a-z0-9_]{0,31}', args.reuse_firmware_from)):
+        parser.error('--reuse-firmware-from requires --linux-image and a different --variant')
+    if args.linux_vector and (not linux or not args.variant):
+        parser.error('--linux-vector requires --linux-image and a separate --variant')
+    if args.linux_supm and not args.linux_vector:
+        parser.error('--linux-supm requires --linux-vector')
     if args.boot_timeout <= 0:
         parser.error('--boot-timeout must be positive')
     if args.variant:
@@ -89,6 +165,8 @@ def main():
     if args.reuse_build:
         image = (ROOT / args.linux_image).resolve(strict=True)
         report = reuse_linux_build(report_path, folder, image, sha(model_path))
+        assert args.linux_vector == report.get('linux_vector', False)
+        assert args.linux_supm == report.get('linux_supm', False)
         try:
             with Simulator() as sim:
                 run_linux(sim, folder, report, args.boot_timeout)
@@ -104,8 +182,22 @@ def main():
         'model_sha256': sha(model_path),
         'inputs': {name: sha(ROOT / name) for name in (f'{fixture}/rv23.dts', f'{fixture}/smode_probe.S')},
     }
+    if args.reuse_probe_firmware:
+        previous = json.loads(report_path.read_bytes())
+        assert previous['opensbi_commit'] == commit and previous['inputs'] == report['inputs']
+        assert sha(ROOT / previous['elf']) == previous['elf_sha256']
+        report.update({key: previous[key] for key in ('elf', 'elf_sha256', 'build')})
     try:
         with Simulator() as sim:
+            if args.reuse_probe_firmware:
+                boot_probe(sim, output, report, model)
+                return
+            if args.reuse_firmware_from:
+                image = (ROOT / args.linux_image).resolve(strict=True)
+                report.update(reuse_linux_firmware(folder, image, args.reuse_firmware_from,
+                                                   args.linux_vector, args.linux_supm))
+                boot_linux_case(sim, folder, report, report_path, args)
+                return
             dts = f'{fixture}/rv23.dts'
             if linux:
                 image = (ROOT / args.linux_image).resolve(strict=True)
@@ -115,6 +207,7 @@ def main():
                 assert image.stat().st_size < 30 * 1024 * 1024
                 payload = folder / 'probe.bin'
                 payload.write_bytes(image.read_bytes())
+                report['linux_image'] = payload.relative_to(ROOT).as_posix()
                 report['linux_image_sha256'] = sha(payload)
                 text = (ROOT / dts).read_text(encoding='utf-8')
                 text = text.replace('0 0x100000>;', '0 0x2000000>;')
@@ -122,9 +215,38 @@ def main():
                                     'stdout-path = "/htif";\n        bootargs = "earlycon=sbi keep_bootcon";')
                 isa = 'riscv,isa = "rv64imafdc_zicsr_zifencei_zicntr_sstc";'
                 assert text.count(isa) == 1
-                text = text.replace(isa, isa + '\n            riscv,isa-base = "rv64i";'
-                                    '\n            riscv,isa-extensions = "i", "m", "a", "f", "d", "c",'
-                                    '\n                                   "zicsr", "zifencei", "zicntr", "sstc";')
+                vector_isa = isa.replace('imafdc_', 'imafdcv_') if args.linux_vector else isa
+                vector_extension = ' "v",' if args.linux_vector else ''
+                supm_extension = ', "ssnpm"' if args.linux_supm else ''
+                if args.linux_supm:
+                    vector_isa = vector_isa.replace('_sstc"', '_sstc_ssnpm"')
+                text = text.replace(isa, vector_isa + '\n            riscv,isa-base = "rv64i";'
+                                    '\n            riscv,isa-extensions = "i", "m", "a", "f", "d", "c",' + vector_extension +
+                                    '\n                                   "zicsr", "zifencei", "zicntr", "sstc"' +
+                                    supm_extension + ';')
+                if args.linux_vector:
+                    kbuild = image.parents[3]
+                    init = kbuild.parent / 'init.elf'
+                    config = kbuild / '.config'
+                    initramfs = kbuild / 'usr/initramfs_inc_data'
+                    config_flags = {'CONFIG_RISCV_ISA_V=y', 'CONFIG_FPU=y', 'CONFIG_INITRAMFS_COMPRESSION_GZIP=y'}
+                    fixture_inputs = [ROOT / fixture / 'linux_init.S']
+                    if args.linux_supm:
+                        config_flags.add('CONFIG_RISCV_ISA_SUPM=y')
+                        fixture_inputs.extend((ROOT / fixture / 'linux_supm_init.S',
+                                               ROOT / 'scripts/build_linux_supm_msys.sh'))
+                        assert sha(ROOT / LINUX_SUPM_ARCHIVE) == LINUX_SUPM_ARCHIVE_SHA256
+                        report['inputs'][LINUX_SUPM_ARCHIVE] = LINUX_SUPM_ARCHIVE_SHA256
+                        report['linux_supm'] = True
+                    else:
+                        fixture_inputs.append(ROOT / 'scripts/build_linux_image_msys.sh')
+                    assert config_flags <= set(config.read_text(encoding='utf-8').splitlines())
+                    verify_vector_initramfs(payload.read_bytes(), initramfs.read_bytes(), init.read_bytes())
+                    report['linux_vector'] = True
+                    report['linux_vector_init'] = init.relative_to(ROOT).as_posix()
+                    report['linux_vector_initramfs'] = initramfs.relative_to(ROOT).as_posix()
+                    for path in (init, initramfs, config, *fixture_inputs):
+                        report['inputs'][path.relative_to(ROOT).as_posix()] = sha(path)
                 dts = f'{output}/linux.dts'
                 (ROOT / dts).write_text(text, encoding='utf-8')
                 report['inputs'][dts] = sha(ROOT / dts)
@@ -161,46 +283,11 @@ def main():
             report['elf'] = elf
             report['elf_sha256'] = sha(ROOT / elf)
             if linux:
-                variant_args = ['--variant', args.variant] if args.variant else []
-                sim.run([sys.executable, '-X', 'utf8', 'scripts/build_linux_sim_model.py', elf, *variant_args],
-                        folder / 'linux-model-build.log', 1500)
-                model_folder = folder.parent / 'rtl'
-                boot_model = json.loads((model_folder / 'model.json').read_text(encoding='utf-8'))
-                report['boot_model'] = boot_model
-                save_report(report_path, report)
-                run_linux(sim, folder, report, args.boot_timeout)
+                boot_linux_case(sim, folder, report, report_path, args)
                 return
-            symbols = subprocess.check_output([f'{MSYS}/ucrt64/bin/llvm-nm.exe',
-                                                f'{WORKSPACE}/{elf}'], text=True)
-            mailboxes = {fields[-1]: int(fields[0], 16) for line in symbols.splitlines()
-                         if len(fields := line.split()) == 3 and fields[-1] in ('tohost', 'fromhost')}
-            assert len(mailboxes) == 2 and len(set(mailboxes.values())) == 2
-            for address in mailboxes.values():
-                assert 0x80020000 <= address <= 0x800ffff8 and address % 8 == 0
-            original_tb = 'tb/e2e/rv_act4_program_tb.sv'
-            template = (ROOT / original_tb).read_text(encoding='utf-8')
-            marker = 'rv_host_dpi #(.HTIF_ENABLE(1),'
-            assert template.count(marker) == 1
-            port_parameters = ''.join(f".{name.upper()}_ADDR(32'h{address:08x}),"
-                                      for name, address in mailboxes.items())
-            boot_tb = f'{output}/rv_act4_program_tb.sv'
-            (ROOT / boot_tb).write_text(template.replace(marker, marker + port_parameters), encoding='utf-8')
-            files = (ROOT / 'rtl/filelist.f').read_text(encoding='utf-8').splitlines() + [
-                'tb/e2e/dpi/rv_host_dpi.sv', 'tb/e2e/dpi/rv_commit_trace_logger.sv',
-                boot_tb, 'tb/e2e/dpi/elf_loader.cpp']
-            boot_model = sim.build('opensbi_handoff_htif', model['top'], files, model['params'])
-            report['boot_model'] = boot_model
-            report['mailboxes'] = mailboxes
-            report['run'], log = sim.run([ROOT / boot_model['binary'], f'+elf={elf}', '+quiet_commit', '+htif',
-                                         '+timeout_cycles=6000000', '+elf_verify=0',
-                                         f'+trace_file={output}/retire.csv'], folder / 'rtl.log', 900)
-            assert 'OPENSBI S-MODE DTB AND TIMER PASS' in log, log[-1500:]
-            assert 'PASS rv_act4_program_tb' in log
-            boot_model['passed'] = True
-            report['passed'] = True
+            boot_probe(sim, output, report, model)
     finally:
         save_report(report_path, report)
-    print('PASS OpenSBI handoff, SBI BASE/TIME, and supervisor timer interrupt', flush=True)
 
 
 if __name__ == '__main__':

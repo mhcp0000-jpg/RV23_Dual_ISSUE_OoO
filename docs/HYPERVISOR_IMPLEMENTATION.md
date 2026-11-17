@@ -37,6 +37,8 @@ the same H-enabled SoC; full architectural validation remains separate.
   retain metadata under the owning ROB sequence until the accepted trap.
 - GEILEN=0 and VMIDLEN=0. VSXL/UXL are fixed to 64. HFENCE/HINVAL conservatively
   invalidate all translations. Unsupported custom/JVT/Zfinx/AIA state is RAZ.
+- Unsupported `hgatp.MODE` writes retain MODE and write the aligned root PPN.
+  VMID and reserved bits read zero.
 
 ## Native execution tests
 

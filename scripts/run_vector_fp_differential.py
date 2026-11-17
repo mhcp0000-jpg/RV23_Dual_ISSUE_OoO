@@ -1,4 +1,5 @@
 """Compare vector FP results and exception flags against the pinned Sail model."""
+import argparse
 import concurrent.futures
 import json
 import os
@@ -6,7 +7,7 @@ import subprocess
 import sys
 
 from run_sail_event_comparison import compare, read_csv
-from sim_runner import GCC, ROOT, Simulator, dump, sha
+from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 
 
 def fixture(sew):
@@ -50,7 +51,23 @@ def fixture(sew):
     return '\n'.join(lines)+'\n', expected
 
 
+def verify_case(folder, sew):
+    code, expected = fixture(sew)
+    assert (folder / 'test.S').read_text(encoding='utf-8') == code
+    assert 'PASS Sail HTIF' in (folder / 'sail.log').read_text(encoding='utf-8')
+    assert 'PASS rv32_program_tb' in (folder / 'rtl.log').read_text(encoding='utf-8')
+    left, right = read_csv(folder / 'sail.csv'), read_csv(folder / 'rtl.csv')
+    count, mismatch = compare(left, right)
+    assert mismatch is None, (sew, mismatch)
+    flags = [int(row['wdata'], 16) for row in left if int(row['instruction'], 16) == 0x001026f3]
+    assert flags == expected, (sew, flags, expected)
+    return count, flags
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='Verify saved runs against the current inputs')
+    args = parser.parse_args()
     subprocess.run([sys.executable, '-X', 'utf8', str(ROOT/'scripts/audit_vector_state_differential.py')],
                    cwd=ROOT, check=True)
     baseline = ROOT/'out/rva23/vector_state_differential/report.json'
@@ -59,6 +76,37 @@ def main():
     reference = json.loads(ref_report.read_text(encoding='utf-8'))
     config = ROOT/'config/reference/sail-rv23.json'
     folder = ROOT/'out/rva23/vector_fp_differential'
+    report_path = folder / 'report.json'
+    provenance = dict(baseline_sha256=sha(baseline), reference_sha256=sha(ref_report),
+                      inputs=source_inputs(['config/reference/sail-rv23.json',
+                                            'scripts/reference/upstream_htif.ld',
+                                            'scripts/run_sail_event_comparison.py']),
+                      generator_sha256=sha(__file__))
+    for model_record in (model, reference):
+        assert sha(ROOT / model_record['binary']) == model_record['binary_sha256']
+        for path, digest in model_record['inputs'].items():
+            assert sha(ROOT / path) == digest, path
+    if args.check:
+        report = json.loads(report_path.read_bytes())
+        assert report['passed'] and all(report[key] == value for key, value in provenance.items())
+        assert [case['sew'] for case in report['cases']] == [16, 32, 64]
+        count = 0
+        for case in report['cases']:
+            sew = case['sew']
+            dest = folder / f'e{sew}'
+            assert set(case['artifacts']) == {'test.S', 'test.elf', 'sail.csv', 'rtl.csv', 'sail.log'}
+            for name, digest in case['artifacts'].items():
+                assert sha(dest / name) == digest, name
+            for phase in ('compile', 'run'):
+                record = case[phase]
+                assert record['passed'] and record['exit_code'] == 0
+                assert sha(ROOT / record['log']) == record['log_sha256']
+            assert verify_case(dest, sew) == (case['events'], case['flags'])
+            count += len(case['flags'])
+        assert count == report['checkpoints'] == 40
+        print('PASS current Sail/RTL FP vector flags and results: 40 checkpoints', flush=True)
+        return
+
     with Simulator() as sim:
         reference_env = dict(sim.env, PATH='C:/rv_toolchains/cygwin-rv23/bin;'+os.environ['PATH'])
 
@@ -66,27 +114,22 @@ def main():
             dest = folder/f'e{sew}'
             dest.mkdir(parents=True, exist_ok=True)
             source, elf = dest/'test.S', dest/'test.elf'
-            code, expected = fixture(sew)
+            code, _ = fixture(sew)
             source.write_text(code, encoding='utf-8')
             compile_run, _ = sim.run([GCC/'riscv-none-elf-gcc.exe','-march=rv64gcvh_zvfhmin','-mabi=lp64d',
                 '-nostdlib','-nostartfiles','-Wl,--no-relax','-Wl,--build-id=none',
                 '-T','scripts/reference/upstream_htif.ld',source,'-o',elf], dest/'compile.log',60)
+            elf_digest = sha(elf)
             ref_csv, rtl_csv, ref_log = dest/'sail.csv', dest/'rtl.csv', dest/'sail.log'
             with ref_log.open('w',encoding='utf-8') as log:
                 subprocess.run([str(ROOT/reference['binary']),'--config',str(config),'--commit-csv',str(ref_csv),
                     '--inst-limit','1000000',str(elf)],cwd=ROOT,env=reference_env,stdout=log,
                     stderr=subprocess.STDOUT,timeout=90,check=True)
-            assert 'PASS Sail HTIF' in ref_log.read_text(encoding='utf-8')
-            run, output = sim.run([ROOT/model['binary'],f'+elf={elf.relative_to(ROOT).as_posix()}',
+            run, _ = sim.run([ROOT/model['binary'],f'+elf={elf.relative_to(ROOT).as_posix()}',
                 f'+trace_file={rtl_csv.relative_to(ROOT).as_posix()}','+quiet_commit','+htif',
                 '+timeout_cycles=3000000','+expected_exit_code=0'],dest/'rtl.log',180)
-            assert 'PASS rv32_program_tb' in output
-            left, right = read_csv(ref_csv), read_csv(rtl_csv)
-            count, mismatch = compare(left,right)
-            assert mismatch is None, (sew,mismatch)
-            flags = [int(row['wdata'],16) for row in left
-                     if int(row['instruction'],16)==0x001026f3]
-            assert flags==expected, (sew,flags,expected)
+            assert sha(elf) == elf_digest
+            count, flags = verify_case(dest, sew)
             print(f'PASS vector FP e{sew}: {len(flags)} flag/result checkpoints',flush=True)
             return dict(sew=sew, events=count, flags=flags, compile=compile_run, run=run,
                         artifacts={p.name:sha(p) for p in [source,elf,ref_csv,rtl_csv,ref_log]})
@@ -97,8 +140,9 @@ def main():
         assert sha(ROOT/model_record['binary'])==model_record['binary_sha256']
         for path,digest in model_record['inputs'].items():
             assert sha(ROOT/path)==digest
-    dump(folder/'report.json',dict(passed=True,baseline_sha256=sha(baseline),
-         reference_sha256=sha(ref_report),config_sha256=sha(config),generator_sha256=sha(__file__),
+    assert sha(baseline) == provenance['baseline_sha256'] and sha(ref_report) == provenance['reference_sha256']
+    assert source_inputs(provenance['inputs']) == provenance['inputs']
+    dump(report_path, dict(passed=True, **provenance,
          cases=cases,checkpoints=sum(len(case['flags']) for case in cases)))
 
 

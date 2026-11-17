@@ -1,0 +1,19 @@
+RV23 Linux 6.12 RTL simulation, 32 MiB configuration
+Selected console lines, with the kernel build user and host omitted.
+
+LINUX_RTL_S_ENTRY pc=0000000080200000
+Linux version 6.12.0
+riscv: base ISA extensions acdfimv
+riscv: ELF capabilities acdfimv
+LINUX_RTL_U_RETIRE pc=00000000000100e8
+LINUX_RTL_U_VECTOR_RETIRE pc=0000000000010126 instruction=5208a457
+RV23 LINUX USER VECTOR PASS
+<0>RV23 LINUX INIT PASS
+reboot: Power down
+[host-finish code=0]
+PASS rv_act4_program_tb commits=21822717
+
+Full local log: out/linux_bringup/hgatp_vector/firmware/rtl.log
+Full log SHA-256: d477c76f8669208a102007f357df846f1b4a3d2eafdbeb1488ba9bf53cb9d2cc
+Firmware ELF SHA-256: c7c05bbdc3e266731a4abe6459f86b605dbef9c1e1f62d20d0828c5678e31c80
+Simulator SHA-256: 20b6ee31092c910a60e4f1f6bca0366079d4ca4d459a6093897f9266344520ef

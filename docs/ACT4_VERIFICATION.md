@@ -142,5 +142,36 @@ The execution audit reports passing checked-in tests by literal requirement
 tag, and passing generated ELFs by suite. The tags identify what the tests
 request from the DUT, and the counts do not establish clause coverage.
 Zvbb uses the separate native check in `scripts/run_zvbb_native.py`.
+
+The supplemental H run uses upstream ACT4 commit
+`1c3e9f2a89e103eeed0a3e6ba1bc699f100fd481`, whose required Sail version is
+0.16. On the RV64 H/V RTL, all 40 selected ELFs passed. Their coverage includes
+G-stage translation and permissions, HS/VS invalidation, guest delegation,
+NAPOT/PBMT, MPRV with hgatp, cache-block operations and PMP lock readback.
+The selector excludes two scalar page-straddle fixtures that require sequential
+byte accesses. This DUT declares its custom prevalidated split strategy.
+The separate `python scripts/run_guest_misaligned.py` check exercises this
+strategy with native VS and VU word accesses and with MPRV+MPV selecting
+each guest privilege from M-mode. It checks both halves of a
+successful store to nonadjacent SRAM pages, signed and unsigned loads, and
+zero memory or destination-register updates when the second page fails
+VS-stage or G-stage translation. The 16 translation faults include exact
+second-page addresses and guest fault metadata. The M-mode cases also check
+the saved actual privilege and virtualization state. Eight more access
+faults exercise denying the second page's G-stage or VS-stage PTE read with
+PMP. The handler checks the original load/store cause, zero `mtval2` and
+`mtinst` after seeding both registers, and unchanged memory.
+[Privileged Architecture](https://docs.riscv.org/reference/isa/priv/supervisor.html)
+The Windows build uses a copied
+DUT config with the implemented HPM3 width and event selector declared for
+the test headers. The upstream test instructions are unchanged.
+Run `python scripts/run_act4_upstream_h.py` to build and execute the
+supplemental set. It retains the upstream source and ELFs under
+`out/act4/upstream_h_extended` and records the generating revision in
+`out/act4/dut/upstream-h-extended.json`. Recheck the saved artifacts with
+`python scripts/run_act4_upstream_h.py --check`.
+The original 2,746-ELF regression retains its pinned test inputs.
+[Supplemental ACT4 revision](https://github.com/riscv/riscv-arch-test/tree/1c3e9f2a89e103eeed0a3e6ba1bc699f100fd481)
+
 Run the inventory audit through the ACT uv environment:
 `uv run --project third_party/riscv-arch-test --no-dev python -X utf8 scripts/audit_act4_inventory.py`.

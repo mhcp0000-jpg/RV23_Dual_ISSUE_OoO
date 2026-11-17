@@ -1,6 +1,7 @@
 """Verify the current Linux RTL boot against its firmware, model and log."""
 
 import argparse
+import gzip
 import hashlib
 import json
 import re
@@ -9,9 +10,38 @@ import struct
 from sim_runner import ROOT, dump, sha
 
 
-def verify_boot_log(log):
+def verify_vector_initramfs(image, archive, init):
+    assert archive in image, 'Built initramfs is missing from the Linux Image'
+    assert init in gzip.decompress(archive), 'Vector /init is missing from the initramfs'
+
+
+def verify_vector_retirement(log, init):
+    match = re.search(r'^LINUX_RTL_U_VECTOR_RETIRE pc=([0-9a-f]+) instruction=([0-9a-f]{8})$',
+                      log, re.MULTILINE)
+    assert match and init[:6] == b'\x7fELF\x02\x01'
+    pc, instruction = (int(value, 16) for value in match.groups())
+    assert instruction & 0x7f == 0x57 and (instruction >> 12) & 7 != 7
+    phoff = struct.unpack_from('<Q', init, 32)[0]
+    phsize, count = struct.unpack_from('<HH', init, 54)
+    executable_offsets = []
+    for index in range(count):
+        kind, flags, offset, vaddr, _, size, _, _ = struct.unpack_from(
+            '<IIQQQQQQ', init, phoff + index * phsize)
+        if kind == 1 and flags & 1 and vaddr <= pc <= vaddr + size - 4:
+            executable_offsets.append(offset + pc - vaddr)
+    offset, = executable_offsets
+    assert struct.unpack_from('<I', init, offset)[0] == instruction
+    return {'pc': hex(pc), 'instruction': hex(instruction)}
+
+
+def verify_boot_log(log, *, vector=False, supm=False):
+    assert not supm or vector
+    supm_markers = ('RV23 LINUX USER SUPM PASS',) if supm else ()
+    vector_markers = ('LINUX_RTL_U_VECTOR_RETIRE pc=', *supm_markers,
+                      'RV23 LINUX USER VECTOR PASS') if vector else ()
     markers = ('LINUX_RTL_S_ENTRY pc=0000000080200000', 'Linux version ',
-               'LINUX_RTL_U_RETIRE pc=', 'RV23 LINUX INIT PASS', 'reboot: Power down',
+               'LINUX_RTL_U_RETIRE pc=', *vector_markers,
+               'RV23 LINUX INIT PASS', 'reboot: Power down',
                '[host-finish code=0]', 'PASS rv_act4_program_tb commits=')
     positions = [log.find(marker) for marker in markers]
     assert all(position >= 0 for position in positions) and positions == sorted(positions), log[-3000:]
@@ -76,20 +106,33 @@ def main():
     assert sha(ROOT / report['elf']) == report['elf_sha256'] == model['firmware_sha256']
     assert sha(ROOT / run['log']) == run['log_sha256']
 
-    image_path = ROOT / 'out/linux_bringup/kbuild-native/arch/riscv/boot/Image'
+    image_path = ROOT / report.get('linux_image', 'out/linux_bringup/kbuild-native/arch/riscv/boot/Image')
     assert sha(image_path) == report['linux_image_sha256']
+    image = image_path.read_bytes()
+    vector = report.get('linux_vector', False)
+    supm = report.get('linux_supm', False)
+    if vector:
+        init = ROOT / report['linux_vector_init']
+        archive = ROOT / report['linux_vector_initramfs']
+        verify_vector_initramfs(image, archive.read_bytes(), init.read_bytes())
     dtb_path = folder / 'firmware/rv23.dtb'
     dtb_address, load_image_sha256 = verify_firmware_payload(
-        (ROOT / report['elf']).read_bytes(), image_path.read_bytes(), dtb_path.read_bytes())
+        (ROOT / report['elf']).read_bytes(), image, dtb_path.read_bytes())
+    if supm:
+        assert vector and b'RV23 LINUX USER SUPM PASS' in init.read_bytes()
+        assert b'ssnpm\0' in dtb_path.read_bytes()
 
     log = (ROOT / run['log']).read_text(encoding='utf-8', errors='replace')
-    witnesses = verify_boot_log(log)
-    assert witnesses[1].startswith('Linux version 6.12')
+    witnesses = verify_boot_log(log, vector=vector, supm=supm)
+    assert witnesses[1].startswith('Linux version 6.14' if supm else 'Linux version 6.12')
     isa = re.search(r'riscv: base ISA extensions ([a-z]+)', log)
     hwcap = re.search(r'riscv: ELF capabilities ([a-z]+)', log)
     if args.require_isa:
         assert isa and set('imac') <= set(isa.group(1)), 'Linux base ISA detection missing'
         assert hwcap and set('imac') <= set(hwcap.group(1)), 'Linux ELF HWCAP detection missing'
+    if vector:
+        assert isa and hwcap and 'v' in isa.group(1) and 'v' in hwcap.group(1), log[-3000:]
+    vector_retirement = verify_vector_retirement(log, init.read_bytes()) if vector else None
     dump(folder / 'boot_audit.json', {
         'passed': True,
         'report_sha256': sha(path),
@@ -103,6 +146,9 @@ def main():
         'detected_base_isa': isa.group(1) if isa else '',
         'detected_elf_hwcap': hwcap.group(1) if hwcap else '',
         'isa_detection_required': args.require_isa,
+        'vector_userspace_verified': vector,
+        'supm_userspace_verified': supm,
+        'vector_retirement': vector_retirement,
         'witnesses': witnesses,
     })
     print('PASS current RTL Linux boot audit', *witnesses, sep='\n')

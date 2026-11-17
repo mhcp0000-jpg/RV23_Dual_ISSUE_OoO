@@ -65,7 +65,7 @@ evidence.append({'case':'privileged_instruction_matrix','report_sha256':sha(ROOT
                  'case_count':390,'trap_count':len(traps)})
 
 folder='out/rva23/hypervisor_breakpoint_metadata';report=read(folder+'/report.json')
-assert report['passed'] and report['case_count']==33
+assert report['passed'] and report['case_count']==88
 assert report['model']['inputs']==inputs and report['model']['binary_sha256']==common_binary
 model(report['model']);run(report['compile']);run(report['run']);fresh(report['runtime_inputs'])
 assert sha(ROOT/'scripts/run_hypervisor_breakpoint_metadata.py')==report['generator_sha256']
@@ -73,18 +73,24 @@ for name,key in [('test.S','source'),('cases.json','cases'),('test.elf','elf'),(
     assert sha(ROOT/folder/name)==report[key+'_sha256']
 with (ROOT/folder/'commit.csv').open(newline='') as stream:
     traps=[row for row in csv.DictReader(stream) if row['trap']=='1' and int(row['pc'],16)>=0x80000000]
-assert len(traps)==66 and report['traps']==traps
+assert len(traps)==176 and report['traps']==traps
 cases=read(folder+'/cases.json')
-assert len(cases)==33 and {row['target'] for row in cases}=={'M','HS','VS'}
+assert len(cases)==88 and {row['target'] for row in cases}=={'M','HS','VS'}
+compressed_illegal={0x0004,0x2404,0xa000,0x2002,0xa01a}
+assert {case['opcode'] for case in cases if case['cause']==2 and case['length']==2}==compressed_illegal
+for case,trap in zip(cases,traps[::2],strict=True):
+    assert int(trap['cause'])==case['cause'] and int(trap['instruction'],16)==case['opcode']
+    expected_tval=int(trap['pc'],16) if case['cause']==3 else case['opcode']
+    assert int(trap['tval'],16)==expected_tval and trap['rd_write']=='0'
 evidence.append({'case':'hypervisor_breakpoint_metadata','report_sha256':sha(ROOT/folder/'report.json'),
-                 'case_count':33,'trap_count':len(traps)})
+                 'case_count':len(cases),'trap_count':len(traps)})
 
 for path in ['out/rva23/hpm_counters.json','out/rva23/hpm_csr_file.json','out/rva23/hypervisor_csr_file.json']:
     report=read(path);assert report['passed'];model(report);run(report['run'])
     evidence.append({'component':path,'report_sha256':sha(ROOT/path)})
 dump(ROOT/'out/rva23/hypervisor_checkpoint.json',{'passed':True,
-    'scope':'Current H/Sha and HPM implementation: six native functional ELFs, a 390-case privileged matrix and 33 breakpoint metadata cases on one content-bound RV64 SoC plus committed CSR and counter components. No full ISA, timing or RV32 release sign-off.',
+    'scope':'Current H/Sha and HPM implementation: six native functional ELFs, a 390-case privileged matrix and 88 breakpoint/illegal metadata cases on one content-bound RV64 SoC plus committed CSR and counter components. No full ISA, timing or RV32 release sign-off.',
     'source_inputs':inputs,'binary_sha256':common_binary,'evidence':evidence,
     'audit_sha256':sha(__file__),'incomplete':['full architectural/differential validation','Zkt/Zvkt timing contract audit',
         'complete guest and concurrent-agent memory-ordering architectural coverage','renewed full RV32 release audit']})
-print('PASS current H/HPM checkpoint: six native ELFs, 390 privilege cases, 33 breakpoint metadata cases, committed CSR/counter components and artifact binding',flush=True)
+print('PASS current H/HPM checkpoint: six native ELFs, 390 privilege cases, 88 breakpoint/illegal metadata cases, committed CSR/counter components and artifact binding',flush=True)

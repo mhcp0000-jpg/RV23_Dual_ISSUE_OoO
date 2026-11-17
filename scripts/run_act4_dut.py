@@ -22,6 +22,8 @@ parser.add_argument('--workers', type=int, default=8)
 parser.add_argument('--elf-verify', type=int, choices=[0,1], default=0)
 parser.add_argument('--sample-first-per-suite', action='store_true')
 parser.add_argument('--elf-root', default='out/act4/work/rv23-RVA23S64/elfs')
+parser.add_argument('--act-source-root', default='third_party/riscv-arch-test',
+                    help='ACT checkout used to generate the ELFs')
 coverage = parser.add_mutually_exclusive_group()
 coverage.add_argument('--vector-only', action='store_true')
 coverage.add_argument('--inventory-selected', action='store_true',
@@ -61,8 +63,10 @@ assert elfs, 'No self-checking ACT4 ELFs found'
 report_path = folder / args.report
 old = json.loads(report_path.read_text(encoding='utf-8')) if report_path.exists() else {}
 model_digest = sha(model_path)
-act_commit = subprocess.check_output(['git','-C',str(ROOT/'third_party/riscv-arch-test'),
+act_commit = subprocess.check_output(['git','-C',str(ROOT / args.act_source_root),
                                       'rev-parse','HEAD'],text=True).strip()
+if args.inventory_selected:
+    assert act_commit == inventory['act_commit'], 'ACT checkout differs from the selected inventory'
 same_run_inputs = (old.get('binary_sha256') == model['binary_sha256'] and
                    old.get('model_sha256') == model_digest and old.get('act_commit') == act_commit)
 previous_results = old.get('results', {}) if same_run_inputs and not args.rerun else {}
@@ -78,7 +82,17 @@ def save_report():
     report.update(executed=len(results), passed=passed, failed=len(results)-passed)
     temp = report_path.with_name(f'{report_path.name}.{os.getpid()}.tmp')
     dump(temp, report)
-    temp.replace(report_path)
+    # On Windows, readers and scanners can briefly deny replacement of a
+    # closed file. Keep the last complete report visible while retrying.
+    deadline = time.monotonic() + 5
+    while True:
+        try:
+            temp.replace(report_path)
+            return
+        except PermissionError as error:
+            if getattr(error, 'winerror', None) not in (5, 32) or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.1)
 
 
 def execute(elf):

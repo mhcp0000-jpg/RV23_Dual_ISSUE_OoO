@@ -66,7 +66,7 @@ def main():
         assert template.count(old) == 1
         template = template.replace(old, new)
     monitor = '''
-  bit linux_entry_seen, linux_user_seen;
+  bit linux_entry_seen, linux_user_seen, linux_user_vector_seen;
   bit linux_watch;
   longint unsigned linux_cycles, linux_last_retire;
   logic [63:0] linux_last_pc;
@@ -86,6 +86,13 @@ def main():
           u_dut.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U) begin
         linux_user_seen=1;
         $display("\\nLINUX_RTL_U_RETIRE pc=%h",trace_pc[lane]);
+        $fflush();
+      end
+      if (linux_entry_seen && !linux_user_vector_seen &&
+          u_dut.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U &&
+          trace_instr[lane][6:0]==7'h57 && trace_instr[lane][14:12]!=3'b111) begin
+        linux_user_vector_seen=1;
+        $display("\\nLINUX_RTL_U_VECTOR_RETIRE pc=%h instruction=%h",trace_pc[lane],trace_instr[lane]);
         $fflush();
       end
     end

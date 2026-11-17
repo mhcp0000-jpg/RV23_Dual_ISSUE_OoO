@@ -1,5 +1,5 @@
 {
-  "validation_date": "2026-11-16T01:54:41+09:00",
+  "validation_date": "2026-11-17T13:24:43+09:00",
   "target": "RV32IMFC_Zicsr_Zifencei / ilp32f",
   "audit": {
     "passed": true,
@@ -38,7 +38,7 @@
       "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
       "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
       "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-      "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
       "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
       "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -3032,7 +3032,7 @@
       "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
       "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
       "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-      "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
       "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
       "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -3140,7 +3140,7 @@
         "program": {
           "name": "c_loop",
           "elf": "out/programs/c_loop/test.elf",
-          "elf_sha256": "e2f5ad8fc59403f74cec464710ebcf73c7784eff0513a3bfc48eca756cd80623",
+          "elf_sha256": "7e0aa4727ecc62e78996fd54bc8d256242efb36ed39ea6aee7cb3b460d2cc3c2",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3179,9 +3179,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 5.686,
+          "seconds": 3.215,
           "log": "out/programs/c_loop/simulation.log",
-          "log_sha256": "88a390906943a9a6c769ff9d3f6080a44ed5864590275134dae2c60569d6c237",
+          "log_sha256": "f2972e399e0fbdb4566d3c4a6bac740774ca445ab48c2ee59e83cb8899160a8e",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -3199,7 +3199,7 @@
         "program": {
           "name": "system_contract",
           "elf": "out/programs/system_contract/test.elf",
-          "elf_sha256": "4e34c85ad2d8007bde5e5e51d9c25d7013e5200c4fcef0d7f6f2479dc9814159",
+          "elf_sha256": "a927d1ac270e9f129c28ed2563fe6fc1bb3397e868a7d285a6150b2276bd8014",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3235,9 +3235,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.121,
+          "seconds": 0.82,
           "log": "out/programs/system_contract/simulation.log",
-          "log_sha256": "ca8936725abae5b3a5a0d972d464e7e68a2c9110584f2d483b01b7fcc8cfb688",
+          "log_sha256": "508bc8986604f12ef364796b93747f1180b3c5ea5e32dd12c0aab973f28c7fc0",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -3292,7 +3292,7 @@
         "program": {
           "name": "external_access_fault",
           "elf": "out/programs/external_access_fault/test.elf",
-          "elf_sha256": "ddef36da070553bb1022da874815e1d7e0a9595b0987060a3260687ee0f1161a",
+          "elf_sha256": "9ce0531a8f23b5a203eb2aedb341a6141db58ef6e0a69bd1694194e98a91ee56",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3326,9 +3326,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.64,
+          "seconds": 0.439,
           "log": "out/programs/external_access_fault/simulation.log",
-          "log_sha256": "2c97bd46aad0ee3b3e0ade707d81cb45da23d06e30751147527cfab06137f8a8",
+          "log_sha256": "b5bac732576da575ac0934d6788150b1a9f70bbee730b683f4291a7f6065389a",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -3383,7 +3383,7 @@
         "program": {
           "name": "precise_faults",
           "elf": "out/programs/precise_faults/test.elf",
-          "elf_sha256": "37e032bccfb412947e596c23fe516ddc227bb30671b5547cf9264389c15eec48",
+          "elf_sha256": "edae154d6a526d18d7f13c350100513c0701b9a56a4d5518fcc127c0def62767",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3417,9 +3417,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.715,
+          "seconds": 0.505,
           "log": "out/programs/precise_faults/simulation.log",
-          "log_sha256": "f49d2f594bd575ce3042527ca645ec618d04c857742f4dff1926b23f0b32452d",
+          "log_sha256": "0922d585a225d1b126da32a290ce8a43895322c56f178c4befa86fde817a40c5",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -3480,7 +3480,7 @@
         "program": {
           "name": "dual_lsu_pressure",
           "elf": "out/programs/dual_lsu_pressure/test.elf",
-          "elf_sha256": "edfa6047a7b149e4ccc8835a79513d046f7a7807a6eca10773cc420040916b10",
+          "elf_sha256": "2b12ee7cc6fa4b3806149afeaaaba4cf8b00c365f925caf277ce06c623e2f916",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3514,9 +3514,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 12.252,
+          "seconds": 7.776,
           "log": "out/programs/dual_lsu_pressure/simulation.log",
-          "log_sha256": "8fb226a6a1e23a50dff4de93558068cabfa52d19c0636b266bb5162190048f31",
+          "log_sha256": "24b7d7883211233e07c6d7ccf28c8117b6ff973bb9c1ed35d3bc43df7d0ce2f5",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -3534,7 +3534,7 @@
         "program": {
           "name": "older_store_fault",
           "elf": "out/programs/older_store_fault/test.elf",
-          "elf_sha256": "793b99151e978782a01848476f4583ba55b78f4bda682c5252846d5146101552",
+          "elf_sha256": "5608f3d7330e2157ebee8f4c382b8f9dc2d75634b58c8ec53fbb4dc099bf90a3",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -3568,9 +3568,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 29.277,
+          "seconds": 19.262,
           "log": "out/programs/older_store_fault/simulation.log",
-          "log_sha256": "47f8b1739e17acf91498b54d00c9b4c842a13911efd1519afc9c02562f5c76b5",
+          "log_sha256": "339f00ea75cfb78508fcca525f8be5636adafd1450788846c2fa84bce56f7a8e",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5125,7 +5125,7 @@
         "program": {
           "name": "csr_trace",
           "elf": "out/programs/csr_trace/test.elf",
-          "elf_sha256": "19c7c76e2ddd97fb4e152fca91cafcbc42236ff874221cad8467678234c2f197",
+          "elf_sha256": "976763991098c16c2089fb0091151b2b144751294281de022a2691d9834f8638",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5159,9 +5159,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.918,
+          "seconds": 0.204,
           "log": "out/programs/csr_trace/simulation.log",
-          "log_sha256": "6e7bec8e5ca57a25c09089ee5492e088b68e7c1e1209c0574d304622bab1a677",
+          "log_sha256": "e9643c53a58ef351b8b9f6d382f2399ff5888d684cdbd38ec2c7413565ffac8c",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5186,7 +5186,7 @@
         "program": {
           "name": "pmp_parcel_boundary",
           "elf": "out/programs/pmp_parcel_boundary/test.elf",
-          "elf_sha256": "745441a63f56d22bd95ba4aaf143589062b66826bbdc1d7e237156f3b7b8f47f",
+          "elf_sha256": "c62d28da050cb3f9c3d63b78c6df1f5238edaa1dd53a377e35c127e98fbef3ce",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5220,9 +5220,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 2.116,
+          "seconds": 0.902,
           "log": "out/programs/pmp_parcel_boundary/simulation.log",
-          "log_sha256": "50fc820d455780328bd33f0bef208c3e01a242414157c6673ad6b1ce7b3f8a26",
+          "log_sha256": "890436c47a7a9ce85e8c043fae5a53ce38d27da8093aa513f790ede4061e014f",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5240,7 +5240,7 @@
         "program": {
           "name": "htif_smoke",
           "elf": "out/programs/htif_smoke/test.elf",
-          "elf_sha256": "c8aeb9eb558673540995bc4d0224a1828cac717f3760adb58c85d17c35654f33",
+          "elf_sha256": "0162626a556cda81fba6cb80fda338f2e8e46e5743bd3bb91b490a4fbe8fcc29",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5274,9 +5274,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.31,
+          "seconds": 0.293,
           "log": "out/programs/htif_smoke/simulation.log",
-          "log_sha256": "da8bd3e95eab26865e5bf892c96215fcd1f301757ea694b2584fd8f67715a746",
+          "log_sha256": "db653d1e2b880aec0b8f426fcb612eb71910ff0a4c90e2458625c261186299ff",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5294,7 +5294,7 @@
         "program": {
           "name": "dv_arithmetic",
           "elf": "out/programs/dv_arithmetic/test.elf",
-          "elf_sha256": "c4794e73af5609d6670183c5afd45ea1048c2f5b4f8510a3a33ba70d634de1e1",
+          "elf_sha256": "556087f1ab0ac3e19bcf91fa0a6727a5f75ecb8f82595e0c8c783b110db38603",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5328,9 +5328,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 2.895,
+          "seconds": 1.629,
           "log": "out/programs/dv_arithmetic/simulation.log",
-          "log_sha256": "64c9ac6313ea5e828af758643e10b10edaaa0e66b007db228cfdb16a1e132a45",
+          "log_sha256": "76c736b25a66444c26edd64639e4a588bc58b901d4b82851ae6739cbc8456e2c",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5348,7 +5348,7 @@
         "program": {
           "name": "pmp_protection_w0_f0",
           "elf": "out/programs/pmp_protection_w0_f0/test.elf",
-          "elf_sha256": "f56dd5689561392e89a7b8905f544e7eb5ca1c1be289237b13dbee707aff1190",
+          "elf_sha256": "bf3ebf2cfaa4b8cecc0f1ada533e71db2628de56f07494ae2c7cc1eebea47940",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5384,9 +5384,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.384,
+          "seconds": 1.464,
           "log": "out/programs/pmp_protection_w0_f0/simulation.log",
-          "log_sha256": "c8defeca2e51be3d127c82cd8e43a21600c883248d1f283ed80072bbe9f24ac2",
+          "log_sha256": "6f534438778540423fe263d6aefba61855a531ffafab68922c9c3609abb6eb1f",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5411,7 +5411,7 @@
         "program": {
           "name": "pmp_protection_w0_f1",
           "elf": "out/programs/pmp_protection_w0_f1/test.elf",
-          "elf_sha256": "89a31c53d5b9a15ebfc62b13dd09038a5f5e55750c7b75bea27d4c160a23c720",
+          "elf_sha256": "d1bfa7a71bcf089d0430a3c332b29f65624d1b5b5affd857a3d3b449428b95bf",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5447,9 +5447,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.471,
+          "seconds": 0.954,
           "log": "out/programs/pmp_protection_w0_f1/simulation.log",
-          "log_sha256": "3e8c6621a13484df78c4e5c95e9c989f1ee6847d86b9feffdd399c314537c24e",
+          "log_sha256": "168bbbaf12df4bdcb56bccd20ff9786afddcd1db616fb3b8e7858fdecc123ce5",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5474,7 +5474,7 @@
         "program": {
           "name": "pmp_protection_w1_f0",
           "elf": "out/programs/pmp_protection_w1_f0/test.elf",
-          "elf_sha256": "a0a2119a9a87bf927fc1d15657c838eb573508c0703a0379d91772fa4902616a",
+          "elf_sha256": "7f29e81789180fffa20cd39031a005223bdffc005d216742ad18ed995e051888",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5510,9 +5510,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.72,
+          "seconds": 0.867,
           "log": "out/programs/pmp_protection_w1_f0/simulation.log",
-          "log_sha256": "c97d899d3f8de8dbc3bff3bf0ea256552ed79b56f7a4942dd777fb9a90be31a9",
+          "log_sha256": "1e05f303da84df7a44eea9f51341adba37a637b999df1affb204456c766bbd8e",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5537,7 +5537,7 @@
         "program": {
           "name": "pmp_protection_w1_f1",
           "elf": "out/programs/pmp_protection_w1_f1/test.elf",
-          "elf_sha256": "1414d4687b82ddc934b56b1eff96335abb2c11dfafb3da9d188f5f1280f1a154",
+          "elf_sha256": "acfda256c207d9875727ee23341c5ae2c77893d0bb095aade67dc87b52c60aa8",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5573,9 +5573,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 1.942,
+          "seconds": 0.891,
           "log": "out/programs/pmp_protection_w1_f1/simulation.log",
-          "log_sha256": "9d9e794e161a9829aac7947ab43586056ff8e4c772508fd886875d204e09b144",
+          "log_sha256": "b0a53e2b71eb85aec0ec0eca6fadc5d2a6f83aab76fd3276e101bdb3bd761b25",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5600,7 +5600,7 @@
         "program": {
           "name": "older_store_fault_negative",
           "elf": "out/programs/older_store_fault_negative/test.elf",
-          "elf_sha256": "cd6b69e585b4dc3bd0ae65b7460bb2eb1c22278e94f6d86aeff627e698fe047a",
+          "elf_sha256": "41d66fa75d889c43b80794137cbe5b8a985ba2a58d143fef5c2b3ce40dcfbd40",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5635,9 +5635,9 @@
         },
         "run": {
           "exit_code": 1,
-          "seconds": 1.364,
+          "seconds": 0.607,
           "log": "out/programs/older_store_fault_negative/simulation.log",
-          "log_sha256": "96806980f2430901273733571d1b375e2c1cd5e703dd71383f45dc0c571a02fa",
+          "log_sha256": "93bc5fe876ebfd4ae6e47c8d847f5d2579c07911afc10d02aa2556ddf070fcaa",
           "expected_failure": "ELF reported failure exit code 1",
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5662,7 +5662,7 @@
         "program": {
           "name": "dual_lsu_pressure_negative",
           "elf": "out/programs/dual_lsu_pressure_negative/test.elf",
-          "elf_sha256": "71907684cbf58d6cf3e1c6ba0a2bd545e94f32cce26ac929a32747129f3940fd",
+          "elf_sha256": "fd44af8a89d0f4eccb835bb068d7bcc1de19f6e637fcb3872391a4eafd049f86",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5697,9 +5697,9 @@
         },
         "run": {
           "exit_code": 1,
-          "seconds": 1.407,
+          "seconds": 0.544,
           "log": "out/programs/dual_lsu_pressure_negative/simulation.log",
-          "log_sha256": "8af89e155ad9ecca8fc7bae2198c872519201f7fcd2d7a4097854781c453b1ae",
+          "log_sha256": "89579e5f9c8d21c98d69f98d96cbaf4990413feb359387ef01cdaf9f620ddb48",
           "expected_failure": "ELF reported failure exit code 1",
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5717,7 +5717,7 @@
         "program": {
           "name": "fp_conversion",
           "elf": "out/programs/fp_conversion/test.elf",
-          "elf_sha256": "3ba1956d7bc2d22c12a7de43347db58e35065d5b72c0bc315f1e09dd7b2b2845",
+          "elf_sha256": "098485ac7bfa3b344d687bb3e4f4124e48166c49e3f2913f80d8a3d8a8b11680",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5758,9 +5758,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 391.39,
+          "seconds": 263.61,
           "log": "out/programs/fp_conversion/simulation.log",
-          "log_sha256": "64f68510975f48dbf5357b5e69f7dd37fde3b124b0e02fa41852b83664cc13e1",
+          "log_sha256": "3bd43d3b159026e5947d03210b9008587f48fcfa79666992744532675d1c1826",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5778,7 +5778,7 @@
         "program": {
           "name": "fp_conversion_negative",
           "elf": "out/programs/fp_conversion_negative/test.elf",
-          "elf_sha256": "d6afad73814f01c61fbb63c6b8455001c693f6a98636e7f8c287443d311e187e",
+          "elf_sha256": "955da85f4298d4aafb095386811cde82270391c6f8b965af0e170b5560d3ab92",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -5818,9 +5818,9 @@
         },
         "run": {
           "exit_code": 1,
-          "seconds": 25.437,
+          "seconds": 23.674,
           "log": "out/programs/fp_conversion_negative/simulation.log",
-          "log_sha256": "0e07742467e90eded44679014f3cb46ba7046eeef76aa83ee5512bfd3a5e13b4",
+          "log_sha256": "f33d9b3c8864600bbbd2ef5b62481298a90c11ad5fb12603ff65e84c0b447b06",
           "expected_failure": "ELF reported failure exit code 1",
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5851,9 +5851,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.377,
+          "seconds": 0.213,
           "log": "out/programs/rv32_smoke/simulation.log",
-          "log_sha256": "79e5cffcb8cb8236847b60b2ed0cbc9388228c3ed21c97e1b144075c69bf1776",
+          "log_sha256": "64fcf08c2323436857898a0e7a32774134405b412289b2bd78d4e7456fd939c9",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5884,9 +5884,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.292,
+          "seconds": 0.149,
           "log": "out/programs/rv32c_smoke/simulation.log",
-          "log_sha256": "71b5d897ce3be809167bd7425ce94a6f53c4bf40a295431de91fc3ccf9eb99fc",
+          "log_sha256": "b541e0415240d4509b551808e9ef270d75ccee87e4433a299c0e43da43a700f2",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5917,9 +5917,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 0.476,
+          "seconds": 0.34,
           "log": "out/programs/rv32_priv_smoke/simulation.log",
-          "log_sha256": "824d0df17307e6e2250ebc516b7788a0e335c3afc7a28e2384e76d54bdfbf366",
+          "log_sha256": "96a67a672d7e1597ecc1093e7df8ee2db28b46e30712674339e8e05924130e11",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -5950,7 +5950,7 @@
         "program": {
           "name": "coremark",
           "elf": "out/programs/coremark/test.elf",
-          "elf_sha256": "26352fe99f4a5c630c5b72da6aef10ed3f87385c4902fdb03bbfc8ea40f237ff",
+          "elf_sha256": "43766ce93caeb2ec825fa6519fefa0ad729b092eeca2c11aff7718621330791f",
           "compiler_args": [
             "-march=rv32imfc_zicsr_zifencei",
             "-mabi=ilp32f",
@@ -6007,9 +6007,9 @@
         },
         "run": {
           "exit_code": 0,
-          "seconds": 243.126,
+          "seconds": 150.103,
           "log": "out/programs/coremark/simulation.log",
-          "log_sha256": "93c2b74320e5a6db9c086195fb5fa2d0bbd19a67a5a9579287018b4d5bee88aa",
+          "log_sha256": "214351830e968c46ec41e516c8c53880ff5efb314c35ff62ce93b2a9d6fe6b3d",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
@@ -6061,21 +6061,21 @@
           "passed": true,
           "summary": "PASS rv23_memory_tb checks=97 d_reads=83 i_reads=72 snoops=38",
           "test_sha256": "078f948061e40db7dae0e75a41c171ae3684a1d8714657d0c7b94678adbd299f",
-          "binary_sha256": "2b14127c5c9aa7a1d757d972894b58874b5e97cfbed1d695bb8f0b03d9526c72"
+          "binary_sha256": "bf1d763adfe0a3ec5d4b8a1b5b146039b8e4730d710183c4fb62c537aac17385"
         },
         {
           "top": "rv23_cache_fault_tb",
           "passed": true,
           "summary": "PASS rv23_cache_fault_tb checks=4648 requests=4260",
           "test_sha256": "ad5599d87eb6004ebad912c74c7fed8535bf231e02830a40781d26821da06061",
-          "binary_sha256": "d07b5c7d4364ee56a1959f4011ab287ded99f65537250e858acc600afd4d87f0"
+          "binary_sha256": "9fe3dcde1a59505b84720b3e4f8f0155457e670379f3fc83f16f9f46f18c15cf"
         },
         {
           "top": "rv23_boot_tb",
           "passed": true,
           "summary": "PASS rv23_boot_tb RV32 load/store, FENCE.I, CLINT, halt/drain/resume; commits=61",
           "test_sha256": "4e92bc2bf9e4ac470161721c1d1180aa4873547bb2a50fd4aa2db28c0faeedf9",
-          "binary_sha256": "4bad0341094ee7fd2e1e8d37b9091a35550500976d36fb7f41f0866302686657"
+          "binary_sha256": "4758c7c32a2555f2ecaaa94eaf5ff12d61c7d037fa8ebece7bb9abc72ee7ecf3"
         }
       ],
       "scope": "Directed subsystem regression and RV32 boot smoke; not ISA/profile certification",
@@ -6087,7 +6087,7 @@
         "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
         "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
         "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-        "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+        "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
         "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
         "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
         "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -6191,45 +6191,45 @@
         "passed": true,
         "run": {
           "exit_code": 0,
-          "seconds": 0.673,
+          "seconds": 0.425,
           "log": "out/random_memory_seed_1.log",
-          "log_sha256": "82a3110917d86038d5b76f65b1af37fa68366c8e940a03f1616bed9cfc2f1cc9",
+          "log_sha256": "e68726338fdf2da432be0367645230c953aeaf0df3a4f64e392bb5cb5685fafb",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600
         },
         "test_sha256": "078f948061e40db7dae0e75a41c171ae3684a1d8714657d0c7b94678adbd299f",
-        "binary_sha256": "2b14127c5c9aa7a1d757d972894b58874b5e97cfbed1d695bb8f0b03d9526c72"
+        "binary_sha256": "bf1d763adfe0a3ec5d4b8a1b5b146039b8e4730d710183c4fb62c537aac17385"
       },
       {
         "seed": 305419896,
         "passed": true,
         "run": {
           "exit_code": 0,
-          "seconds": 0.685,
+          "seconds": 0.365,
           "log": "out/random_memory_seed_305419896.log",
-          "log_sha256": "6c2bba5db24cfc474cf1135a1f4d8eb9835954c4563e7d5e3c1db8501d9669b0",
+          "log_sha256": "91dddc7c5539af6f500992efee0b3ebcbc9fb6fad97901cdf949691039c5aaa3",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600
         },
         "test_sha256": "078f948061e40db7dae0e75a41c171ae3684a1d8714657d0c7b94678adbd299f",
-        "binary_sha256": "2b14127c5c9aa7a1d757d972894b58874b5e97cfbed1d695bb8f0b03d9526c72"
+        "binary_sha256": "bf1d763adfe0a3ec5d4b8a1b5b146039b8e4730d710183c4fb62c537aac17385"
       },
       {
         "seed": 3735928559,
         "passed": true,
         "run": {
           "exit_code": 0,
-          "seconds": 0.536,
+          "seconds": 0.358,
           "log": "out/random_memory_seed_3735928559.log",
-          "log_sha256": "4e5b62fb7836584b572ea395452382f4b472b45e492ea779493e3863f24233cd",
+          "log_sha256": "b941bfc582761efdb36d091e46b82cbc3d739fd8303dcd36a80ef5c5a4cd1eb8",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600
         },
         "test_sha256": "078f948061e40db7dae0e75a41c171ae3684a1d8714657d0c7b94678adbd299f",
-        "binary_sha256": "2b14127c5c9aa7a1d757d972894b58874b5e97cfbed1d695bb8f0b03d9526c72"
+        "binary_sha256": "bf1d763adfe0a3ec5d4b8a1b5b146039b8e4730d710183c4fb62c537aac17385"
       }
     ],
     "scope": "RV32 core baseline, 32KiB cache capacity/error tests, seeded shared-SRAM I/D scoreboard"
@@ -6251,30 +6251,30 @@
         },
         "compile": {
           "exit_code": 0,
-          "seconds": 1.643,
+          "seconds": 0.992,
           "log": "out/regression/xbar_lock_fixed/compile.log",
-          "log_sha256": "24f8533f67bcad39cf18fe4f3a1e91b6fa3a935bb2ea41b975ee6305c4923f85",
+          "log_sha256": "c93f50f36696b1a8b3aeb569586578559a3199369685dfc2a87ff8b249e97ade",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600
         },
         "build": {
           "exit_code": 0,
-          "seconds": 45.874,
+          "seconds": 27.937,
           "log": "out/regression/xbar_lock_fixed/build.log",
-          "log_sha256": "535ee61bdd7eb8f3e72b28f5fca8c0d9cc5be585b034c7ede6047e06a1aad438",
+          "log_sha256": "88daeea6ca49475c21d5e316190c7fa764add1acb9cace7dd2a2801840181077",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
         },
         "binary": "out/regression/xbar_lock_fixed/Vrv_axi_xbar_stall_tb.exe",
-        "binary_sha256": "c07402d30eae296126b374875a6b66835053aea50b7fdecad6829161159353b7",
+        "binary_sha256": "4effb962ac0005b1dc6df9d4990fb9eff6a17f42f8bd546aeaf5176b270870ec",
         "passed": true,
         "run": {
           "exit_code": 0,
-          "seconds": 2.77,
+          "seconds": 3.017,
           "log": "out/regression/xbar_lock_fixed/simulation.log",
-          "log_sha256": "0c33df83e9af7dbbe16fac2c5d808650d2b07dca3aa1eedcc6765db34b1096ca",
+          "log_sha256": "3fcb6ae014b514f65d383c9fd3fc61f65e6652953861b5760e40e6bcce5d3ba1",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600,
@@ -6297,30 +6297,30 @@
         },
         "compile": {
           "exit_code": 0,
-          "seconds": 1.746,
+          "seconds": 1.321,
           "log": "out/regression/xbar_lock_before/compile.log",
-          "log_sha256": "9587242d965736ae314a2913646341ae439b549416c099189a3cf55f5b19eb7c",
+          "log_sha256": "d2909011ef672eab83c9238a79999df3a59803ed6334804baf4749d9df1273cd",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 600
         },
         "build": {
           "exit_code": 0,
-          "seconds": 51.925,
+          "seconds": 40.349,
           "log": "out/regression/xbar_lock_before/build.log",
-          "log_sha256": "88499b90a0c59dc65a482062dedcc33edbfd261766e5aa9de2eff91ebe14d88c",
+          "log_sha256": "6c1daa0e7427726d91f360527abef4c1294d079c9412a8cba8015092b033ec7b",
           "expected_failure": null,
           "passed": true,
           "host_timeout_seconds": 3000
         },
         "binary": "out/regression/xbar_lock_before/Vrv_axi_xbar_stall_tb.exe",
-        "binary_sha256": "40f1f8907a691c1079df32d60a9d6b459b9760203de3264e66e4686c0562dbfb",
+        "binary_sha256": "f11939663ceaaa548fa6e77bac1cd81eed09c2ba0cdf18bda79a3bd4d2817440",
         "passed": true,
         "run": {
           "exit_code": 1,
-          "seconds": 0.733,
+          "seconds": 1.418,
           "log": "out/regression/xbar_lock_before/simulation.log",
-          "log_sha256": "12e46fa75c9b5d8cfb3d07153c9c3952c7bab235546bca033344415a04b5260b",
+          "log_sha256": "515f5eeb2ee67595b72150fa6d70dd235c751f2b8dc0bf077fd200199d5339d7",
           "expected_failure": "AR ownership changed under backpressure",
           "passed": true,
           "host_timeout_seconds": 600,
@@ -6371,30 +6371,30 @@
     },
     "compile": {
       "exit_code": 0,
-      "seconds": 51.709,
+      "seconds": 54.305,
       "log": "out/regression/sequence_credit_before/compile.log",
-      "log_sha256": "52267be591790de098cbe61e53d537115b5bcbdc96ed0c609d2299d3d7cb5349",
+      "log_sha256": "3925270b722d55e134f21adc40548c70e02b2721cf9cbaa3f99088dd41a052d6",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 600
     },
     "build": {
       "exit_code": 0,
-      "seconds": 209.715,
+      "seconds": 266.231,
       "log": "out/regression/sequence_credit_before/build.log",
-      "log_sha256": "96774035ba6efd352f60af03b886d2bde4b1603b012ef84fa0f5c0586d1de26f",
+      "log_sha256": "288a46a798675e7e5890f1a38dcd6b18ca90bd9a77d4b09ae4de7d50ccc1d381",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 3000
     },
     "binary": "out/regression/sequence_credit_before/Vrv_backend_seq_admission_tb.exe",
-    "binary_sha256": "a4ec48f1440b085e1abd62db24320a7b594aa1f09aa0bcd8bb06a8fd073d7c26",
+    "binary_sha256": "de52c9663cd0e92de88e0fc1ea837ddb939789e2ba99a14f861466e8e1194bfb",
     "passed": true,
     "run": {
       "exit_code": 1,
-      "seconds": 6.893,
+      "seconds": 7.807,
       "log": "out/regression/sequence_credit_before/simulation.log",
-      "log_sha256": "593ad3d4a477825971a8755b5cd6526ffd58368e2ecfd1216c387048ea32fcdc",
+      "log_sha256": "827062d6eff94a1a68c7a4d426366763459857f1fa991b0ad497cdcbcc112683",
       "expected_failure": "BACKEND DISPATCH WITHOUT ROB ACCEPT",
       "passed": true,
       "host_timeout_seconds": 600,
@@ -6628,9 +6628,9 @@
           },
           "run": {
             "exit_code": 0,
-            "seconds": 237.93,
+            "seconds": 155.833,
             "log": "out/performance/banked_after/after_2/simulation.log",
-            "log_sha256": "cf543223781d586ee1c620b5108ecb1fdfa8146ac38499c5957ffa0ba45fcd57",
+            "log_sha256": "3f58b694b266aa4032283b9ef3ce2bbf0fc2f8de6aa9b99a6fd647da2dc0ee42",
             "expected_failure": null,
             "passed": true,
             "host_timeout_seconds": 3000
@@ -6878,9 +6878,9 @@
           },
           "run": {
             "exit_code": 0,
-            "seconds": 870.596,
+            "seconds": 554.736,
             "log": "out/performance/banked_after/after_10/simulation.log",
-            "log_sha256": "4deb6de21d9f0ae72dfefceb70100ead8531f6491ba0f353dbe9b33753850959",
+            "log_sha256": "3699470bb09c2e9307a67c645efd466be95e17b5ef6ba2c9ddc0d6b1b358a957",
             "expected_failure": null,
             "passed": true,
             "host_timeout_seconds": 4500
@@ -6893,7 +6893,7 @@
     "before_binary_sha256": "9cbb8764fb1483b3465412570f6ac5db20ef61e55edb0efdaf73133f9cc04d19",
     "before_source_root": "out/performance/banked_before",
     "before_model": "out/performance/banked_before/out/programs/model.json",
-    "after_binary_sha256": "7b7bf17e321e1b400b9ec4cc5d7dc363d31c3d60dc1b23eb9a4a9d9b29fed7f2",
+    "after_binary_sha256": "0a71b5a89c86e335c32ba8bc4c01a43123d90825fdc0135c56feb017ae17bf0f",
     "after_model_inputs": {
       "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
       "rtl/soc/rv23_pkg.sv": "e7b3249c0f8d82e733221a9d648f104d360e8d089ca07e320c431a3e98adfaab",
@@ -6902,7 +6902,7 @@
       "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
       "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
       "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-      "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
       "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
       "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -7059,30 +7059,30 @@
     },
     "compile": {
       "exit_code": 0,
-      "seconds": 2.797,
+      "seconds": 3.478,
       "log": "out/regression/cache_line_lock_before/compile.log",
-      "log_sha256": "c141fd9d5ba6f8bc6249e22185754211e91c7c7ae44a1efd7b72f10ee6743d82",
+      "log_sha256": "524b421d0f6bb96de3559ba3b51fe6d1637e7d7444155b23999ba095695e6d36",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 600
     },
     "build": {
       "exit_code": 0,
-      "seconds": 56.25,
+      "seconds": 56.42,
       "log": "out/regression/cache_line_lock_before/build.log",
-      "log_sha256": "bcf09f3bdabccaed7d63767200a289a4de43f83ab831a4e7ae00061f0317d022",
+      "log_sha256": "7b746568da04025ceed66c39eeba16a8e1bb10f1076c8b8f97c5a4c27bdc9073",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 3000
     },
     "binary": "out/regression/cache_line_lock_before/Vrv23_memory_tb.exe",
-    "binary_sha256": "703d3410d62cfd99d14382ecc212884a06c9b1dfe93ff059509f8a04c0436c60",
+    "binary_sha256": "fc7d0ad1b8b6c3620591fd0c398ce93dbb0a676071d41ab8d92566da877783d2",
     "passed": true,
     "run": {
       "exit_code": 1,
-      "seconds": 5.613,
+      "seconds": 1.87,
       "log": "out/regression/cache_line_lock_before/simulation.log",
-      "log_sha256": "6bce1a744bfd78807521825a79f3f8c3142e5493e9aaa0c9f268dcaabe645501",
+      "log_sha256": "d65bf712491e4e57c84ff75b095d2097432efe9f9e03ea540fbb4f5c5cdecd63",
       "expected_failure": "Pending write blocked another word of the same line",
       "passed": true,
       "host_timeout_seconds": 600,
@@ -7104,30 +7104,30 @@
     },
     "compile": {
       "exit_code": 0,
-      "seconds": 0.764,
+      "seconds": 0.761,
       "log": "out/regression/cache_launch_before/compile.log",
-      "log_sha256": "fc6f59d9031e9caab6da19a2ae6a1dfe35320ade65953c0171814bb0600f5439",
+      "log_sha256": "cea6928fddbb93e4caab479cdcc7357ba4e61dabfb2ba908bce9b802aadd3123",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 600
     },
     "build": {
       "exit_code": 0,
-      "seconds": 35.252,
+      "seconds": 39.206,
       "log": "out/regression/cache_launch_before/build.log",
-      "log_sha256": "0098cf34727c4c9b256ca25da160be29699ba8f5e446460dd34c8cc02d271330",
+      "log_sha256": "ad605c14fe326f4a3139f4a90fe6208222151156bc9b05e8a7a8dfaf533e9105",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 3000
     },
     "binary": "out/regression/cache_launch_before/Vrv23_cache_fault_tb.exe",
-    "binary_sha256": "220379da95c0d49d3fa776c231cc588ee4ec82d716ebd4d5cfd5d4122ceecf55",
+    "binary_sha256": "9cbb8c93f223b7aee55b357f22a99b41cc0df81c2b2376dfe6e988a104f06c22",
     "passed": true,
     "run": {
       "exit_code": 1,
-      "seconds": 3.45,
+      "seconds": 1.027,
       "log": "out/regression/cache_launch_before/simulation.log",
-      "log_sha256": "d3d44a3653bc62e0e12b113f5fbb40477f4360e9ec0715cf07f53a976e3eee25",
+      "log_sha256": "98baa1dd31c8e17a8649a73321626cf9c48f72ac5e61c24d0b7aa11ce7baf413",
       "expected_failure": "Cache launch inserted an acceptance bubble",
       "passed": true,
       "host_timeout_seconds": 600,
@@ -7143,7 +7143,7 @@
     "baseline_report": "out/performance/wt_before/out/performance/banked_after/report.json",
     "baseline_report_sha256": "60b9ec9b22560007e8fadffbd30fadc6bb2a2421d236cdd6dd188530b0920074",
     "current_report": "out/performance/banked_after/report.json",
-    "current_report_sha256": "654f32e3ea7f4ec080b2395430162bd4ab328268f62f0564e389a8a908acd120",
+    "current_report_sha256": "b94aa097d920f6945f3d3db533251ab71558fa52cc807ce3c3e76bd2c3d30eae",
     "before_binary_sha256": "84055ecdbcbc311d2804473311dfeb338ea96a9892dc6044a008166175ee35b0",
     "before_binary": "out/performance/wt_before/out/regression/rv32_program_tb/Vrv32_program_tb.exe",
     "before_model_inputs": {
@@ -7203,7 +7203,7 @@
       "out/performance/wt_before/tb/rv32_program_tb.sv": "db51699c613529a1614cd5b5918beebfe08aeedfba6fca052fa1b93b905edc84",
       "out/performance/wt_before/tb/e2e/dpi/elf_loader.cpp": "29b67284539e940fdb67d2dcbfabb2172f0c2b5e523cfc3b3030e6ba31c76944"
     },
-    "after_binary_sha256": "7b7bf17e321e1b400b9ec4cc5d7dc363d31c3d60dc1b23eb9a4a9d9b29fed7f2",
+    "after_binary_sha256": "0a71b5a89c86e335c32ba8bc4c01a43123d90825fdc0135c56feb017ae17bf0f",
     "after_model_inputs": {
       "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
       "rtl/soc/rv23_pkg.sv": "e7b3249c0f8d82e733221a9d648f104d360e8d089ca07e320c431a3e98adfaab",
@@ -7212,7 +7212,7 @@
       "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
       "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
       "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-      "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
       "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
       "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -7522,30 +7522,30 @@
     },
     "compile": {
       "exit_code": 0,
-      "seconds": 2.126,
+      "seconds": 1.661,
       "log": "out/regression/memory_latency_after/compile.log",
-      "log_sha256": "abafd3cdaa1fc02dd83b54acbe38953ee7fcdd43ba3e6f239ce074f612837e1c",
+      "log_sha256": "64ac3efc9af9fe269c5b260493a9bc8ba611fc548b72b56e9a5c33f9b40e3856",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 600
     },
     "build": {
       "exit_code": 0,
-      "seconds": 30.645,
+      "seconds": 22.674,
       "log": "out/regression/memory_latency_after/build.log",
-      "log_sha256": "69a921c23502fb8262b4795e77c7113ee9297725c24f77e49c8c2eb340c75940",
+      "log_sha256": "9f9bb4560e479153a49ec734d8641d3bf0e7358e77e60e7d51f37b7fb8c801bf",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 3000
     },
     "binary": "out/regression/memory_latency_after/Vmemory_latency_after.exe",
-    "binary_sha256": "147ee912f7ade6f6d9b78b3b6cc4343802eb19ff2e5f0542b03bea2d5494fd7f",
+    "binary_sha256": "30bf4a4709b566dfec8bc6e1a856f8eea3ea438f4801e8cb5b59bbe4ed4178c8",
     "passed": true,
     "run": {
       "exit_code": 0,
-      "seconds": 0.974,
+      "seconds": 0.887,
       "log": "out/performance/memory_latency_after/simulation.log",
-      "log_sha256": "4cd329585e4af38cc507b1e232dd717c06cdaf3eb6d21228ea9bd2b4e005dcb0",
+      "log_sha256": "0663430eabd98d1afa90f92c9f9ff565fcdc365727bf9bbbbeb3219bb5a27e1e",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 600
@@ -7591,7 +7591,7 @@
       "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
       "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
       "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
-      "rtl/backend/rv_hypervisor_csrs.sv": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
       "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
       "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
@@ -7693,12 +7693,12 @@
       "rtl/vendor/hardfloat/HardFloat_localFuncs.vi": "e6e8d53f362dc2c9fe14c9b0edbc73bc6367d8899276b3384e947a17029b5d50"
     },
     "binary": "out/regression/rv32_program_tb/Vrv32_program_tb.exe",
-    "binary_sha256": "7b7bf17e321e1b400b9ec4cc5d7dc363d31c3d60dc1b23eb9a4a9d9b29fed7f2",
+    "binary_sha256": "0a71b5a89c86e335c32ba8bc4c01a43123d90825fdc0135c56feb017ae17bf0f",
     "run": {
       "exit_code": 0,
-      "seconds": 159.233,
+      "seconds": 116.437,
       "log": "out/performance/tim_reference_elf/simulation.log",
-      "log_sha256": "f496123c2ce271a1daaa25e43644eb325e93bd7308ce8126722d49ec4cd1046d",
+      "log_sha256": "c7568daa14c39a40c4fce9ee6ec260d56c2de43792aa7210b087811f5c037c60",
       "expected_failure": null,
       "passed": true,
       "host_timeout_seconds": 3000
@@ -7710,16 +7710,16 @@
   },
   "runner_sha256": {
     "act4_header_io.py": "d67fcf40230d7283f20eb3f31592af7eae00f8cd0e9371f954e9fe1f981ac43f",
-    "act4_host_run.py": "e917ff07a23f830a69a3874694e2fb4d9b0c369439f5ded0c6f205612cdb48d5",
+    "act4_host_run.py": "96cffa2da63f3bc3d417eabb72f56cfcf7be31a85bb3d8671dff47d93e4d5f75",
     "audit_act4_inventory.py": "c1e9d06f73eca98014b945befd568166c7f219005f3c2bcc4655a7af1c588715",
     "audit_act4_results.py": "1a99eb222ff352251d7df04d51daebe001a3e7fb2c8b69c0912c4dd483dfcac7",
-    "audit_hypervisor_integration.py": "4a9a6566c04d4dc9325d751611f85165c5ee926840db7c9ba1dda16cf0248933",
-    "audit_linux_boot.py": "efd143dfefdf3f55bf37404c22a1e0417a7ca4a03ff7db06295a5f6ee87224f8",
-    "audit_profile_contracts.py": "45bc08394fe9226303eb1d268b440d2e26e7ac5c0faa5fba295485235884439a",
+    "audit_hypervisor_integration.py": "d67b2b801b5fd3af5a3d3af677574699ea7ae887aa8efd805e7866333545e58e",
+    "audit_linux_boot.py": "abf53aa83e4d10ece16c533bb8b3ee3b73ccf4b66329d9800ed8acf17f387d24",
+    "audit_profile_contracts.py": "0020f4f19b8139e1b0af58300abd6986dae81d74f8d5144d81bbb2b4ffd254d8",
     "audit_ptw_debug_coherence.py": "216255a5741f4d563493f00db3a175196ed323475ff5f95eb158e0c21483f869",
     "audit_rv32_release.py": "346905ed10e18549518e0bd1ae90c4d141cb4fbc58ce1ecdb898eebf498bda6e",
     "audit_rv64_ooo_integration.py": "e3bf33b42de93a1d1446cccb6a89e3361da700f749a8f6b32d9f08bb5e5aea01",
-    "audit_rva23_requirements.py": "81b127f9438aa04195a6e487ddfb97c653c90d382723f83da34535d4d0ffdabe",
+    "audit_rva23_requirements.py": "914234de9ed643ebe94457924961534814ff0f0adff674676c29ae03618ce919",
     "audit_sail_comparison.py": "9cd39a0af8b531e45f5523894a37fea8c61c0144b1b21e77d5a1b5f0565cd418",
     "audit_sail_event_comparison.py": "ef6665837250c81180a5717b0c5c14fe1a99a18ef36bba6db98ca1301e3aedb8",
     "audit_sail_retirements.py": "655f0c625e6e9351e4b72221d3762a13699606e298917b4e02d04e7b6a941d13",
@@ -7734,7 +7734,7 @@
     "build_act4_sail_driver.py": "c68c460a921009a6be7c35742ab304d164ca03af46b0c87614a59031c67b462f",
     "build_act4_sail_library.py": "72be699fbac029f0a50e39245c8103f1380005c1acb71b2300fb7d74fccc8951",
     "build_fp_conversion_vectors.py": "8f1d9c42540dec3d21bec572bff6519768ea996194dbfe00d0940b84cfdacec1",
-    "build_linux_sim_model.py": "8c0efe44bc44e0d1499fec3ca2d126c3dc5c3c04573f86f1f4e9405d0611ae90",
+    "build_linux_sim_model.py": "85a7ff4106099bffe05b505d9677c7203d20df292692129395de16ce679ec6a3",
     "build_sail_event_driver.py": "3f71de8c72d28e439654dd2ae313251cd024951b7a6931a9ac141af061e294d2",
     "build_sail_reference.py": "4514a2fa1c26ba309e04e7efadeb6903a8c8380a8578abc96995d5b395fcc88f",
     "check_act4_negative.py": "9040b5c8fd829d11f217adea4ae7d4adf6e83bd0939c0f4f3b574e386b2d266b",
@@ -7762,8 +7762,9 @@
     "probe_sail_privileged_retirements.py": "3c90cc18d55802f1cae5412a55af7496aa2be9a3b2ac01b1ca84532fa2e8b264",
     "profile_memory_paths.py": "0aa3c9302f81f3c140bf08541e5aff359ef0c8da25d117c25ca27b9f6799818b",
     "recheck_cache_baseline.py": "0a158a939ef394dc6c725a352e0771cdfd26438b79f1ac7742aaab5b1acf95f8",
-    "run_act4.py": "7079301165556c88ba897d95e6d45f08ed770fc9eec448db8f345e179ff5a8a9",
-    "run_act4_dut.py": "0b400faba131e525750312d393ca4bd3a75124a5253cd9c945fbdf4fe734a1ba",
+    "run_act4.py": "8ca494421fc14f39233b80d3082cfe969eadf34c973f426f44b5f70084775eb3",
+    "run_act4_dut.py": "cb0250e747bd022382e536ee4ed3d026df0a68dfed2edad5f331b6f93e840936",
+    "run_act4_upstream_h.py": "07a404ae24a7d4680af0b3097e237861e50fbd0473a5d3f78729a4fd3668f4ff",
     "run_all_rv32_checks.py": "e0452654fe59822dfc3713e132cfe5ad2e9ee1e4ea5edcefd8ca86e618ea6ecc",
     "run_atomic_engine_checks.py": "1750c69dafc971071006b2f4487bcc79e6915e3abe7c414c4f2737c82976ae75",
     "run_atomic_integration.py": "cd9b792a86d315d6cc54d535ca11f25ce64f4d7663244fe831eca2b4e91203e7",
@@ -7778,11 +7779,11 @@
     "run_compressed_d_checks.py": "f3eb6167729695a1cab8535718da8bc85a391f18d8a490406c5a1345551f7ca8",
     "run_compressed_profile_checks.py": "176f06436e6a535f85f38b7218d815328048b9dfd70e28f4273173b50fafe2f5",
     "run_coremark_iterations.py": "7f053cda475bded43f9cad2814ffe50fc2e46fb4ebe23036db5cd9d7b11a51ed",
-    "run_counter_permission_matrix.py": "22df920f643e86fc06509110b42aeaf27a3c40b94fcfda5ddf74e1ca21eeba14",
+    "run_counter_permission_matrix.py": "d38ef5cbbdbcdde54563f84d2b3c96a9dee930ff484a48cc42e56ff41df49bf2",
     "run_elf_loader_checks.py": "bd488cf2a2b08198e0af4d4a4ba81e9ed37e414622a96a33b91794ca482e2dde",
     "run_exclusive_checks.py": "ec1e3c062480330a9acb6fbeacb6e37ee8383273b961f41bb31fdec7853e9ebc",
     "run_extended.py": "81f25b1ef10039b5be0c262dd56ed6bfe99e62335ac2c6f947fe09596de75cab",
-    "run_fence_order.py": "f9f335f5463fc226e4e7e1745330b5bec85d1360899c11c828630095c1efbaa0",
+    "run_fence_order.py": "3e439152417cad93147e52b5b76d2e3511e7ff7c9474b889a8f7d1bb93882caf",
     "run_fetch_fault_decode_checks.py": "c188b57a6aba91568d053f16da99211ee7ee00a770e4c8f08d586d155d756c24",
     "run_fetch_guest_metadata_checks.py": "08bd4ba1583602a028fb06f30fc12ce3d157f3bb036c4bf1a75e65214f9c2da0",
     "run_fp_aux_checks.py": "5da9edc6e1454520d7af8c4bc05acc966030715392cafe4a30e2f21f320e626d",
@@ -7791,22 +7792,28 @@
     "run_fp_state_integration.py": "758306706d885b2260d7d766d2036ec30e25a535a2f52c014b075950d702765e",
     "run_fp_sv39_integration.py": "81310a59942414826114874d888afb714e2fda75f23399135419a6124824b60f",
     "run_fpu_rva23_checks.py": "92a89534ab10783702b230b4ae1d058e5abf364e79dc830392cf9023e7730d48",
+    "run_guest_access_sum.py": "a94b57a6e41d7639d27c6245244fd17fc60ab7f254359cfbf12e11ba6489048f",
     "run_guest_context_restore.py": "a6c77183cedb2d28638821d1e0228a4d8d75cda901f809002b9b2fee04249feb",
+    "run_guest_ifetch_inval.py": "c1cfd18790ed3e884d7a26744a6ac748e29a8f020009707c4a511a1016ebf0fa",
     "run_guest_interrupt_priority.py": "473062ab4f8f86aff00e7c2ea0c820f2979f1e95e55b5587bbbe236126ce44a5",
+    "run_guest_misaligned.py": "fd57b0081edad3d884766ce25a58575e35698f65cae1e6c377ebbcfdd60d1e88",
     "run_guest_pbmt_precedence.py": "7d73270d540e67949d18efb36128dfb3d62cf2dd152fef1e89e732d7b96d993e",
     "run_guest_pointer_mask_faults.py": "42695b7cc290d0aa564d3872e11de1fbb6b3ac30b2950b5e614d13b00a0506fd",
+    "run_guest_pte_mxr.py": "fb125e5d14cc06baad50e75d28f7249ddff30ae9766298be6f7327722fbf42a6",
     "run_guest_stateen.py": "18a864376a5092df552c6f4801633942551d25a96943ba01786af7f6af030625",
     "run_guest_superpages.py": "ed5ce41378aa0fd90c74a45be5deca2d465cfab9debb41610407d1782bccafa8",
     "run_guest_timer_wrap.py": "ae891a854bcbe7994343ed032a4378ecad572d354a4ac2d89a60f47a79f28beb",
+    "run_guest_vector_segment_ff.py": "644d248947d29a9cc3dd731a4a732246e6a4f96e35c096e15c9c2ef7a1dc716b",
     "run_guest_wrs_timeout.py": "060d0b05ec7e3aa22f6d6aece58bfe412e516909d715496a87056d7d6ca8d2f4",
     "run_hlvx_permissions.py": "7dd6faf2344a624d2a982393a6d3dea253def6b6bc7e956e8c7a1b9566bbdd0d",
     "run_hpm_counter_checks.py": "1a89925cc5a2a88ca0723faf2a539dad0187ee7c615623dddd3ed843b10fa9db",
     "run_hpm_csr_file_checks.py": "4b14bbb751bb37ce6c94966d10b2d7c53a494097e38fdba83783bdba1fc88e6a",
     "run_hpm_integration.py": "85e58c61b819002b817207b03553e5619f86f1e50ae5e89ee7c1641d18b90967",
-    "run_hpm_mode_filters.py": "98a8640a127d878dad743c6cf224bebd7c19a9954349b98b2c22c35db5d43aa6",
+    "run_hpm_mode_filters.py": "78975f537637f57e37e2ee8fbaf8f351dc56eb196884fa0074a5c7001d47d9ac",
+    "run_hv_sail_fixture.py": "9cd0fd814b63256f708d8c415bd1b1a284c5e14536131dc84ca85ecc7e133432",
     "run_hypervisor_access_integration.py": "14ba2f287857c8617d65a01833422cc64d3e01c87eafe413a40296b67e7ffda6",
     "run_hypervisor_access_widths.py": "0ceaa84e0a98dab58aacbc2236c21785e0104394f218d3734046f0099c2eb90e",
-    "run_hypervisor_breakpoint_metadata.py": "4410d3f41b428bff5bc5a784ab5c19612b8972446c1d6a9a346ed08dbb25f394",
+    "run_hypervisor_breakpoint_metadata.py": "854dbaa4aa4e886243f8e8759609590d6554b084c4c15c2243098eb7f18bfc65",
     "run_hypervisor_csr_checks.py": "468e8963610c0cea0c6f8c59423768bcb9f4d5f3593337c3674bd066ce1224ab",
     "run_hypervisor_csr_file_checks.py": "e7d42fa44e661f0fbcc37decd6917eae5c4ac95478ac5b57d6c9281eee174f44",
     "run_hypervisor_decode_checks.py": "7ad304ad2685f5aeff98128667c250a6961176c9a2d6084ed13c4fdb501efc91",
@@ -7819,6 +7826,7 @@
     "run_hypervisor_stateen_checks.py": "f756da22d08e3cb5638e43d0c43634e6c2fcd58b89f44d142a28cfb36d760d7e",
     "run_hypervisor_vector_faults.py": "05af5b76252eb3589a8f4ec8c1d5e97a9ab8f535f1db0e33d6fe636d7ead386e",
     "run_if_translation_checks.py": "5fbc0f950fb48b2f249a3771d74f763d106386cb5cb3e00cdb54a8ea21fb6247",
+    "run_indexed_memory_restart.py": "7d15929eeeefa532d6c4cd1a5264afa07f066e78c10d499afd5a6cf6b190efff",
     "run_instruction_fetch_atomicity.py": "736354c3332f54471f142ba76941216c569457f1fbe48e5a14ee795a1df58a79",
     "run_interrupt_csr_boundary.py": "62456e09e5fcaab6d75114cb5035c9a4a261b02893dc0e8c7dbc4e215b576d6a",
     "run_lrsc_progress.py": "d3bd40249f4f697fcbee15eb37cba4691ee55849638421a814004a8f86f94619",
@@ -7827,16 +7835,18 @@
     "run_misaligned_integration.py": "d48462f2a28af9e65c2d006eedd6a9b5fb48c4b1e4bcd5104987a1e2a84b3d64",
     "run_misaligned_sv39_integration.py": "ba16e6bdeaf9aa45a8045337814ef99db222b28f81a4221af87aff811a064daf",
     "run_mmu_checks.py": "6882ebcd890227ba4f7a3399f2ed05847ed96379b7b70141384ab7fb2e8254d6",
-    "run_opensbi_handoff.py": "bd5e680b79b4514e97b543bbb0afb3465ddf4ddef05a808528a0140764b18051",
+    "run_opensbi_handoff.py": "9095613bd4917ec3245ebbef99b6aaa9f824576c9b6cc58c7c0a53262f16ea1b",
     "run_pointer_mask_integration.py": "7bc6e62a6bb518404290f7cd048d101db5b18d32428406728205a15f15082826",
     "run_preserved_tim_elf.py": "f1450929cdc2ce8b5f4c6c44fdaeffbb757959159b04457d746caab16e5b55a9",
     "run_privileged_instruction_matrix.py": "54d7b71adb170d58c890db2b090d7abde8d912a3efa7c581b54460deb3002d3b",
-    "run_profile_csr_geometry.py": "26d7892d5f0db2c15bceefbabeb2524170cc3b983525c345150e683454927520",
+    "run_profile_csr_geometry.py": "4f4def7e4a3342634b9839d6320d5317c9cb6c6ab1b959d5b9262ca8a7efd3f9",
     "run_profile_hypervisor_replay.py": "841a35fef4c42664473e2e03f7b440d9017d13aa50d23a4679b86fc9c3dacfcb",
     "run_profile_scalar_integration.py": "098c7c97e22eed3c09fc0a50b83d40592a1e7051907d3895d65a30be11aa9e48",
     "run_programs.py": "1d8bf610fbd2742d7274ca085771fe218801b51564bfdaad4aeafe0eea15d904",
+    "run_pte_nonleaf_contract.py": "ff9499c3674f3b8e4e74708ca7f4e8f54750d063a859c367bd724d851e2768cd",
     "run_ptw_debug_coherence.py": "f7723ee07c34d5be1830dbdc5405331ef741d69b57d016ac8222ae8ec0d79625",
     "run_regression.py": "260fde33247dc31c340db132212fed9569255a3444037089f4d36c55f3707bfb",
+    "run_rv64_load_value.py": "308bf589539ad802bcaf689db205b8563699aa735613ad1d0adb176468a234c0",
     "run_rv64_ooo_integration.py": "4ad5c91bfd665b059d029a86b20d646a9ef371e6668d815fb5723fd6717a83bb",
     "run_rv64_platform_contract.py": "9686082358e8f5225fc32b0495b5fc4b5fd63eb9cb96cbf5ec7e9328254bba6d",
     "run_rva23_functional_checks.py": "94a5e2bb495685f7f613d2a6e1bc6e7df1ed746b8cf9d5d048c55c000a070b05",
@@ -7845,29 +7855,37 @@
     "run_sail_retirement_negative.py": "714e850c45c6cd7356228100b0b6cde571c2e4d7aeab27af2486cbc62ab488a0",
     "run_sail_upstream_comparison.py": "2bc35fb9e1f3806a8e468412dc0d16c0ed2c14f4e001415233eb1ff8ccf4dea2",
     "run_scalar_timing_integration.py": "c5d9bc1c9097bef37b953f9ed7b4811534ce10a93921279172f9474867e85290",
+    "run_scalar_vector_memory.py": "ee6039a782488accc4292341608ea4b69bff9be13e6e4ea9cc64e7d03eca2f20",
     "run_sequence_negative.py": "36c33dc216c161b71af4b7080cd873399a7aed5ba26f1d190402169dedfc6d22",
     "run_split_fetch_faults.py": "c111c809eadf23de742f24890e295566be25c60d0fa07ec3961ae0f8c41edfa3",
     "run_supervisor_csr.py": "a00f606d91cfc2ee6907b1b6334924d420f6f4e1881e04945e823181c1d1050c",
+    "run_supm_user.py": "5e82c6d878efd02a893217e6449431311e1fc6159172742e9bf2e8a77387074b",
     "run_sv39_integration.py": "e2b8723ccacfc895d8b5efb262a57d3c1bb4715d613711cf15ff7a0d06f2173a",
     "run_sv39x4_root.py": "f0ba08e41422b056f0089fba7149c62a2c1c71b07ed28fb5f181f9d26888afbc",
     "run_svinval_integration.py": "a2d17f8fa6c50561fed6f279f49c91b2b8bdac16ae7b11526d3a6077576a0b1c",
+    "run_svnapot_contract.py": "5f0a3fb96e71f823e5a683574a21068f5c0f42bb08fe9d77b5fe48b5cdced4d3",
+    "run_svpbmt_alias_order.py": "fc95e50d2e08b1a30981e90849b8830376d854849d1b149e079e5e9db6314c02",
     "run_upstream_privileged_tests.py": "3736b33d00e6350c0b27d308a7782ecea4ae8e43c72e0a6b45108acf25c298b7",
     "run_upstream_riscv_tests.py": "9a66cf40a50605808a1e7a8bdca7a48d9c49ae399142e8c6c41a1ee4dd853e18",
     "run_vector_agnostic_differential.py": "cfdcf497e554c1aff74c772540a0ee74ab164711b6a057876b2c87f2a083c6ad",
     "run_vector_config_checks.py": "5a6f2f88685671e4a9861eb70b282cc4c45ad81929dc3ce987040f7c4f6b131a",
+    "run_vector_config_contract.py": "c384487be6e5683ea21ab3bb1bbfe306ee7103d6a1acb6a77352069962e73dc3",
     "run_vector_decode_checks.py": "089abf5c738ac7702943f4d58675c9569d4addbe07e12319adfbadab0b5fb512",
     "run_vector_estimate_checks.py": "12b209c966b43c1b907977b0d99d0cf4c7ac1cfcdad70b421d751bf9b945b79c",
-    "run_vector_fp_differential.py": "56d9d5c0baa9c3103e5ca9dcd445c2b12962262a192a087239a5ebf98533aa9e",
+    "run_vector_fixed_point_contract.py": "64eefabfd9efe738d949fc9e932762a36474e9fbe681fe3b4f037b3d3f47d824",
+    "run_vector_fp_differential.py": "cc3a37341fc63df24f5b38e088983ab08f1a91e73a0c84db84806e761c4e2588",
     "run_vector_fp_engine_checks.py": "452367c4e92d7a0ede3e35dbbd4c4ee938baf17b2334adbae0b0f6c54ee2ff4b",
     "run_vector_fp_integer_checks.py": "ae2a9572da61fc75f98eda588a0479cb5afdbaf4e5a7bf0dfafe6268e679a87d",
     "run_vector_fp_lane_checks.py": "2622203adc16a17f56166d07487ea51550d12367f2fc9170dd47f3e5df71f9f8",
     "run_vector_integer_checks.py": "e6dad1823360a41d27ffc7c1b7ecb8887bed04052f2aadf266fe523d93385bfe",
     "run_vector_integer_engine_checks.py": "ba90fdc1a95ad4bbea1ee309c222b9b59599a96160bbec953a064441dfe6bc8f",
     "run_vector_integration.py": "16629775fd04969886ae39f42b5e766d9b0f1b57f3a1b293748249260c5fad5c",
+    "run_vector_irq_boundary.py": "aca13f698d93a79312407c1b285dca01ddb26624a91816ab1c5ea84c673d20d7",
     "run_vector_memory_engine_checks.py": "d7344d483941550ee006bec140a782338784a1f6b4c1c483adffe9ffdf38ecaf",
     "run_vector_mixed_eew_sail.py": "ef4d63d92dd76d7b41c52b4de632da4f0777489b0a3f112a8ea8a1bce5c1c5cb",
     "run_vector_overlap.py": "cbb6ffec7cacf1897ffe86c399dc4be55b6755cf18d8cc4a298acbda5f5a52b7",
     "run_vector_register_checks.py": "8a1e97b5501dd20524390f3e3dcd474994b0ae6cdf66a752cb2c4fd0815e9ef1",
+    "run_vector_scalar_moves.py": "b5642a76cbe0e95fbbb9c481cd0e1e6a5afcf76ed384787a8952a7f11c108fd0",
     "run_vector_source_groups_matrix.py": "fdd54e60877668946a6c2c5633a3456d37286c0ce545be21803653a78c4911d7",
     "run_vector_state_differential.py": "1d5cc3ff4988705f469aac1cd7a354fbfcda8a56e11504567bef2d856a716337",
     "run_vector_state_integration.py": "f4cb642e2dd13d341f29e69adaa5c6a8723a9326d65eaf464c537df842c84144",
@@ -7876,6 +7894,7 @@
     "run_vector_timing_negative.py": "c590773796f36e6acc727b5b90752e4a02544ddfd365b6f04cc72cfabea6fda4",
     "run_wait_reservation_checks.py": "dfaa18da425ce3dc6fb16e0fe65941a2f5e5d33df75bea47b161d88755aac6b5",
     "run_wrs_debug_wake.py": "009a20c86fbb44cd8973a0282fa2adfe412c1784e5762d2e73876e8368196846",
+    "run_xret_memory_contract.py": "3fb3dd9043618914af9cd898d4d1a0639c8602a7836682c52d1026b1551bfafe",
     "run_zvbb_native.py": "0cf2e0e26e88b5571e750f5b1eea55b46afe699adad1c7957d79f078a1eaf9e6",
     "save_verification_snapshot.py": "34689c12d6443c6801323b5c74311b9af4e4b778f1ad97e54f725df1daf542d5",
     "setup_act4_msys.py": "2010916da9a796071b25878dbe469ecac5b8d01de126e5db35650a67e2dde19d",

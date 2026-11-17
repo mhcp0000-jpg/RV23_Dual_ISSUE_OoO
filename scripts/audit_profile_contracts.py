@@ -8,27 +8,48 @@ import subprocess
 import sys
 
 import run_cbo_permission_matrix as cbo_matrix
+import run_counter_permission_matrix as counter_matrix
+import run_guest_access_sum as guest_access_sum
 import run_guest_interrupt_priority as guest_interrupt_priority
+import run_guest_ifetch_inval as guest_ifetch
 import run_guest_pointer_mask_faults as pointer_mask
 import run_guest_superpages as guest_superpages
 import run_guest_stateen as guest_stateen
 import run_guest_timer_wrap as guest_timer
+import run_guest_vector_segment_ff as segment_ff
+import run_indexed_memory_restart as indexed_restart
+import run_pte_nonleaf_contract as pte_nonleaf
 import run_hlvx_permissions as hlvx_permissions
 import run_interrupt_csr_boundary as interrupt_boundary
+from run_profile_csr_geometry import direct_vector_trace
+from run_sail_event_comparison import compare, read_csv
+import run_rv64_load_value as load_value
+import run_scalar_vector_memory as scalar_vector_memory
+import run_supm_user as supm_user
 from run_guest_wrs_timeout import CASES as WRS_CASES, MARKER as WRS_MARKER
 from run_guest_wrs_timeout import fixture as wrs_fixture, verify_trace as verify_wrs_trace
 from run_hpm_mode_filters import (
     MARKER as HPM_MARKER,
     OVERFLOW_MARKER,
+    VISIBILITY_MARKER,
     fixture as hpm_fixture,
     overflow_fixture,
     trace_modes,
     trace_overflow,
+    trace_visibility,
+    visibility_fixture,
 )
 import run_sv39x4_root as gstage_root
+import run_svnapot_contract as svnapot
+import run_svpbmt_alias_order as pbmt_alias
+import run_vector_config_contract as vector_config
+import run_vector_fixed_point_contract as fixed_point
+import run_vector_irq_boundary as vector_irq
 import run_vector_overlap as vector_overlap
+import run_vector_scalar_moves as scalar_moves
 import run_zvbb_native as zvbb_native
 import run_wrs_debug_wake as wrs_debug
+import run_xret_memory_contract as xret_memory
 from sim_runner import ROOT, dump, sha, source_inputs
 
 
@@ -74,6 +95,15 @@ def main():
         results[folder] = sha(ROOT / folder / 'report.json')
         return report
 
+    def audit_sail_artifacts(folder, report):
+        sail = report['sail']
+        assert sail['passed'] and sail['exit_code'] == 0
+        assert sha(ROOT / sail['log']) == sail['log_sha256']
+        assert 'PASS Sail HTIF' in (ROOT / sail['log']).read_text(encoding='utf-8')
+        assert sha(folder / 'sail.csv') == report['sail_trace_sha256']
+        log = (ROOT / report['run']['log']).read_text(encoding='utf-8')
+        assert '[host-finish code=0]' in log and 'PASS rv32_program_tb' in log
+
     def audit_testbench(path, driver, top, sources):
         if args.rerun:
             print('RUN', driver, flush=True)
@@ -99,6 +129,16 @@ def main():
         assert len(cases) == report['case_count'] == 320 and actual == expected
         assert all(c['form'] == form for c in cases)
         counter_cases += len(cases)
+    timer_accesses = {}
+    for form in ['timer_read', 'timer_write']:
+        folder = 'out/rva23/counter_permission_matrix/' + form
+        report = audit(folder, 'run_counter_permission_matrix.py', options=('--form', form))
+        assert sha(ROOT / folder / 'cases.json') == report['cases_sha256']
+        cases = list(counter_matrix.timer_cases(form))
+        assert len(cases) == report['case_count'] == 160
+        outcomes = counter_matrix.verify_timer_trace(ROOT / folder / 'commit.csv', cases)
+        assert outcomes == report['timer_accesses']
+        timer_accesses[form] = outcomes
     folder = 'out/rva23/hpm_mode_filters'
     hpm = audit(folder, 'run_hpm_mode_filters.py')
     assert (ROOT / folder / 'test.S').read_text(encoding='utf-8') == hpm_fixture()
@@ -111,6 +151,12 @@ def main():
     assert overflow['traps'] == trace_overflow(ROOT / folder / 'commit.csv')
     overflow_log = (ROOT / overflow['run']['log']).read_text(encoding='utf-8', errors='replace')
     assert 'PASS rv32_program_tb' in overflow_log and f'data={OVERFLOW_MARKER}' in overflow_log
+    folder = 'out/rva23/hpm_overflow_visibility'
+    visibility = audit(folder, 'run_hpm_mode_filters.py', options=('--overflow-visibility',))
+    assert (ROOT / folder / 'test.S').read_text(encoding='utf-8') == visibility_fixture()
+    assert visibility['visibility'] == trace_visibility(ROOT / folder / 'commit.csv')
+    visibility_log = (ROOT / visibility['run']['log']).read_text(encoding='utf-8')
+    assert 'PASS rv32_program_tb' in visibility_log and f'data={VISIBILITY_MARKER}' in visibility_log
     folder = 'out/rva23/guest_wrs_timeout'
     wrs = audit(folder, 'run_guest_wrs_timeout.py')
     assert wrs['cases'] == [list(case) for case in WRS_CASES]
@@ -143,6 +189,39 @@ def main():
         assert sha(ROOT / run['log']) == run['log_sha256']
     control_log = (ROOT / control['run']['log']).read_text(encoding='utf-8', errors='replace')
     assert '[host-finish code=1]' in control_log and pointer_mask.MARKER not in control_log
+    supm = audit(supm_user.FOLDER, 'run_supm_user.py', source=supm_user.SOURCE)
+    assert {'-GHAS_MMU=1', '-GHAS_SSNPM=1'} <= set(supm['model']['params'])
+    supm_events = supm_user.verify_trace(ROOT / supm_user.FOLDER / 'commit.csv')
+    assert supm_events == supm['events']
+    sail_trace = ROOT / supm_user.FOLDER / 'sail.csv'
+    audit_sail_artifacts(sail_trace.parent, supm)
+    supm_matched_events, mismatch = compare(read_csv(sail_trace), read_csv(ROOT / supm_user.FOLDER / 'commit.csv'))
+    assert mismatch is None and supm_matched_events == supm['matched_events']
+    guest_vector_outcomes = {}
+    for folder, body, options in ((segment_ff.FOLDER, segment_ff.BODY, ()),
+                                  (segment_ff.WHOLE_FOLDER, segment_ff.WHOLE_BODY, ('--whole-register',))):
+        report = audit(folder, 'run_guest_vector_segment_ff.py', options=options)
+        artifact = ROOT / folder
+        assert (artifact / 'test.S').read_text(encoding='utf-8') == segment_ff.fixture(body)
+        audit_sail_artifacts(artifact, report)
+        outcome = segment_ff.verify_traces(artifact / 'sail.csv', artifact / 'commit.csv',
+                                          whole=body == segment_ff.WHOLE_BODY)
+        assert outcome == report['outcomes']
+        guest_vector_outcomes[folder] = outcome
+    loads = audit(load_value.FOLDER, 'run_rv64_load_value.py')
+    load_folder = ROOT / load_value.FOLDER
+    code, cases = load_value.fixture()
+    assert loads['cases'] == cases and (load_folder / 'test.S').read_text(encoding='utf-8') == code
+    audit_sail_artifacts(load_folder, loads)
+    load_outcomes = load_value.verify_traces(load_folder / 'sail.csv', load_folder / 'commit.csv', cases)
+    assert load_outcomes == loads['outcomes']
+    ifetch = audit(guest_ifetch.FOLDER, 'run_guest_ifetch_inval.py')
+    ifetch_folder = ROOT / guest_ifetch.FOLDER
+    assert (ifetch_folder / 'test.S').read_text(encoding='utf-8') == guest_ifetch.fixture()
+    assert read(guest_ifetch.FOLDER + '/sail.json') == guest_ifetch.reference_config()
+    audit_sail_artifacts(ifetch_folder, ifetch)
+    ifetch_outcomes = guest_ifetch.verify_traces(ifetch_folder / 'sail.csv', ifetch_folder / 'commit.csv')
+    assert ifetch_outcomes == ifetch['outcomes']
     vu_folder = 'out/rva23/hypervisor_vector_faults_vu'
     vu = audit(vu_folder, 'run_hypervisor_vector_faults.py', options=('--vu',))
     vu_log = (ROOT / vu['run']['log']).read_text(encoding='utf-8', errors='replace')
@@ -227,6 +306,15 @@ def main():
     assert len(cases) == geometry['case_count'] == 279 and geometry['vector_bases'] == 76
     assert {c['csr'] for c in cases} == ({'stvec', 'vstvec', 'satp', 'vsatp', 'hgatp', 'sstatus', 'vsstatus'} |
                                       {f'{prefix}stateen{n}' for prefix in ['s', 'h'] for n in range(4)})
+    hgatp_warl = [case for case in cases if case['csr'] == 'hgatp' and case['value'] >> 60 not in (0, 8)]
+    assert len(hgatp_warl) == 28
+    assert {(case['value'] >> 60, case['expected'] >> 60) for case in hgatp_warl} == (
+        {(mode, previous) for mode in range(16) if mode not in (0, 8) for previous in (0, 8)})
+    assert all(case['expected'] & ((1 << 60) - 1) == case['value'] & ((1 << 44) - 4)
+               for case in hgatp_warl)
+    with (ROOT / folder / 'commit.csv').open(newline='') as stream:
+        direct_vectors = direct_vector_trace(list(csv.DictReader(stream)))
+    assert direct_vectors == geometry['direct_vector_entries'] and len(direct_vectors) == 12
     folder = 'out/rva23/split_fetch_faults'
     split = audit(folder, 'run_split_fetch_faults.py')
     assert sha(ROOT / folder / 'cases.json') == split['cases_sha256']
@@ -244,6 +332,35 @@ def main():
     overlap = audit(vector_overlap.FOLDER, 'run_vector_overlap.py', source=vector_overlap.SOURCE)
     outcomes = vector_overlap.verify_trace(ROOT / vector_overlap.FOLDER / 'commit.csv')
     assert outcomes == overlap['outcomes']
+
+    scalar_moves_report = audit(scalar_moves.FOLDER, 'run_vector_scalar_moves.py', source=scalar_moves.SOURCE)
+    scalar_moves_folder = ROOT / scalar_moves.FOLDER
+    audit_sail_artifacts(scalar_moves_folder, scalar_moves_report)
+    scalar_moves_outcomes = scalar_moves.verify_traces(
+        scalar_moves_folder / 'sail.csv', scalar_moves_folder / 'commit.csv')
+    assert scalar_moves_outcomes == scalar_moves_report['outcomes']
+
+    vector_config_report = audit(vector_config.FOLDER, 'run_vector_config_contract.py')
+    vector_config_folder = ROOT / vector_config.FOLDER
+    assert (vector_config_folder / 'test.S').read_text(encoding='utf-8') == vector_config.fixture()
+    audit_sail_artifacts(vector_config_folder, vector_config_report)
+    vector_config_outcomes = vector_config.verify_traces(
+        vector_config_folder / 'sail.csv', vector_config_folder / 'commit.csv')
+    assert vector_config_outcomes == vector_config_report['outcomes']
+
+    fixed_point_report = audit(fixed_point.FOLDER, 'run_vector_fixed_point_contract.py')
+    fixed_point_folder = ROOT / fixed_point.FOLDER
+    assert (fixed_point_folder / 'test.S').read_text(encoding='utf-8') == fixed_point.fixture()
+    audit_sail_artifacts(fixed_point_folder, fixed_point_report)
+    fixed_point_outcomes = fixed_point.verify_traces(
+        fixed_point_folder / 'sail.csv', fixed_point_folder / 'commit.csv')
+    assert fixed_point_outcomes == fixed_point_report['outcomes']
+
+    irq_report = audit(vector_irq.FOLDER, 'run_vector_irq_boundary.py',
+                       source=vector_irq.SOURCE, wrapper=vector_irq.TESTBENCH)
+    irq_log = (ROOT / irq_report['run']['log']).read_text(encoding='utf-8')
+    irq_outcomes = vector_irq.verify(ROOT / vector_irq.FOLDER / 'commit.csv', irq_log)
+    assert irq_outcomes == irq_report['outcomes']
 
     superpages = audit(guest_superpages.FOLDER, 'run_guest_superpages.py')
     superpage_folder = ROOT / guest_superpages.FOLDER
@@ -265,6 +382,62 @@ def main():
             expected_traps.append([cause, address])
     assert hlvx['traps'] == expected_traps == hlvx_permissions.trap_trace(ROOT / hlvx_permissions.FOLDER / 'commit.csv')
     assert hlvx_permissions.MARKER in (ROOT / hlvx['run']['log']).read_text(encoding='utf-8')
+
+    guest_access_report = audit(guest_access_sum.FOLDER, 'run_guest_access_sum.py')
+    guest_access_folder = ROOT / guest_access_sum.FOLDER
+    assert (guest_access_folder / 'test.S').read_text(encoding='utf-8') == guest_access_sum.fixture()
+    audit_sail_artifacts(guest_access_folder, guest_access_report)
+    guest_access_outcomes = guest_access_sum.verify_traces(
+        guest_access_folder / 'sail.csv', guest_access_folder / 'commit.csv')
+    assert guest_access_outcomes == guest_access_report['outcomes']
+
+    shared_memory = audit(scalar_vector_memory.FOLDER, 'run_scalar_vector_memory.py',
+                          source=scalar_vector_memory.SOURCE)
+    shared_memory_folder = ROOT / scalar_vector_memory.FOLDER
+    audit_sail_artifacts(shared_memory_folder, shared_memory)
+    shared_memory_outcomes = scalar_vector_memory.verify_traces(
+        shared_memory_folder / 'sail.csv', shared_memory_folder / 'commit.csv')
+    assert shared_memory_outcomes == shared_memory['outcomes']
+
+    indexed_memory = audit(indexed_restart.FOLDER, 'run_indexed_memory_restart.py')
+    indexed_folder = ROOT / indexed_restart.FOLDER
+    assert (indexed_folder / 'test.S').read_text(encoding='utf-8') == indexed_restart.fixture()
+    audit_sail_artifacts(indexed_folder, indexed_memory)
+    indexed_outcomes = indexed_restart.verify_traces(indexed_folder / 'sail.csv', indexed_folder / 'commit.csv')
+    assert indexed_outcomes == indexed_memory['outcomes']
+
+    nonleaf = audit(pte_nonleaf.FOLDER, 'run_pte_nonleaf_contract.py')
+    nonleaf_folder = ROOT / pte_nonleaf.FOLDER
+    assert (nonleaf_folder / 'test.S').read_text(encoding='utf-8') == pte_nonleaf.fixture()
+    audit_sail_artifacts(nonleaf_folder, nonleaf)
+    nonleaf_outcomes = pte_nonleaf.verify_traces(nonleaf_folder / 'sail.csv', nonleaf_folder / 'commit.csv')
+    assert nonleaf_outcomes == nonleaf['outcomes']
+
+    napot_report = audit(svnapot.FOLDER, 'run_svnapot_contract.py')
+    napot_folder = ROOT / svnapot.FOLDER
+    assert (napot_folder / 'test.S').read_text(encoding='utf-8') == svnapot.fixture()
+    audit_sail_artifacts(napot_folder, napot_report)
+    napot_outcomes = svnapot.verify_traces(napot_folder / 'sail.csv', napot_folder / 'commit.csv')
+    assert napot_outcomes == napot_report['outcomes']
+
+    alias_report = audit(pbmt_alias.FOLDER, 'run_svpbmt_alias_order.py')
+    alias_folder = ROOT / pbmt_alias.FOLDER
+    assert (alias_folder / 'test.S').read_text(encoding='utf-8') == pbmt_alias.fixture()
+    audit_sail_artifacts(alias_folder, alias_report)
+    alias_outcomes = pbmt_alias.verify_traces(alias_folder / 'sail.csv', alias_folder / 'commit.csv')
+    assert alias_outcomes == alias_report['outcomes']
+    bus_run = alias_report['bus_run']
+    assert bus_run['passed'] and bus_run['exit_code'] == 0
+    assert sha(ROOT / bus_run['log']) == bus_run['log_sha256']
+    alias_bus = pbmt_alias.verify_bus((ROOT / bus_run['log']).read_text(encoding='utf-8'))
+    assert alias_bus == alias_report['bus']
+
+    xret_report = audit(xret_memory.FOLDER, 'run_xret_memory_contract.py')
+    xret_folder = ROOT / xret_memory.FOLDER
+    assert (xret_folder / 'test.S').read_text(encoding='utf-8') == xret_memory.fixture()
+    audit_sail_artifacts(xret_folder, xret_report)
+    xret_outcomes = xret_memory.verify_traces(xret_folder / 'sail.csv', xret_folder / 'commit.csv')
+    assert xret_outcomes == xret_report['outcomes']
 
     zvbb = audit(zvbb_native.FOLDER, 'run_zvbb_native.py')
     zvbb_folder = ROOT / zvbb_native.FOLDER
@@ -304,23 +477,47 @@ def main():
         scope='Directed counter, LR/SC, WRS, pointer mask, CBO, CSR, fetch fault and RVV overlap and restart checks',
         audit_sha256=sha(__file__), source_inputs=inputs, reports=results,
         counter_cases=counter_cases, hpm_mode_filters=hpm['modes'], machine_overflow_interrupts=len(overflow['traps']),
+        hpm_overflow_visibility_cases=len(visibility['visibility']['cases']),
+        sstc_csr_accesses=timer_accesses,
         lrsc_placements=72, lrsc_successful_updates=1152, guest_wrs_contexts=len(wrs['cases']), external_wrs_wakes=wake['outcomes'].count('WRS.NTO'),
         external_lrsc_outcomes=wake['interference'],
         masked_guest_faults=4, vu_vector_retries=len(vu_retries), cbo_permission_outcomes=cbo['outcomes'],
+        supm_user_selections=sum(event[0] == 'senvcfg' for event in supm_events),
+        supm_sail_matched_events=supm_matched_events,
+        guest_segment_ff_matched_events=guest_vector_outcomes[segment_ff.FOLDER]['matched_events'],
+        guest_whole_register_matched_events=guest_vector_outcomes[segment_ff.WHOLE_FOLDER]['matched_events'],
+        rv64_load_value_outcomes=load_outcomes,
+        guest_ifetch_inval_outcomes=ifetch_outcomes,
         interrupt_csr_boundaries=interrupt['outcomes'], rv64_platform_interrupts=platform['traps'],
         guest_timer_wrap=timer_outcomes,
         guest_stateen=stateen_outcomes,
         guest_interrupt_priority=priority_outcomes,
         sv39x4_root_probes=root['probes'], sv39x4_hinval_remaps=root['remaps'], vs_hinval_remap=root['vs_remap'],
-        csr_geometry_cases=geometry['case_count'],split_fetch_cases=12,split_fetch_traps=24,
+        csr_geometry_cases=geometry['case_count'],hgatp_warl_cases=len(hgatp_warl),direct_vector_entries=len(direct_vectors),
+        split_fetch_cases=12,split_fetch_traps=24,
         vector_overlap_restart=outcomes,
+        vector_scalar_moves=scalar_moves_outcomes,
+        vector_configuration=vector_config_outcomes,
+        vector_fixed_point=fixed_point_outcomes,
+        vector_irq_boundary=irq_outcomes,
         guest_superpage_reads=len(superpage_results['loads']), guest_superpage_stores=superpage_results['stores'],
         guest_superpage_traps=len(superpage_results['traps']),
         hlv_hlvx_permission_cases=len(permission_cases), hlv_hlvx_traps=len(expected_traps),
+        guest_access_sum=guest_access_outcomes,
+        scalar_vector_memory=shared_memory_outcomes,
+        indexed_memory_restart=indexed_outcomes,
+        pte_nonleaf=nonleaf_outcomes,
+        svnapot=napot_outcomes,
+        svpbmt_alias=dict(outcomes=alias_outcomes, bus=alias_bus),
+        xret_memory=xret_outcomes,
         zvbb_native=zvbb_outcomes,
         instruction_fetch_offsets=len(fetch_rows), instruction_fetch_refill_overlaps=fetch_overlaps,
         mmu_checks=int(mmu_witness[1])))
-    print('PASS current contract evidence: 960 counter cases, 5 HPM mode filters, 2 machine overflow IRQs, 72 LR/SC placements, 6 guest WRS contexts, 4 external WRS wakes, 4 masked guest faults, 255 CBO permissions, 8 immediate interrupt boundaries, RV64 platform, Sv39x4 root and boundary, 279 CSR cases, 12 split-fetch cases; full normative audit remains open')
+    print('PASS current contract evidence: 960 counter cases, 48 scountovf cases, 320 Sstc accesses, '
+          '5 HPM mode filters, 2 machine overflow IRQs, 72 LR/SC placements, 6 guest WRS contexts, '
+          '4 external WRS wakes, 4 masked guest faults, 255 CBO permissions, 8 immediate interrupt '
+          'boundaries, RV64 platform, Sv39x4 root and boundary, 279 CSR cases, 12 native direct entries, '
+          '12 split-fetch cases; full normative audit remains open')
 
 
 if __name__ == '__main__':

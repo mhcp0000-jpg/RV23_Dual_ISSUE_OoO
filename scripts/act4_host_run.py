@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 """Launch the unmodified ACT4 framework with Windows Ruby tool resolution."""
-import os,subprocess
+import subprocess
 from pathlib import Path
 import act.parse_udb_config as udb
 import act.config as act_config
 from act4_header_io import install
 from act.act import main
 
-ROOT=Path(__file__).resolve().parents[1]
 udb._find_gemfile=lambda:Path('C:/rv_workspaces/rv23/out/act4/bundle/Gemfile')
-assert act_config.REQUIRED_SAIL_VERSION == '0.13.1'
-act_config.REQUIRED_SAIL_VERSION = '0.16'
-print('LOCAL COMPATIBILITY MODE: Sail 0.16 for H; upstream ACT4 requires 0.13.1. Not an official certification run.', flush=True)
+assert act_config.REQUIRED_SAIL_VERSION in ('0.13.1', '0.16')
+if act_config.REQUIRED_SAIL_VERSION == '0.13.1':
+    act_config.REQUIRED_SAIL_VERSION = '0.16'
+    print('LOCAL COMPATIBILITY MODE: Sail 0.16 for H; upstream ACT4 requires 0.13.1. Not an official certification run.', flush=True)
 install()
 original_run=subprocess.run
 def portable_run(command,*args,**kwargs):

@@ -40,7 +40,7 @@
     },
     {
       "path": "rtl/backend/rv_hypervisor_csrs.sv",
-      "sha256": "7b6af2c1875cd9695630f408b3fb9908180fed009562c3b130b602dd3db5df7d",
+      "sha256": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
       "origin": "new"
     },
     {

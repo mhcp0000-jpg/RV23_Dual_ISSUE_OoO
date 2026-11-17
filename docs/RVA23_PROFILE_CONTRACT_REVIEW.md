@@ -13,19 +13,56 @@
 | Zicclsm: main-memory 비정렬 접근 | scalar assist는 ROB head 소유권으로 부분 접근을 처리하고, vector 경로는 각 element의 번역·PMA를 확인한다. | 동일 H/V 모델 scalar misaligned ELF, Sv39 경계 fault/retry, vector memory 및 guest partial-fault 테스트. 비정렬 atomic 지원을 주장하지 않는다. |
 | Zic64b: block 형상 | cache index/tag와 refill은 6비트 block offset 및 8개 64비트 beat를 사용한다. CBO 경로도 같은 64B 정렬 block을 대상으로 한다. | cache/CBO component와 같은 H/V 모델의 CBO/Sv39 ELF. `rv23_pkg.CACHE_LINE_BYTES=64`. |
 | Ssccptr: coherent PTE read | S/VS/G walker의 물리 읽기는 PMP/PMA guard와 공유 PTW/cache 경로를 거친다. D-cache는 accepted SRAM/debug write의 byte strobe를 resident line에 합친다. | `run_ptw_debug_coherence.py`: 정지/실행 중 각각 8회, 64/32비트 쓰기, PTW hit 16회. PTE snoop를 빠뜨린 복사본은 첫 remap에서 거부된다. |
-| Sstvecd / Shvstvecd: Direct vector 주소 | CSR commit은 BASE 전체를 보존하고 MODE=0을 허용한다. trap 주소 생성은 Direct이면 BASE를 그대로 사용한다. | `run_profile_csr_geometry.py`: S/VS 각각 76개 canonical 정렬 주소. 기존 실제 S/VS trap/return ELF와 함께 확인한다. |
+| Sstvecd / Shvstvecd: Direct vector 주소 | CSR commit은 BASE 전체를 보존하고 MODE=0을 허용한다. trap 주소 생성은 Direct이면 BASE를 그대로 사용한다. | `run_profile_csr_geometry.py`: S/VS 각각 canonical 주소 76개의 CSR readback을 확인했다. 별도로 Sv39의 하위 범위 한 곳과 상위 범위 두 곳에 트랩을 전달했다. 페이지 오프셋 `0x004`와 `0xffc`를 사용한 12개 사례에서 handler의 첫 PC와 SRET 복귀를 확인했다. [RVA23 Profiles 1.0](https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html) |
 | Sscounterenw / Shcounterenw: enable 쓰기 | `HPM_COUNTERS`로 HPM state와 S/H enable mask를 함께 생성한다. production의 구현 HPM3..6 비트는 writable이고 나머지 HPM은 RAZ다. | 960개 counter permission 사례, walking enable와 all-ones readback, HPM event/overflow ELF. |
+| Sscofpmf: OF 가시성·LCOFI | `scountovf`는 M에서 활성 OF 전체를, HS에서 `mcounteren`이 허용한 비트를, VS에서 `mcounteren`과 `hcounteren`이 모두 허용한 비트를 제공한다. | `run_hpm_mode_filters.py --overflow-visibility`의 48개 읽기와 HS·VS ECALL 32개를 retire 기록과 대조했다. OF를 CSR로 설정해도 LCOFIP는 0을 유지했고 구현하지 않은 카운터 31은 0이었다. 별도 실행은 다섯 모드의 필터와 실제 wrap 이후 OF 재설정·LCOFI를 확인한다. [Sscofpmf 1.0](https://docs.riscv.org/reference/isa/v20260120/priv/sscofpmf.html) |
 | Ssu64xl: UXL=64 | physical/virtual S status read 경로가 UXL=2를 제공한다. | S/VS status 각각 UXL 쓰기 0..3 후 readback. 구현은 UXL=64를 유지한다. |
-| Svbare / Shvsatpa / Shgatpa: MODE 대응 | satp/vsatp는 동일하게 Bare/Sv39를 허용하고 unsupported MODE의 전체 쓰기를 무시한다. hgatp는 Bare/Sv39x4이며 root PPN은 16KiB 정렬이다. | CSR geometry와 실제 S/VS/G translation·retry ELF. run_sv39x4_root.py는 GPA[40:39] 네 조합의 HLV.D/HSV.D, 41비트 범위 마지막 doubleword, bit 41의 guest-page fault를 검사한다. |
+| Svbare / Shvsatpa / Shgatpa: MODE 대응 | `satp`·`vsatp`는 Bare/Sv39를 지원하고 미지원 MODE가 들어오면 전체 쓰기를 무시한다. `hgatp`는 Bare/Sv39x4를 지원한다. 미지원 MODE 쓰기는 MODE를 유지하면서 16 KiB로 정렬된 새 루트 PPN을 반영한다. | 미지원 MODE 14개를 Bare와 Sv39x4에서 각각 쓴 28개 사례를 포함해 전체 CSR 검사 279개가 통과했다. 같은 ELF는 수정 전 218번 사례에서 실패하고 수정 후 전체 SoC에서 통과했다. [H 확장 규격](https://docs.riscv.org/reference/isa/v20240411/priv/hypervisor.html) |
 | Svade: A/D 처리 | read-only walker는 A=0 또는 store의 D=0을 permission fault로 처리하며 PTE를 쓰지 않는다. VS PTE의 G-stage 번역은 load 권한으로 검사하고 예외는 원래 명령의 접근 종류로 보고한다. | MMU 테스트 103개에는 VS 및 최종 G leaf의 A/D 조합과 암시적 PTE read의 A=0이 포함된다. 원래 fetch/load/store별 cause와 최종 접근 GPA 및 PTE GPA를 대조했다. Native S-mode `rv64si/dirty` Sail 비교는 소프트웨어의 A/D 수정 및 재시도를 확인한다. [특권 규격](https://docs.riscv.org/reference/isa/priv/hypervisor) |
+| H: 암시적 VS PTE 읽기의 MXR | G-stage leaf가 실행 전용이면 HS MXR이 암시적 읽기 허용 여부를 결정한다. VS MXR은 G-stage 권한에 영향을 주지 않는다. | `run_guest_pte_mxr.py`는 각 사례에서 변환 캐시를 비운 뒤 동일 ELF에서 HLV.D·HLVX.WU·HSV.D 36개를 실행한다. Sail과 RTL의 2,302개 이벤트가 일치했다. G-stage의 A=0과 MXR으로 허용되지 않은 실행 전용 매핑의 예외 18건에서 `htval`과 `htinst`를 확인했다. [H 규격](https://docs.riscv.org/reference/isa/priv/hypervisor) |
+| H: 명시적 게스트 접근의 SPVP·SUM | `hstatus.SPVP`가 VS/VU 유효 권한을 선택한다. VS가 U 페이지를 접근할 때는 `vsstatus.SUM`을 사용한다. | `run_guest_access_sum.py`는 M·HS의 HLV.D·HLVX.WU·HSV.D 96건에서 PTE.U, SPVP, HS/VS SUM을 조합했다. PTE가 같은 동안 HFENCE 없이 권한 설정을 바꿨고 정상 접근 60건과 페이지 예외 36건의 결과·EPC·tval·GVA 및 메모리 보존을 확인했다. 동일 ELF의 Sail·RTL 이벤트 5,801개가 일치했다. [H 1.0 게스트 메모리 접근](https://docs.riscv.org/reference/isa/priv/hypervisor.html) |
 | Ssstateen: S/H CSR view | `rv_hypervisor_stateen`이 S/H 각각 4개 view를 decode한다. H의 SE/ENVCFG와 S의 optional-state RAZ를 제공하고 CSR file의 trap 경로에 연결된다. | CSR geometry의 8개 view read/write와 별도로 `run_guest_stateen.py`가 게이트 7개 조합에서 VS 읽기 42건을 실행했다. 각 `hstateen[n].SE`는 해당 `sstateen[n]`을, `hstateen0.ENVCFG`는 `senvcfg`를 제어했다. 차단된 32건의 cause 22, 명령 인코딩과 `stval`, SRET 복귀를 확인했다. [Ssstateen 규격](https://docs.riscv.org/reference/isa/priv/smstateen.html) |
-| Sstvala / Shvstvala: VA·명령 trap 값 | trap controller는 ROB의 precise tval을 전달하고 S/VS bank는 trap commit 때 이를 기록한다. fetch queue는 뒤쪽 parcel의 fault 주소를 별도로 보존한다. | scalar/vector memory faults, 33개 breakpoint metadata, privilege instruction matrix, 새 split-fetch 12개 사례. 전체 trap-state 공간의 완전 탐색은 아니다. |
+| Sstvala / Shvstvala: VA·명령 trap 값 | fetch queue가 16비트 parcel을 zero-extend한다. decode가 압축 명령을 확장해 해석하더라도 illegal-instruction trap에는 원본을 전달한다. S/VS CSR bank가 위임된 trap의 값을 기록한다. | breakpoint·illegal matrix의 88개 사례에서 각 trap handler가 EPC와 tval을 읽고 복귀했다. 그중 55개는 예약된 `C.ADDI4SPN` 또는 FS=Off의 네 압축 D 명령이다. 게스트 사례는 호스트 FS를 켜 둔 상태에서 VS의 FS 검사도 확인했다. 주소 근거는 scalar/vector memory fault와 split-fetch 12개 사례, virtual-instruction 근거는 privilege matrix를 참조한다. [RVA23 Profiles 1.0](https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html) |
 | Shtvala: faulting guest PA | H CSR bank는 guest-page fault에 전달된 guest address를 2비트 우측 이동해 htval에 기록한다. implicit VS-PTE read는 별도 metadata를 전달한다. | G-stage/guest-memory ELF, MPRV implicit/explicit 10개 사례. split-fetch의 두 G-stage 사례는 뒤쪽 parcel GPA와 shifted htval/mtval2를 확인한다. |
-| Supm / Ssnpm: PMLEN=0/7 | S/H envcfg와 HUPMM은 PMM=00/10을 지원하고 unsupported 값은 이전 legal PMM을 유지한다. pointer-mask 결과가 scalar/FP/A/CBO/V 주소 경로에 연결된다. | Bare/Sv39 pointer-mask ELF, HUPMM/HLVX/MPRV guest 접근 및 vector/CMO 연결 근거. |
+| Supm / Ssnpm: PMLEN=0/7 | S/H envcfg와 HUPMM은 PMM=00/10을 지원하고 unsupported 값은 이전 legal PMM을 유지한다. pointer-mask 결과가 scalar/FP/A/CBO/V 주소 경로에 연결된다. | `run_supm_user.py`에서 U 모드가 `ECALL`로 HS 실행 환경에 `PMLEN=0→7→0`을 요청했다. Bare와 Sv39의 여섯 요청에서 `senvcfg`를 확인했다. 태그 주소의 정상 load/store 4건과 마스킹을 끈 상태의 예외 8건을 대조했다. bare-metal HS 서비스의 동일 ELF로 Sail과 RTL의 PC·명령·예외 cause·레지스터 결과 798개 이벤트를 대조했다. [RVA23 Profiles 1.0](https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html) |
+| RV64I 프로파일 기본 조건 | U `ECALL`은 `medeleg` 설정에 따라 S에 전달된다. S `ECALL`은 M 실행 환경에 요청을 전달한다. | 같은 Supm ELF가 U→HS의 cause 8, HS→M의 cause 9와 저장된 EPC·tval을 확인했다. `SD`로 쓴 값의 첫 바이트를 `LBU`로 읽어 Bare와 Sv39에서 little-endian 바이트 순서를 확인했다. [RVA23 Profiles 1.0](https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html) |
 | Zkt / Zvkt: 데이터 독립 지연 | scalar 고정 pipeline과 vector element/state 진행 조건을 검토했다. arithmetic data가 완료 시점을 바꾸지 않는 경로와 mask/control 예외를 구분한다. | scalar 동일-text 16개와 vector 84,348 paired probe, operand-dependent early-exit 복사본 거부. 범위는 `TIMING_CONTRACT.md`에 명시한다. |
 | Svpbmt / Svnapot: PTE 속성 | walker는 PBMT reserved/disabled 값을 거부하고 64KiB NAPOT leaf의 인코딩과 주소 합성을 검사한다. | MMU 테스트는 VS/G PBMT 3×3 조합과 양쪽 PBMTE, S 및 VS/G의 64 KiB 서브페이지를 확인한다. 비정렬 HLV.D 9개는 최종 유형을 실제 접근에 적용하며 수정 전 모델은 같은 ELF에서 실패한다. |
+| Sv39 / Sv39x4: 중간 PTE 인코딩 | 페이지 워커는 non-leaf PTE의 A·D·U, N·PBMT와 상위 예약 비트를 검사한다. | `run_pte_nonleaf_contract.py`는 S·VS와 G-stage의 최종 접근·암시적 VS PTE 읽기에서 load/store 144건을 실행했다. G·RSW를 포함한 정상 접근 32건, 예약 비트의 페이지 예외 112건을 확인했다. 암시적 G-stage 실패는 VS 루트 PTE의 GPA를 `htval`에 기록했고 `htinst=0x3000`이었다. 동일 ELF의 Sail·RTL 이벤트 9,997개가 일치했다. [Sv39 규격](https://docs.riscv.org/reference/isa/priv/supervisor.html) · [H 1.0](https://docs.riscv.org/reference/isa/priv/hypervisor) |
 
 ## 추가한 경계 사례
+
+`run_profile_csr_geometry.py --compare-before out/rva23/hgatp_warl_before`는
+보관한 ELF를 수정 전후의 SoC에서 그대로 재실행한다. 두 모델의 RTL
+입력 해시에서 `rv_hypervisor_csrs.sv`만 다른 것을 확인한 뒤 비교한다.
+수정 전 실패 사례 218과 수정 후 통과를 담은 해시와 로그는
+`out/rva23/hgatp_warl_comparison/report.json`에 있다.
+
+`run_guest_ifetch_inval.py`는 동일한 두 게스트 가상 주소에서 실제 코드를
+실행한다. HS는 `HINVAL.GVMA`와 `HINVAL.VVMA`를 사용해 각 단계의 매핑을
+갱신한다. 마지막에는 VS가 자기 PTE를 수정하고 `SINVAL.VMA`를 실행한다.
+세 경우 모두 `SFENCE.W.INVAL`과 `SFENCE.INVAL.IR` 사이에 두 주소의
+무효화를 배치했다. `VMIDLEN=0`과 ASID 9로 실행해 최초 fetch를 포함한
+여덟 결과를 확인했다. 수정 후 RTL과 해당 VMID 폭으로 구성한 Sail의
+동일 ELF 실행 이벤트 2,880개가 일치했다. [Svinval 규격](https://docs.riscv.org/reference/isa/v20240411/priv/svinval.html)
+
+`run_guest_vector_segment_ff.py`는 `VLSEG2E32FF`의 페이지 경계 사례를
+게스트에서 실행한다. VS-stage와 G-stage의 leaf를 각각 비워 두고 8개 사례를
+확인했다. 첫 segment의 두 번째 필드가 실패하면 `vl=4`와 `vstart=0`을
+유지한 채 HS에 예외를 전달했다. 핸들러는 `sepc`와 `stval`, G-stage의
+shifted `htval`을 검사한 뒤 해당 PTE를 복구했고 같은 PC에서 완료됐다.
+뒤쪽 segment의 fault는 예외 없이 `vl`을 segment 인덱스로 줄였다. 첫
+segment를 마스크한 경우에도 인덱스 1의 fault가 `vl=1`을 남겼다. 완료된
+segment 값과 마스크된 목적지를 검사했으며, 동일 ELF의 Sail·RTL 실행
+이벤트 2,987개가 일치했다. [V 규격](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+`run_guest_vector_segment_ff.py --whole-register`는 `vill=1`, `vl=0`에서
+`VL4RE64`와 `VS4R`로 네 레지스터를 복원·저장했다. VS-stage와 G-stage에서
+각각 load·store가 페이지 경계에서 트랩했고, 핸들러는 EEW에 따라 `vstart=4`
+또는 `32`와 `sepc`·`stval`·`htval`을 확인했다. 이미 처리된 앞 32바이트를
+재실행 전에 바꿔 둔 뒤, 같은 PC에서 재개했을 때 그 부분을 다시 읽거나
+쓰지 않는지 검사했다. Sail과 RTL이 동일 ELF에서 3,467개 이벤트에 일치했다.
+[V 1.0 전체 레지스터 저장·복원](https://docs.riscv.org/reference/isa/v20240411/_attachments/riscv-unprivileged.pdf)
 
 `scripts/run_zvbb_native.py`는 ACT4의 생성 벡터 시험에 별도 항목이 없는
 Zvbb의 16개 형식을 실제 RV64 SoC에서 실행한다. 합법적인 SEW 8/16/32/64
@@ -76,10 +113,27 @@ indexed segment store의 목적지 메모리도 보존됐다.
 인코딩을 production RV64 H/V SoC에서 실행한다. 네 경우 모두 ROB head에서
 write-through 경로를 기다린 뒤 `SRAM 쓰기 응답 → FENCE retire → 다른
 캐시 라인의 읽기 요청` 순서를 지켰다. `FENCE.TSO`는 쓰기 응답 사이클
-281, retire 286, 읽기 요청 291을 기록했다. 통합 감사가 테스트벤치와
-모델, ELF, 실제 로그 해시를 대조하고 이벤트 순서를 다시 검사한다.
-이 테스트는 일반 SRAM의 단일 하트 실행을 다룬다.
+281, retire 286, 읽기 요청 291을 기록했다. `FENCE W,O`·`I,R`·`O,R`·
+`W,I`·`R,O`·`I,W`로 SRAM과 CLINT `MSIP` 사이의 여섯 조합도 실행했다.
+LSU 인터페이스에서 선행 접근 응답 → FENCE retire → 후속 접근 요청
+순서를 확인했고, 프로그램은 CLINT의 쓰기·읽기 결과를 검사했다. 통합
+감사가 테스트벤치, 모델, ELF와 로그 해시를 대조하고 순서를 다시 검사한다.
 [RV64I가 상속하는 FENCE 규격](https://docs.riscv.org/reference/isa/v20240411/unpriv/rv32.html)
+
+같은 계측에서 `AMOADD.D`의 일반·`.aq`·`.rl`·`.aqrl` 네 인코딩과
+`LR.D.AQ`·`SC.D.RL`을 실행했다. 세 SRAM 주소를 분리해, 선행 일반
+쓰기의 응답이 atomic 엔진 요청보다 먼저 오고 atomic 응답과 retire가
+후속 일반 읽기 요청보다 빠른지 확인했다. AMO·LR의 이전 값, SC 성공,
+SC가 저장한 최종 값도 검사했다. 이 실행은 현재 코어의 직렬화된 실행을
+관찰한 단일 하트 사례다. [A 확장의 순서 규격](https://docs.riscv.org/reference/isa/v20240411/unpriv/a-st-ext.html)
+
+`run_rv64_load_value.py`는 크기가 다른 두 저장이 같은 바이트에 겹치도록
+배치하고 두 번째 저장의 주소 또는 값을 `DIVU`로 계산한다. 다음 64비트
+워드에도 저장한 뒤 연속 load 여섯 개의 값을 읽는다. 네 저장 폭과 세 위치를
+조합한 96개 사례에서 바이트별 최신 저장 값, 부호 확장, 비정렬 캐시 라인
+경계를 포함한 load 576개의 결과를 검사했다. 동일 ELF에서 Sail과 RTL의
+실행 이벤트 8,578개가 일치했다. 이 실행은 단일 하트의 load 값을 다룬다.
+[RVWMO의 Load Value Axiom](https://docs.riscv.org/reference/isa/v20240411/_attachments/riscv-unprivileged.pdf)
 
 `scripts/run_sv39x4_root.py`는 GPA[40:39] 네 조합의 G-stage leaf PTE를 각각
 다른 물리 페이지로 바꾼 뒤 `SFENCE.W.INVAL`, 주소 지정 `HINVAL.GVMA`,
@@ -119,6 +173,13 @@ VU에서 페이지 경계를 넘는 `VSE64.V`와 `VLE64.V`를 실행한다. 두 
 설정하자 주입된 타이머가 다음 명령 전에 게스트 cause 5로 전달됐다.
 [Sstc 규격](https://docs.riscv.org/reference/isa/v20250508/priv/sstc.html)
 
+`run_counter_permission_matrix.py`의 `timer_read`와 `timer_write`는
+M·HS·VS·U·VU에서 `stimecmp`와 `vstimecmp`를 각각 접근한다. M과 H의
+STCE·TM 비트를 조합한 320개 접근에서 물리·가상 비교값을 구별했고, 합법
+접근 82건과 cause 2 예외 208건, cause 22 예외 30건을 확인했다. 합법
+쓰기는 이전 값과 새 값을 읽었고, 예외 핸들러는 명령의 EPC·tval과
+원래 권한 상태를 확인했다. [Machine 1.13, mcounteren과 menvcfg](https://docs.riscv.org/reference/isa/v20260120/priv/machine.html) · [H 1.0, hcounteren과 henvcfg](https://docs.riscv.org/reference/isa/v20260120/priv/hypervisor.html)
+
 HS의 `sie`와 `sip`는 `mideleg`에서 HS 인터럽트 비트만 선택한다.
 이전 RTL에서는 HS가 `sie`에 VSEIE 위치의 비트를 쓰면 `hie.VSEIE=0`인
 상태에서도 `hvip.VSEIP`가 HS로 전달됐다. 수정 후 동일한 ELF를 실행해
@@ -134,6 +195,115 @@ CSR 쓰기 한 곳에 해당하는 차이와 두 모델·ELF·trace의 해시를
 [H 확장 인터럽트 CSR 규격](https://docs.riscv.org/reference/isa/priv/hypervisor)
 
 Supervisor 1.13은 SIE, SIP, SSTATUS에 대한 명시적 쓰기나 SRET 직후 인터럽트 조건을 즉시 평가하도록 요구한다. HS와 VS 각각에서 SSTATUS.SIE, SIE.SSIE, SIP.SSIP를 마지막으로 설정하는 세 조합과, 대기 중인 인터럽트를 SRET으로 활성화하는 조합을 실행했다. 여덟 경우 모두 다음 명령이 retire되기 전에 인터럽트가 전달됐으며, SRET 사례의 SEPC는 SRET 다음 주소가 아니라 지정된 복귀 주소였다. 핸들러가 SEPC, SPP/SPIE/SIE, SCAUSE와 STVAL을 검사하고 동일 PC로 복귀했다. 이 실행은 소프트웨어 인터럽트를 사용한다. [Supervisor 1.13](https://docs.riscv.org/reference/isa/priv/supervisor.html) · [H 확장](https://docs.riscv.org/reference/isa/priv/hypervisor)
+
+## MRET·SRET 복귀 후 스칼라와 벡터 접근
+
+`run_xret_memory_contract.py`는 M에서 M·HS·U·VS·VU로의 MRET과
+M·HS·VS에서의 SRET을 포함해 13개 경로를 실행했다. HS와 VS는 같은
+가상 주소를 서로 다른 SRAM 페이지에 매핑했다. 복귀 직후 스칼라
+load와 벡터 load가 각각 권한에 맞는 값을 읽었고, 이어진 M 모드
+ECALL 핸들러가 `MPP`·`MPV`·`MPRV`와 `hstatus.SPV`를 확인했다.
+M으로 돌아오는 대조군은 `MPRV=1`, `MPP=U`를 확인한 뒤 U 매핑을
+읽었다. 동일 ELF의 Sail·RTL 실행 이벤트 746개가 일치했다.
+[Machine 1.13 복귀 동작](https://docs.riscv.org/reference/isa/priv/machine.html) · [H 1.0](https://docs.riscv.org/reference/isa/priv/hypervisor)
+
+## RVV 스칼라 이동의 재시작 경계
+
+`run_vector_scalar_moves.py`는 LMUL=1·8에서 같은 레지스터 v3를 사용해
+정수 스칼라 이동 80건과 FP 스칼라 이동 40건을 실행했다. `vl=0`과
+`vstart`가 `vl`보다 작거나 같거나 큰 경우를 검사했다. 스칼라로 읽을
+때는 0번 원소가 반환됐고, 벡터로 쓸 때는 0번 원소가 실행 범위에 있을
+때만 바뀌었다. 나머지 비트는 tail-undisturbed 설정에 따라 보존됐다.
+단정밀도 NaN boxing과 잘못 boxing된 입력의 canonical NaN, 실행 완료
+후 `vstart=0`도 확인했다.
+
+마스크가 설정된 네 이동 인코딩과 Zvfh가 필요한 반정밀도 FP 이동 두
+가지는 cause 2를 발생시켰다. 핸들러가 EPC와 tval을 확인했고 `vstart`는
+예외 전 값 1을 유지했다. 같은 ELF에서 Sail과 RTL의 실행 이벤트
+2,915개를 대조했다. [V 1.0 스칼라 이동](https://docs.riscv.org/reference/isa/unpriv/v-st-ext#_integer_scalar_move_instructions)
+
+## RVV 길이와 타입 설정
+
+`run_vector_config_contract.py`는 전체 H/V SoC에서 레지스터 형식의
+`vsetvl` 928건을 실행했다. `vtype` 하위 8비트의 모든 인코딩과 상위
+56비트의 단일 비트 설정을 확인했다. 지원하는 22개 SEW/LMUL 조합에서는
+네 가지 마스크·tail 정책과 함께 AVL 0, VLMAX 전후, 2×VLMAX 전후,
+최대 64비트 unsigned AVL을 사용했다. 중간 AVL 범위에서는 RTL이
+VLMAX를 반환하는 구현 정책을 적용한다.
+
+설정 전환 13건은 세 명령 형식, `rd=x0` 및 `rs1=x0`의 조합,
+정수 목적지와 입력 레지스터가 같은 경우를 다룬다. 같은 VLMAX로
+SEW/LMUL을 바꾸면 `vl`이 유지됐고, RTL이 `vill`을 설정하는 예약
+형식에서는 유효한 설정 명령으로 복구했다. 총 `vill` 결과 229건을
+포함해 각 설정 직후 `vtype`·`vl`·`vstart`를 확인했다. 같은 ELF의
+Sail·RTL 실행 이벤트 16,908개가 일치했다.
+[V 1.0 설정 명령](https://docs.riscv.org/reference/isa/unpriv/v-st-ext#_configuration_setting_instructions_vsetvli_vsetivli_vsetvl)
+
+## RVV 고정소수점 반올림과 포화 상태
+
+`run_vector_fixed_point_contract.py`는 `vsmul.vx`의 SEW 8·16·32·64와
+`vnclip.wi`의 SEW 8·16·32에서 네 가지 `vxrm` 모드를 실행했다.
+독립 정수 계산으로 반올림과 포화 결과를 계산하고, 마스크·tail·복귀
+인덱스로 제외된 원소와 이미 설정된 포화 플래그의 보존을 확인했다.
+392개 사례에서 결과 원소 1,568개와 `vxsat`·`vcsr`·`vstart`를 검사했다.
+같은 ELF의 Sail·RTL 실행 이벤트 14,288개가 일치했다.
+[V 1.0 고정소수점 규격](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+## 스칼라와 벡터의 공유 SRAM 접근
+
+`run_scalar_vector_memory.py`는 다른 64비트 뱅크 및 64바이트 라인
+경계를 포함한 네 위치를 Bare와 Sv39에서 실행했다. Sv39에서는
+스칼라와 벡터가 서로 다른 가상 주소로 같은 물리 SRAM에 접근했다.
+벡터 load는 스칼라 초기화와 byte·halfword·word 쓰기 및 `AMOADD.D`의
+결과를 읽었고, 스칼라 load는 벡터 store 직후의 두 64비트 값을
+확인했다. 양쪽 인접 워드도 보존됐다. 벡터 load 24건, 벡터 store와
+AMO가 각각 8건이었고, 동일 ELF의 Sail·RTL 이벤트 936개가 일치했다.
+
+`run_indexed_memory_restart.py`는 같은 Sv39 페이지에서 스칼라 load와
+벡터 unordered indexed load/store에 Svade A/D 예외를 발생시켰다.
+S 모드 핸들러가 예외 PC·주소와 `vstart`를 읽고 두 번째 페이지를
+다른 SRAM 페이지로 다시 매핑한 뒤 같은 PC로 복귀했다. 벡터 load의
+앞선 원소와 벡터 store 후 핸들러가 수정한 앞선 메모리 값이 보존됐다.
+핸들러에서는 뒤따르는 스칼라 store가 아직 반영되지 않았음을 확인했다.
+두 번째 페이지를 매핑하지 않은 마스크 load/store에서는 첫 두 원소만
+갱신됐다. 동일 ELF의 Sail·RTL 이벤트 417개가 일치했다.
+[V 1.0의 정확한 예외와 벡터 메모리 접근](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+## 벡터 store 중 PLIC 인터럽트
+
+`run_vector_irq_boundary.py`는 128바이트 벡터 store의 첫 바이트 요청이
+수락된 직후 PLIC 소스 1을 올렸다. 코어는 벡터 store 실행 중 인터럽트를
+감지했다. 나머지 바이트를 쓰고 벡터 명령이 retire된 다음 M 모드
+외부 인터럽트에 진입했으며, 복귀 후 스칼라 store가 한 번 실행됐다.
+핸들러가 `mepc`, `mtval=0`, `vstart=0` 및 SRAM의 128바이트를
+확인했다. [V 1.0의 정확한 예외](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+## Svnapot의 64 KiB 매핑
+
+`run_svnapot_contract.py`는 S, VS, G 및 VS·G의 두 단계 모두에서
+64 KiB NAPOT 매핑을 구성했다. 4 KiB 하위 페이지 16개 모두에서
+load/store를 확인하고, 두 단계 매핑의 G-stage를 다른 SRAM 영역으로
+바꾼 뒤 새 물리 주소에서 같은 검사를 반복했다. S·VS·G 각각에서
+예약된 PPN 하위 니블 15개를 시험해 페이지 예외 총 90건을 확인했다.
+
+S 모드에서는 NAPOT 하위 페이지 경계를 넘는 벡터 load와 첫 번째·
+마지막 페이지의 명령 실행도 확인했다. 스칼라 메모리 접근 250건을
+포함한 동일 ELF의 Sail·RTL 실행 이벤트 9,716개가 일치했다.
+[Svnapot 1.0](https://docs.riscv.org/reference/isa/v20240411/priv/svnapot.html)
+
+## Svpbmt 속성이 다른 주소 별칭
+
+`run_svpbmt_alias_order.py`는 같은 물리 SRAM을 기본 PMA, NC, IO로
+매핑했다. 스칼라에서 벡터로, 벡터에서 스칼라로 전환하는 12개 쓰기·
+읽기 조합에서 값을 확인했다. NC↔IO 사이에는 `FENCE IORW,IORW`를
+사용했고, 캐시 가능 여부가 바뀌는 경우에는 비캐시 주소 별칭에서
+`CBO.FLUSH`를 실행하고 앞뒤에 fence를 뒀다.
+
+캐시 가능 주소로 돌아오는 네 경우에서 라인 재충전을 확인했다.
+네이티브 AXI 계측은 64바이트 라인 재충전 10건, 비캐시 읽기 24건,
+PMA 속성의 벡터 원소 읽기 4건을 확인했다. 동일 ELF의 Sail·RTL
+실행 이벤트 347개가 일치했다.
+[Svpbmt 1.0 별칭 순서](https://docs.riscv.org/reference/isa/v20240411/priv/svpbmt.html)
 
 ## 남아 있는 전체 감사 범위
 

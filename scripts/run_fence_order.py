@@ -1,4 +1,4 @@
-"""Verify RV64 FENCE encodings drain write-through traffic before younger loads."""
+"""Verify RV64 FENCE and atomic ordering around SRAM and CLINT operations."""
 import argparse
 import json
 import re
@@ -9,6 +9,27 @@ from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 FOLDER = ROOT / 'out/rva23/fence_order'
 TOP = 'rv23_fence_order_tb'
 FENCES = (0x0330000f, 0x8330000f, 0x0ff0000f, 0xf230830f)
+SRAM_WRITE = ('write', 0x80020000)
+SRAM_READ = ('read', 0x80020040)
+CLINT_WRITE = ('write', 0x02000000)
+CLINT_READ = ('read', 0x02000000)
+ATOMIC_ADDR = 0x80020080
+IO_CASES = (
+    (0x0140000f, SRAM_WRITE, CLINT_WRITE, 'sd t1,0(t0)', 'sw t4,0(s0)', []),
+    (0x0820000f, CLINT_READ, SRAM_READ, 'lw t5,0(s0)', 'ld t3,64(t0)', ['bne t5,t4,fail', 'bne t3,t2,fail']),
+    (0x0420000f, CLINT_WRITE, SRAM_READ, 'sw zero,0(s0)', 'ld t3,64(t0)', ['bne t3,t2,fail']),
+    (0x0180000f, SRAM_WRITE, CLINT_READ, 'sd t1,0(t0)', 'lw t5,0(s0)', ['bnez t5,fail']),
+    (0x0240000f, SRAM_READ, CLINT_WRITE, 'ld t3,64(t0)', 'sw t4,0(s0)', ['bne t3,t2,fail']),
+    (0x0810000f, CLINT_READ, SRAM_WRITE, 'lw t5,0(s0)', 'sd t1,0(t0)', ['bne t5,t4,fail']),
+)
+ATOMIC_CASES = (
+    (0x01393f2f, 'amoadd.d t5,s3,(s2)', 100),
+    (0x05393f2f, 'amoadd.d.aq t5,s3,(s2)', 101),
+    (0x03393f2f, 'amoadd.d.rl t5,s3,(s2)', 102),
+    (0x07393f2f, 'amoadd.d.aqrl t5,s3,(s2)', 103),
+    (0x14093f2f, 'lr.d.aq t5,(s2)', 104),
+    (0x1b393f2f, 'sc.d.rl t5,s3,(s2)', 0),
+)
 MARKER = 'data=0x46454e43'
 RUNTIME = ['tb/fixtures/bootrom/bootrom_host_jump64.hex',
            'sw/benchmarks/coremark/rv32_tim.ld']
@@ -23,10 +44,18 @@ def fixture():
         lines += ['sd t1,0(t0)', f'.word 0x{word:08x}', 'ld t3,64(t0)',
                   'bne t3,t2,fail', 'bne t1,t3,1f', 'j fail', '1: addi t1,t1,1']
     lines += ['li t3,46', 'bne t1,t3,fail', 'li t3,23', 'bne ra,t3,fail',
-              'lui t0,0x10000', 'li t1,0x46454e43', 'sw t1,0xc(t0)',
+              'lui s0,0x02000', 'li t4,1']
+    for word, _, _, first, second, checks in IO_CASES:
+        lines += [first, f'.word 0x{word:08x}', second, *checks]
+    lines += ['li s2,0x80020080', 'li s3,1']
+    for _, instruction, expected in ATOMIC_CASES:
+        lines += ['sd t1,0(t0)', instruction, 'ld t3,64(t0)',
+                  f'li t4,{expected}', 'bne t5,t4,fail', 'bne t3,t2,fail']
+    lines += ['ld t3,0(s2)', 'bne t3,s3,fail']
+    lines += ['lui t0,0x10000', 'li t1,0x46454e43', 'sw t1,0xc(t0)',
               'sw zero,0x14(t0)', 'halt: j halt',
               'fail: lui t0,0x10000', 'li t1,1', 'sw t1,0x14(t0)', 'j halt',
-              '.section .data,"aw"', '.dword 0', '.zero 56', '.dword 99']
+              '.section .data,"aw"', '.dword 0', '.zero 56', '.dword 99', '.zero 56', '.dword 100']
     return '\n'.join(lines) + '\n'
 
 
@@ -35,19 +64,36 @@ def verify(log):
     events = [(int(cycle), event, int(value, 16))
               for cycle, event, value in re.findall(r'^FENCE_ORDER (\d+) (\w+) ([\da-f]+)$', log, re.M)]
     observed = [(cycle, event, value) for cycle, event, value in events if event != 'wait']
-    expected = [(event, value) for word in FENCES for event, value in
-                [('write_request', 0x80020000), ('write_response', 0x80020000),
-                 ('retire', word), ('read_request', 0x80020040)]]
+    cases = [(word, SRAM_WRITE, SRAM_READ) for word in FENCES]
+    cases += [(word, predecessor, successor) for word, predecessor, successor, *_ in IO_CASES]
+    expected = []
+    for word, (pred, pred_addr), (succ, succ_addr) in cases:
+        expected.extend([(pred + '_request', pred_addr), (pred + '_response', pred_addr), ('retire', word),
+                         (succ + '_request', succ_addr), (succ + '_response', succ_addr)])
+    for word, _, _ in ATOMIC_CASES:
+        expected.extend([('write_request', SRAM_WRITE[1]), ('write_response', SRAM_WRITE[1]),
+                         ('atomic_request', ATOMIC_ADDR), ('atomic_response', ATOMIC_ADDR),
+                         ('atomic_retire', word), ('read_request', SRAM_READ[1]), ('read_response', SRAM_READ[1])])
     assert [(event, value) for _, event, value in observed] == expected, observed
     coverage = []
-    for index, word in enumerate(FENCES):
-        start, response, retire, read = [cycle for cycle, _, _ in observed[index * 4:index * 4 + 4]]
-        assert start < response < retire <= read, (start, response, retire, read)
+    for index, (word, predecessor, successor) in enumerate(cases):
+        start, response, retire, request, completed = [cycle for cycle, _, _ in observed[index * 5:index * 5 + 5]]
+        assert start < response < retire <= request < completed, (start, response, retire, request, completed)
         waits = [cycle for cycle, event, value in events if event == 'wait' and value == word]
-        assert any(start <= cycle <= response for cycle in waits), (word, waits)
-        coverage.append(dict(instruction=f'{word:08x}', write_request=start, write_response=response,
-                             fence_retire=retire, read_request=read, drain_wait_cycles=len(waits)))
-    return coverage
+        if word in FENCES:
+            assert any(start <= cycle <= response for cycle in waits), (word, waits)
+        coverage.append(dict(instruction=f'{word:08x}', predecessor=list(predecessor), successor=list(successor),
+                             predecessor_request=start, predecessor_response=response, fence_retire=retire,
+                             successor_request=request, successor_response=completed, drain_wait_cycles=len(waits)))
+    atomics = []
+    atomic_events = observed[5 * len(cases):]
+    for index, (word, _, _) in enumerate(ATOMIC_CASES):
+        start, response, memory_request, memory_response, retire, request, completed = (
+            cycle for cycle, _, _ in atomic_events[7 * index:7 * index + 7])
+        assert start < response < memory_request < memory_response < retire <= request < completed
+        atomics.append(dict(instruction=f'{word:08x}', write_response=response, atomic_request=memory_request,
+                            atomic_response=memory_response, atomic_retire=retire, read_request=request))
+    return dict(fences=coverage, atomics=atomics)
 
 
 def check(record, inputs):
@@ -94,7 +140,7 @@ def main():
         check(record, inputs)
         dump(report, record)
     check(record, inputs)
-    print('PASS RV64 FENCE encodings: SRAM write response precedes fence retirement and younger load')
+    print('PASS RV64 ordering: ten FENCE and six atomic cases')
 
 
 if __name__ == '__main__':

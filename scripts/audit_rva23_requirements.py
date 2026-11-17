@@ -8,6 +8,7 @@ import sys
 
 import run_guest_pbmt_precedence as guest_pbmt
 import run_hypervisor_sie_isolation as sie_isolation
+import run_profile_csr_geometry as csr_geometry
 from sim_runner import GCC, ROOT, dump, sha, source_inputs
 
 def read(path):return json.loads((ROOT/path).read_text(encoding='utf-8'))
@@ -161,6 +162,9 @@ def recheck_opensbi_handoff():
 def recheck_integration(linux_variant):
     audits = [
         ('audit_act4_results.py', ['--current'], 'out/act4/current_execution_audit.json'),
+        ('run_act4_upstream_h.py', ['--check'], 'out/act4/upstream_h_extended/audit.json'),
+        ('run_guest_misaligned.py', ['--check'], 'out/rva23/guest_misaligned/report.json'),
+        ('run_guest_pte_mxr.py', ['--check'], 'out/rva23/guest_pte_mxr/report.json'),
         ('audit_rv32_release.py', [], 'out/rv32_release_audit.json'),
         ('audit_linux_boot.py', ['--variant', linux_variant, '--require-isa'],
          f'out/linux_bringup/{linux_variant}/boot_audit.json'),
@@ -170,6 +174,7 @@ def recheck_integration(linux_variant):
         ('audit_ptw_debug_coherence.py', ['--with-negative'], 'out/rva23/ptw_debug_coherence/audit.json'),
         ('audit_sail_event_comparison.py', [], 'out/rva23/sail_privileged_events/audit.json'),
         ('audit_vector_agnostic_differential.py', [], 'out/rva23/vector_agnostic_differential/audit.json'),
+        ('run_vector_fp_differential.py', ['--check'], 'out/rva23/vector_fp_differential/report.json'),
         ('run_vector_mixed_eew_sail.py', ['--check'], 'out/rva23/vector_mixed_eew_sail/report.json'),
         ('audit_timing_contract.py', [], 'out/rva23/timing_contract_evidence.json'),
     ]
@@ -256,20 +261,79 @@ def recheck_guest_pbmt():
     return sha(path)
 
 
-def requirement_execution(required, evidence):
-    evidence_map = 'config/rva23_execution_evidence.json'
+def recheck_hgatp_warl():
+    folder = ROOT / 'out/rva23/hgatp_warl_comparison'
+    path = folder / 'report.json'
+    report = read(path)
+    model = report['model']
+    assert report['passed'] and report['driver_sha256'] == sha(csr_geometry.__file__)
+    assert model == read('out/rva23/hypervisor_integration/model.json')
+    assert sha(ROOT / model['binary']) == model['binary_sha256']
+    for name, digest in {**model['inputs'], **report['runtime_inputs'], **report['artifacts']}.items():
+        assert sha(ROOT / name) == digest, name
+
+    elf_name, = (name for name in report['artifacts'] if name.endswith('/test.elf'))
+    archive = (ROOT / elf_name).parent
+    assert report['artifacts'][elf_name] == report['elf_sha256']
+    before = read(archive / 'model.json')
+    hcsr = 'rtl/backend/rv_hypervisor_csrs.sv'
+    assert before['params'] == model['params'] and before['inputs'].keys() == model['inputs'].keys()
+    assert {name for name, digest in model['inputs'].items() if before['inputs'][name] != digest} == {hcsr}
+    assert sha(archive / 'before.sv') == before['inputs'][hcsr]
+    assert sha(archive / 'before.exe') == before['binary_sha256']
+    code, cases, _ = csr_geometry.fixture()
+    assert (archive / 'test.S').read_text(encoding='utf-8') == code and read(archive / 'cases.json') == cases
+    hgatp = [case for case in cases if case['csr'] == 'hgatp']
+    assert report['rejected_before_case'] == hgatp[1]['id'] == 218
+
+    for phase, code, markers in (
+            ('before', 1, ('data=0x000000da', 'ELF reported failure exit code 1')),
+            ('after', 0, ('data=0x43535247', 'PASS rv32_program_tb'))):
+        run = report[phase]
+        log = ROOT / run['log']
+        assert run['passed'] and run['exit_code'] == code and sha(log) == run['log_sha256']
+        output = log.read_text(encoding='utf-8')
+        assert re.findall(r'opening ELF: (\S+)', output) == [elf_name]
+        assert all(marker in output for marker in markers)
+
+    for trace, expected in (('replay-before.csv', hgatp[:2]), ('commit.csv', hgatp)):
+        trace_path = folder / trace
+        assert trace_path.relative_to(ROOT).as_posix() in report['artifacts']
+        with trace_path.open(newline='') as stream:
+            rows = list(csv.DictReader(stream))
+        accesses = [row for row in rows if row['csr_valid'] == '1' and row['csr_addr'] == '680']
+        assert [int(row['csr_wdata'], 16) for row in accesses if row['csr_we'] == '1'] == [
+            case['value'] for case in expected]
+        reads = [int(row['wdata'], 16) for row in accesses if row['rd_write'] == '1']
+        if trace == 'replay-before.csv':
+            assert reads == [expected[0]['expected']] * 2 and reads[-1] != expected[1]['expected']
+        else:
+            assert reads == [case['expected'] for case in expected]
+            assert csr_geometry.direct_vector_trace(rows) == report['direct_entries']
+    return sha(path)
+
+
+def requirement_execution(required, evidence, evidence_map, entries):
     known_reports = dict(evidence['integration_report_hashes'])
     for key, path in {
         'same_elf_hypervisor_replay_sha256': 'out/rva23/profile_hypervisor_replay/report.json',
         'sail_reference_evidence_sha256': 'out/rva23/sail_reference_evidence.json',
         'mprv_guest_fault_metadata_sha256': 'out/rva23/hypervisor_mprv_faults/report.json',
         'guest_pbmt_precedence_sha256': 'out/rva23/guest_pbmt_precedence/report.json',
+        'hgatp_warl_comparison_sha256': 'out/rva23/hgatp_warl_comparison/report.json',
     }.items():
         known_reports[path] = evidence[key]
     known_reports.update(evidence['hs_sie_isolation_report_hashes'])
     contract = read('out/rva23/contract_evidence.json')
     known_reports.update({path if path.endswith('.json') else f'{path}/report.json': digest
                           for path, digest in contract['reports'].items()})
+    hypervisor = 'out/rva23/hypervisor_checkpoint.json'
+    assert sha(ROOT / hypervisor) == evidence['hypervisor_checkpoint_sha256']
+    hypervisor_audit = read(hypervisor)
+    assert hypervisor_audit['audit_sha256'] == sha(ROOT / 'scripts/audit_hypervisor_integration.py')
+    breakpoint = next(entry for entry in hypervisor_audit['evidence']
+                      if entry.get('case') == 'hypervisor_breakpoint_metadata')
+    known_reports['out/rva23/hypervisor_breakpoint_metadata/report.json'] = breakpoint['report_sha256']
     act = read('out/act4/current_execution_audit.json')
     act_requirements = act['passed_checked_in_exact_requirements']
     vector_suites = act['passed_generated_vector_suites']
@@ -283,13 +347,12 @@ def requirement_execution(required, evidence):
     rows['V']['act4_generated_suite_passes'] = {name: count for name, count in vector_suites.items()
                                               if name.startswith(('Vx', 'Vls', 'Vf'))}
     rows['Zvfhmin']['act4_generated_suite_passes'] = {'Zvfhmin': vector_suites['Zvfhmin']}
-    for entry in read(evidence_map):
+    for entry in entries:
         report = entry['report']
         if not report.endswith('.json'):
             report += '/report.json'
         digest = known_reports[report]
         assert sha(ROOT / report) == digest, report
-        assert set(entry['requirements']) <= rows.keys() and entry['behavior'], entry
         for name in entry['requirements']:
             rows[name]['directed_evidence'].append(dict(report=report, sha256=digest, behavior=entry['behavior']))
     return dict(mapping_sha256=sha(ROOT / evidence_map), requirements=rows,
@@ -313,6 +376,10 @@ def main():
     mapping=read('config/rva23_implementation_map.json')
     keys=['mandatory_unprivileged_inherited_from_RVA23U64','mandatory_unprivileged_added_by_RVA23S64','mandatory_supervisor','Sha_components']
     required=set().union(*(set(inventory[key]) for key in keys))
+    evidence_map = 'config/rva23_execution_evidence.json'
+    execution_entries = read(evidence_map)
+    for entry in execution_entries:
+        assert set(entry['requirements']) <= required | {'I'} and entry['behavior'], entry
     mapped=[name for group in mapping['groups'] for name in group['requirements']]
     assert len(mapped)==len(set(mapped))==58 and set(mapped)==required
     assert not mapping['complete_profile_validation']
@@ -383,11 +450,14 @@ def main():
         assert sail['generator_sha256']==sha(ROOT/'scripts/audit_sail_comparison.py')
         evidence['sail_reference_evidence_sha256']=sha(ROOT/path)
     if args.with_integration_evidence:
+        evidence['hgatp_warl_comparison_sha256'] = recheck_hgatp_warl()
         evidence['guest_pbmt_precedence_sha256'] = recheck_guest_pbmt()
         evidence['hs_sie_isolation_report_hashes'] = recheck_sie_isolation()
         evidence['integration_report_hashes'] = recheck_integration(args.linux_variant)
         evidence['timing_artifact_comparison'] = recheck_timing()
-        evidence['requirement_execution'] = requirement_execution(required, evidence)
+        execution = requirement_execution(required, evidence, evidence_map, execution_entries)
+        assert not execution['without_mapped_execution'], execution['without_mapped_execution']
+        evidence['requirement_execution'] = execution
     dump(ROOT/'out/rva23/requirement_traceability.json',dict(passed=True,
         scope='58 mandatory names mapped to compiled RTL and executable check drivers; full normative/architectural compliance is not established',
         complete_profile_validation=False,required_count=58,implementation_groups=len(mapping['groups']),

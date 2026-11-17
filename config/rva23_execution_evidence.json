@@ -1,10 +1,11 @@
 [
   {
     "requirements": [
-      "I"
+      "I",
+      "A"
     ],
     "report": "out/rva23/fence_order/report.json",
-    "behavior": "FENCE encodings, SRAM write response, retire and younger load ordering"
+    "behavior": "Ordering for ten FENCE cases across SRAM/CLINT and six SRAM atomic cases, including AMO aq/rl/aqrl and a successful LR.aq/SC.rl pair"
   },
   {
     "requirements": [
@@ -108,10 +109,47 @@
   },
   {
     "requirements": [
+      "V",
+      "Zvfhmin"
+    ],
+    "report": "out/rva23/vector_fp_differential/report.json",
+    "behavior": "Exact Sail/RTL results and exception flags for e16/e32/e64 fixtures across five rounding modes"
+  },
+  {
+    "requirements": [
       "V"
     ],
     "report": "out/rva23/vector_overlap",
     "behavior": "Native mixed-EEW source overlap traps, legal same-EEW aliases and destination overlap restart"
+  },
+  {
+    "requirements": [
+      "V",
+      "Zvfhmin"
+    ],
+    "report": "out/rva23/vector_scalar_moves",
+    "behavior": "Identical ELF scalar transfers at vl/vstart boundaries, NaN boxing, reserved masks and half-precision move traps with only Zvfhmin"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_config_contract",
+    "behavior": "Identical ELF state checks on all low-byte vtype encodings, AVL and keep-vl boundaries, reserved vtype and recovery"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_fixed_point_contract",
+    "behavior": "Fixed-point signed rounding, saturation, and preservation of inactive lanes across vstart, mask and tail conditions"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_irq_boundary",
+    "behavior": "PLIC interrupt pending during a full vector store, architectural retirement and scalar memory ordering at the interrupt boundary"
   },
   {
     "requirements": [
@@ -159,6 +197,15 @@
   },
   {
     "requirements": [
+      "I",
+      "Supm",
+      "Ssnpm"
+    ],
+    "report": "out/rva23/supm_user",
+    "behavior": "Same-ELF Sail/RTL user PMLEN=0/7/0 requests through delegated ECALL in Bare and Sv39, with tagged loads and stores, little-endian byte order, and supervisor ECALL to machine firmware"
+  },
+  {
+    "requirements": [
       "Supm",
       "Ssnpm"
     ],
@@ -199,6 +246,125 @@
   },
   {
     "requirements": [
+      "H",
+      "Sha",
+      "Sstvala"
+    ],
+    "report": "out/rva23/guest_access_sum",
+    "behavior": "Identical ELF checks M/HS HLV, HLVX and HSV effective privilege, PTE.U, host and guest SUM, and precise address-trap metadata"
+  },
+  {
+    "requirements": [
+      "Ss1p13",
+      "H",
+      "V",
+      "Sv39"
+    ],
+    "report": "out/rva23/xret_memory_contract",
+    "behavior": "MRET/SRET memory privilege and virtualization witnessed by scalar and vector loads, including MPRV clearing and the M-return control"
+  },
+  {
+    "requirements": [
+      "I",
+      "A",
+      "V",
+      "Sv39",
+      "Ziccamoa"
+    ],
+    "report": "out/rva23/scalar_vector_memory",
+    "behavior": "Scalar stores, AMOs and vector loads/stores observe the same data across SRAM bank/line boundaries and Sv39 aliases"
+  },
+  {
+    "requirements": [
+      "I",
+      "V",
+      "Sv39",
+      "Svade",
+      "Sstvala"
+    ],
+    "report": "out/rva23/indexed_memory_restart",
+    "behavior": "Svade A/D faults, scalar and unordered indexed retry at the same PC after remap, and masked lanes on an unmapped page"
+  },
+  {
+    "requirements": [
+      "H",
+      "Sha",
+      "Svinval",
+      "Svnapot",
+      "Svpbmt"
+    ],
+    "report": "out/act4/upstream_h_extended/audit.json",
+    "behavior": "Upstream Sail 0.16 ACT4 ELFs cover G-stage translation, guest permissions and faults, invalidation, NAPOT and PBMT"
+  },
+  {
+    "requirements": [
+      "H",
+      "Zicclsm"
+    ],
+    "report": "out/rva23/guest_misaligned/report.json",
+    "behavior": "VS/VU and MPRV+MPV word accesses across nonadjacent pages, precise VS/G translation and PTE PMP faults without partial writes"
+  },
+  {
+    "requirements": [
+      "H",
+      "Shtvala",
+      "Svade"
+    ],
+    "report": "out/rva23/guest_pte_mxr/report.json",
+    "behavior": "Identical Sail and RTL ELF for implicit VS PTE read permissions, MXR ownership, G-stage A bit and precise htval/htinst"
+  },
+  {
+    "requirements": [
+      "Sv39",
+      "H",
+      "Sstvala",
+      "Shtvala",
+      "Svnapot",
+      "Svpbmt"
+    ],
+    "report": "out/rva23/pte_nonleaf_contract",
+    "behavior": "Reserved and legal non-leaf PTE bits across S, VS, final G and implicit G walks, with precise fault metadata"
+  },
+  {
+    "requirements": [
+      "Svnapot",
+      "Sv39",
+      "H",
+      "V"
+    ],
+    "report": "out/rva23/svnapot_contract",
+    "behavior": "All sixteen 4 KiB subpages in a 64 KiB NAPOT region across S, VS, G and combined VS/G, including remaps, reserved encodings, vector load and instruction fetch"
+  },
+  {
+    "requirements": [
+      "Svpbmt",
+      "Zicbom",
+      "V",
+      "I"
+    ],
+    "report": "out/rva23/svpbmt_alias_order",
+    "behavior": "Scalar/vector Svpbmt attribute transitions, ordered non-cacheable aliases, and physical block flush via a non-cacheable alias with line refill"
+  },
+  {
+    "requirements": [
+      "H",
+      "Shgatpa"
+    ],
+    "report": "out/rva23/hgatp_warl_comparison",
+    "behavior": "Same ELF rejects the old hgatp implementation and verifies all unsupported MODE writes from Bare and Sv39x4 on corrected RTL"
+  },
+  {
+    "requirements": [
+      "H",
+      "Svinval",
+      "Shgatpa",
+      "Shvsatpa"
+    ],
+    "report": "out/rva23/guest_ifetch_inval",
+    "behavior": "Sail/RTL guest instruction fetch after two-address HINVAL.GVMA, HINVAL.VVMA and VS SINVAL.VMA batches, with VMIDLEN=0 and a nonzero ASID"
+  },
+  {
+    "requirements": [
       "Svbare",
       "Sv39",
       "Svade",
@@ -226,7 +392,43 @@
       "Shgatpa"
     ],
     "report": "out/rva23/profile_csr_geometry",
-    "behavior": "Supported translation modes, address geometry, UXL, and S/VS direct-vector CSR values"
+    "behavior": "Supported translation modes, address geometry, UXL, S/VS direct-vector CSR values, and native direct trap entry at low and high Sv39 aliases"
+  },
+  {
+    "requirements": [
+      "I",
+      "Zicclsm"
+    ],
+    "report": "out/rva23/rv64_load_value",
+    "behavior": "RVWMO load-value byte oracle and Sail comparison for mixed-width overlapping stores with delayed addresses or values, adjacent banks, and misaligned cross-line loads"
+  },
+  {
+    "requirements": [
+      "V",
+      "H",
+      "Sstvala",
+      "Shtvala"
+    ],
+    "report": "out/rva23/guest_vector_whole",
+    "behavior": "Same-ELF Sail/RTL whole-register save and restore with vill set, vl zero, and EEW-specific vstart replay across VS/G page faults"
+  },
+  {
+    "requirements": [
+      "V",
+      "H",
+      "Sstvala",
+      "Shtvala"
+    ],
+    "report": "out/rva23/guest_vector_segment_ff",
+    "behavior": "Same-ELF Sail/RTL guest segment fault-only-first suppression and same-PC retry for separate VS-stage and G-stage missing leaves"
+  },
+  {
+    "requirements": [
+      "Sstvala",
+      "Shvstvala"
+    ],
+    "report": "out/rva23/hypervisor_breakpoint_metadata/report.json",
+    "behavior": "Native trap-CSR readbacks and original 16/32-bit encodings for illegal instructions, including compressed FP with FS Off"
   },
   {
     "requirements": [
@@ -278,6 +480,20 @@
   },
   {
     "requirements": [
+      "Sstc"
+    ],
+    "report": "out/rva23/counter_permission_matrix/timer_read",
+    "behavior": "stimecmp and vstimecmp read access and guest alias under machine and hypervisor STCE and TM gates"
+  },
+  {
+    "requirements": [
+      "Sstc"
+    ],
+    "report": "out/rva23/counter_permission_matrix/timer_write",
+    "behavior": "stimecmp and vstimecmp write access, previous values and updated readback under all STCE and TM gate combinations"
+  },
+  {
+    "requirements": [
       "Sscofpmf"
     ],
     "report": "out/rva23/hpm_mode_filters",
@@ -289,6 +505,13 @@
     ],
     "report": "out/rva23/hpm_machine_overflow",
     "behavior": "Machine counter overflow interrupt delivery and clearing"
+  },
+  {
+    "requirements": [
+      "Sscofpmf"
+    ],
+    "report": "out/rva23/hpm_overflow_visibility",
+    "behavior": "scountovf shadow visibility in M, HS and VS under counter-enable masks, and no LCOFI request from CSR writes"
   },
   {
     "requirements": [
