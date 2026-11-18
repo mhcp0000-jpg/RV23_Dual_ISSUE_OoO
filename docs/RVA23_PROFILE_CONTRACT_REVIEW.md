@@ -32,6 +32,34 @@
 
 ## 추가한 경계 사례
 
+### S/D/H 포맷 변환과 직접 반올림
+
+기준은 [D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)와
+[Zfhmin 1.0](https://docs.riscv.org/reference/isa/unpriv/zfh.html)이다.
+`rv_fp_convert`는 소스별 boxing을 확인하고 각 소스·목적지 조합의
+HardFloat `recFNToRecFN`으로 직접 변환한다. 목적지 정밀도에서 한 번
+반올림하며 S/H 결과의 상위 비트를 모두 1로 채운다.
+
+`python scripts/run_fp_format_contract.py`는 S↔D·H↔S·H↔D 여섯 변환의
+probe 1,600개를 목적지별 같은 ELF로 Sail과 전체 H/V SoC에서 실행한다.
+예상값·flags는 `fp_reference.BinaryFP`의 정확한 유리수 모델을 사용한다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| 반올림 선택 | 다섯 정적·동적 모드. 정적 모드는 `frm`을 다르게 설정 |
+| 폭을 줄이는 변환 | 최소 subnormal의 절반·1.5배, 최소 normal 경계, 최대 finite 및 overflow의 절반 ULP, ±1 근처의 tie와 이웃 표현값 |
+| 특수값·boxing | ±0·비정규 수·무한대·qNaN/sNaN, 잘못된 S/H boxing의 canonical NaN 처리와 결과 boxing |
+| 예외 상태 | NX/UF/OF/NV 및 초기 flags의 보존·누적을 각 probe 후 확인 |
+| 직접 D→H | 입력 `0x3ff0020000000001`의 RNE 결과는 H `0x3c01`. S를 거치는 이중 반올림은 `0x3c00`으로 달라지며 이를 잘못된 결과로 거부 |
+
+S 목적지 530개·D 목적지 330개·H 목적지 740개가 통과했고 같은 ELF의
+Sail/RTL 이벤트 합계 23,178건이 일치했다. 결과·flag를 바꾼 trace 대조군
+30개와 이중 반올림 대조군 1개를 독립 검사기가 거부했다. 이 대조군은
+변경 RTL 실행이 아니다. ELF·trace·로그·현재 RTL/model·Sail·생성기·oracle/helper 해시는
+`out/rva23/fp_format_contract/`의 개별 보고서와 상위 `report.json`에 연결한다.
+`--check`는 ELF를 다시 만들지 않고 이를 재검사한다. half 메모리/이동,
+산술, 예약 rounding mode, FS 권한과 pipeline 경합은 별도 범위다.
+
 ### F/D와 정수 사이의 변환·반올림
 
 기준은 [F 2.2의 변환·반올림](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)과

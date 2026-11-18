@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["F", "D", "Zfhmin"],
+    "report": "out/rva23/fp_format_contract/report.json",
+    "behavior": "1600 native H/V probes across six S/D/H format conversions with identical Sail ELF per destination and exact rational results/flags; static and dynamic rounding, overflow/underflow/ties, malformed S/H boxing and a direct D-to-H double-rounding witness. Half memory/moves, arithmetic, reserved rm and FS/pipeline races separate."
+  },
+  {
     "requirements": ["F", "D"],
     "report": "out/rva23/fp_integer_contract/report.json",
     "behavior": "2760 native H/V probes across 16 W/WU/L/LU to/from S/D conversion forms, with identical Sail ELF per format and exact rational results/flags; five static and dynamic rounding modes, deliberately different frm for static encoding, clipping, NaN/infinity, ties, W sign extension and upper-word inputs. Format conversion, reserved rm and FS/pipeline races separate."

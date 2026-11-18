@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] S↔D・H↔S・H↔D의 여섯 포맷 변환을 전체 H/V SoC와 Sail에서 목적지별 같은 ELF로 검증했다. probe 1,600개에서 정확한 유리수 oracle로 다섯 정적/동적 반올림 모드, tiny/overflow/tie 경계, NaN과 잘못된 S/H boxing, 결과 boxing 및 flags를 검사했다. D→S→H의 이중 반올림과 직접 D→H가 달라지는 사례도 확인했다. `scripts/run_fp_format_contract.py --check`를 통합 감사에 연결했다. half 메모리/이동·산술·예약 rm·FS 권한·pipeline 경합은 별도 범위다.
+
 - [x] W/WU/L/LU와 S/D 사이의 정수·FP 변환 16형식을 검증했다. 전체 H/V SoC의 포맷별 같은 ELF를 Sail과 비교하고 probe 2,760개의 결과·flag를 정확한 유리수 모델로 검사했다. 다섯 정적/동적 반올림 모드, 정적 모드에서 다른 `frm`, tie·범위 초과·NaN/무한대·잘못된 S boxing과 W/WU 부호 확장을 포함한다. `scripts/run_fp_integer_contract.py --check`를 통합 감사에 연결했다. 포맷 간 변환·예약 rm·FS 권한·pipeline 경합은 별도 범위다.
 
 - [x] F/D의 FEQ·FLT·FLE·FMIN·FMAX 10형식을 전체 H/V SoC의 같은 ELF로 Sail과 비교했다. 1,215개 probe에서 IEEE 비트 순서의 정수 계산으로 결과를 검사했고, ±0·무한대·비정규 수·qNaN/sNaN·잘못된 S boxing을 포함했다. 입력 `fflags=0/5/31`에서 NV 누적을 검사하고 잘못된 결과 10개와 NV 추가·소실 20개를 거부했다. `scripts/run_fp_compare_contract.py --check`를 통합 감사에 포함했다. 산술 반올림·FS 권한·pipeline 경합은 별도 범위다.
