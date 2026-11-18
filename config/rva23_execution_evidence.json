@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zcb"],
+    "report": "out/rva23/zcb_contract/report.json",
+    "behavior": "2300 native H/V probes cover all 1008 legal RV64 Zcb encodings across 12 forms with selected data. Same ELF per Sail/RTL batch matches 53712 events; independent integer/byte oracles check 408 fully observed stores, 172 memory base/data aliases, 24 misaligned accesses, 12 line crossings, six Bare physical page crossings and FCSR preservation. Twenty corrupt-result/observed-byte controls rejected. Semantic memory expansion is confined to the byte-oracle copy; raw Sail comparison retains original compressed instruction and PC. M-mode only; optional feature-disabled legality, all operand values, fault/permission and timing/schedule coverage separate."
+  },
+  {
     "requirements": ["Zimop", "Zcmop"],
     "report": "out/rva23/mop_contract/report.json",
     "behavior": "3368 native H/V probes: all 32 MOP.R and eight MOP.RR forms across all destinations with selected independent/alias sources in M, all 40 forms in a U subset, and all eight C.MOP forms with full GPR/FPR snapshots. Default zero-result versus compressed no-write distinction, PC+4/PC+2 and FCSR checked on identical Sail ELF per batch; 1848 destination/source aliases and 92 rejecting controls. No redefining CFI extension, full register Cartesian product, every privilege/state combination or RVWMO dependency proof claimed."

@@ -32,6 +32,20 @@
 
 ## 추가한 경계 사례
 
+### Zcb의 전 합법 인코딩 및 좁은 메모리 접근
+
+`scripts/run_zcb_contract.py`는 RV64의 12개 Zcb 형식에 대해 고유 합법 인코딩
+1,008개를 포함한 2,300개 사례를 전체 H/V RTL에서 실행한다. 배치별 동일 ELF의
+Sail/RTL 이벤트 53,712건이 일치했다. 독립 정수/바이트 모델로 store 408건 전
+바이트와 base/data 중첩 172건, 비정렬 24건, 라인 경계 12건, Bare 물리 페이지
+경계 6건 및 FCSR 보존을 검사하며 변조 대조군 20개를 거부한다.
+
+원본 16비트 instruction과 PC+2는 그대로 비교한다. byte oracle에 전달하는
+별도 복사본에서만 target memory 명령을 동등한 일반 load/store로 변환한다.
+현재 활성 의존 확장의 M-mode 실행이며, 모든 입력 값이나 fault/privilege/스케줄을
+포괄하지 않는다. [Zcb 절별 검토](RVA23_ZCB_CLAUSE_REVIEW.md)에 범위를 연결한다.
+`--check`를 필수 통합 감사에 추가했다.
+
 ### Zimop의 0 쓰기와 Zcmop의 no-write 기본 의미
 
 기준은 [Zimop/Zcmop 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zimop.html)이다.

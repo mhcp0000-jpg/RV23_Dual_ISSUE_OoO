@@ -23,6 +23,7 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] Zcb의 RV64 합법 인코딩 1,008개를 포함한 12형식·2,300개 사례를 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 53,712건이 일치했다. 독립 정수/바이트 모델로 저장 408건 전 바이트, 메모리 base/data 중첩 172건, 비정렬 24건, 라인 경계 12건과 Bare 물리 페이지 경계 6건 및 FCSR 보존을 검사했다. 변조 대조군 20개를 거부했으며 `scripts/run_zcb_contract.py --check`를 필수 감사에 연결했다. [Zcb 절별 검토](RVA23_ZCB_CLAUSE_REVIEW.md)에 M-mode 실행 및 데이터/권한/스케줄의 한계를 명시했다.
 - [x] Zimop/Zcmop의 기본 의미를 3,368개 사례로 검증했다. M mode에서 MOP.R 32개·MOP.RR 8개의 모든 목적지 x0~x31과 선택된 별도/중첩 source를 조합한 3,072개, U mode의 전 40형식 288개, C.MOP 8개를 실행했다. 비영 목적지를 미리 채워 R/RR의 0 쓰기를 확인하고, C형식은 GPR/FPR snapshot 512개 보존을 검사했다. destination/source 중첩 1,848건과 무시된 목적지 x0 192건, FCSR 보존을 확인했다. 같은 ELF의 Sail/RTL 이벤트 51,165건이 일치하고 대조군 92개를 거부했다. `scripts/run_mop_contract.py --check`를 통합 감사에 연결하고 [절별 검토표](RVA23_MOP_CLAUSE_REVIEW.md)에 의미 재정의 확장 및 모든 권한/상태 조합의 한계를 구분했다.
 
 - [x] Zicsr의 6개 명령을 mscratch·minstret·mhartid에서 378개 사례로 실행했다. encoded rs1≠x0에 값 0이 든 RS/RC 36건과 rd=rs1 72건을 포함하며, 읽기 전용 쓰기 의도 114건의 cause 2·원본 instruction tval·writeback 없음을 확인했다. 독립 retirement 카운터 모델로 minstret 읽기 212건과 명시적 쓰기 242건을 검사했다. ELF에서 바로 인접한 write/read/read가 0x1234/0x1234/0x1235를 보이는 동작도 자체 검사한다. 같은 ELF의 Sail/RTL 이벤트 9,182개가 일치하고 대조군 5개를 거부했다. `scripts/run_zicsr_rmw_contract.py --check`를 통합 감사에 연결했고 [절별 검토표](RVA23_ZICSR_CLAUSE_REVIEW.md)에 CSR bank/권한 및 side-effect 검토의 한계를 구분했다.
