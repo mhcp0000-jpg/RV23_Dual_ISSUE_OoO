@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["C", "I", "F", "D", "Zicclsm"],
+    "report": "out/rva23/rv64c_memory_contract/report.json",
+    "behavior": "2448 native H/V probes of all 12 RV64C integer W/D and FP D memory forms, identical Sail ELF per batch. All offset values with selected data/register combinations, all compact base/data pairs and legal SP data registers, integer alias and FP f0 cases. Independent ELF byte model fully observes 1224 stores and guards; 136 misaligned, 64 line and 24 bare physical page crossings, preserved flags and 24 rejecting load/guard trace controls. Full Cartesian operands, paging faults, permissions, MMIO atomicity and all schedules separate."
+  },
+  {
     "requirements": ["C", "I"],
     "report": "out/rva23/rv64c_control_contract/report.json",
     "behavior": "3042 native H/V probes of C.J/BEQZ/BNEZ/JR/JALR with identical Sail ELF per batch. Signed boundary and bit offsets, all compact conditional registers with zero/nonzero patterns, all nonzero indirect source registers, instruction/target halfword phases, 248 odd indirect pointers and eight JALR x1 source/destination aliases. Exact next PC and PC+2 links; 23 rejecting trace controls. Taken zero-offset loops, every offset, faults, interrupts and all schedules separate."

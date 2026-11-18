@@ -32,6 +32,35 @@
 
 ## 추가한 경계 사례
 
+### RV64C 메모리의 오프셋 필드와 바이트 관찰
+
+기준은 [C 2.0의 load/store](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)다.
+`scripts/run_rv64c_memory_contract.py`는 정수 LW/LD/SW/SD와 FP FLD/FSD의
+일반 압축형 및 SP형, 총 12형식의 probe 2,448개를 13개 ELF로 실행한다.
+각 배치에서 Sail과 전체 H/V SoC는 같은 ELF를 사용한다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| 일반 압축형 | 형식별 offset 32개 각각에 base x8~x15를 사용하며 data 레지스터를 바꾼다. base/data의 8×8 조합이 모두 존재 |
+| SP형 | 형식별 offset 64개를 선택 data 레지스터 두 개와 결합. 정수 load는 x1~x31, 정수 store는 x0~x31, FP는 f0~f31 모두 포함 |
+| 데이터 | 0·전부 1·word 부호 경계·상위 32비트가 있는 값, FP signed zero와 qNaN/sNaN의 raw payload를 포함 |
+| 정수 base/data 중첩 | load 목적지 또는 store 소스와 base가 같은 242건. load는 기존 base로 주소를 계산하고, alias store는 실제 base 값을 저장해야 함 |
+| 비정렬·경계 | 비정렬 136건, 64B 라인 경계 64건과 Bare 물리 4KiB 경계 24건. 가상 페이지 변환 fault를 뜻하지 않음 |
+| 상태 보존 | FPR load 목적지를 기대값의 보수로 초기화하며, 정수 alias load는 기존 base 유지. load/store 뒤 fflags 0/5/31 누적값 보존 확인 |
+
+독립 모델은 ELF의 file-backed 바이트와 실제 프로그램의 정수 store로 초기
+메모리를 구성한다. 각 대상 store의 모든 바이트가 후속 guard load에서
+관찰돼야 하며, 주변 32바이트의 내용도 검사한다. 미초기화 SRAM을 0으로
+가정하지 않는다. store 1,224건 전부의 전 바이트를 관찰했고, 동일 ELF의
+Sail/RTL 이벤트 195,651건이 일치했다. load 결과 또는 후속 guard read 값을
+바꾼 trace 대조군 24개를 거부했다. 이는 변경 RTL 실행이 아니다.
+
+보고서는 `out/rva23/rv64c_memory_contract/report.json`이며 `--check`가
+생성 assembly와 현재 RTL/model·Sail·ELF·trace·로그·byte oracle helper의
+해시를 확인하고 검사를 반복한다. 이 유한 필드 검사는 전체 피연산자의 직교
+조합, 변환 fault/권한, 외부 master와의 경합·MMIO 원자성 및 모든 스케줄을
+대신하지 않는다.
+
 ### RV64C 분기·점프의 부호 경계와 소스/링크 중첩
 
 기준은 [C 2.0의 제어 이전](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
