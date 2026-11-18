@@ -32,6 +32,40 @@
 
 ## 추가한 경계 사례
 
+### RV64C HINT의 상태 보존과 영 인코딩 예외
+
+기준은 [C 2.0의 HINT 표와 불법 영 인코딩](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
+`scripts/run_rvc_hint_contract.py`는 RV64의 HINT 코드 포인트 394개와 기본 NOP를
+빠짐없이 생성해 전체 H/V SoC와 Sail에 배치별 같은 ELF로 실행한다.
+기존 65,536개 expander 검사는 확장 설정 간 변화 검사이며, 기본 C의 모든
+인코딩을 독립 ISA oracle로 판정한 근거로 확대 해석하지 않는다.
+
+| 분류 | 실행 코드 포인트 |
+|---|---:|
+| NOP / NOP HINT | 1 / 63 |
+| ADDI imm=0 / LI rd=x0 / LUI rd=x0,nzimm | 31 / 64 / 63 |
+| MV rd=x0 / ADD rd=x0 | 31 / 31 (NTL 네 형식 포함) |
+| SLLI rd=x0 또는 shamt=0 | 중복 제외 95 |
+| SRLI/SRAI shamt=0 | 각 8 |
+
+HINT 직전 모든 GPR/FPR의 기준값을 확인하고, 직후 GPR 32개와 FPR 32개를
+SRAM으로 snapshot한 뒤 64개 값을 다시 읽는다. 레지스터 snapshot 값 총
+25,280개와 FCSR=0x65, 인접 SRAM guard 790회 읽기가 기준과 일치했다.
+rd=x0에 대한 무시된 writeback과 같은 값을 쓰는 self-write는 허용한다.
+custom용 shift HINT 공간은 현재 구현의 inert 동작으로 검사한다.
+
+각 ELF 끝에서는 영 16비트 명령을 실행한다. PC mod 4=0/2의 네 trap에서
+cause 2, 원래 instruction tval=0, writeback 없음, 원래 EPC 및 PC+2 복귀를
+확인했다. Sail/RTL 이벤트 59,261건이 일치했다. GPR/FPR snapshot·FCSR·trap
+cause/tval을 바꾼 trace 대조군 20개를 독립 검사기가 거부했다. 변경 RTL 실행은 아니다.
+보고서는 `out/rva23/rvc_hint_contract/report.json`이며 `--check`가 현재 RTL/model,
+Sail·ELF·assembly·trace·로그·byte oracle helper를 해시로 묶어 재검사한다.
+
+이 검사는 M mode·FS Dirty의 데이터/FCSR/guard 상태를 다룬다. 모든 CSR 및
+권한 조합이나 HINT의 미세구조 효과를 측정한 것은 아니다. reserved 공간은
+영 인코딩과 구분하며, Zcb/Zcmop가 합법화하는 인코딩을 일괄 illegal로 취급하지 않는다.
+전체 C 조항과 공유 경로의 범위는 [절별 검토표](RVA23_C_CLAUSE_REVIEW.md)에 연결한다.
+
 ### C 명령을 포함한 제한된 LR/SC 반복문
 
 기준은 [C 2.0의 LR/SC 사용 조항](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)과

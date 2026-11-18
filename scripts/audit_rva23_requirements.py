@@ -185,6 +185,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('run_rv64c_control_contract.py', ['--check'], 'out/rva23/rv64c_control_contract/report.json'),
         ('run_rv64c_memory_contract.py', ['--check'], 'out/rva23/rv64c_memory_contract/report.json'),
         ('run_compressed_lrsc_contract.py', ['--check'], 'out/rva23/compressed_lrsc_contract/report.json'),
+        ('run_rvc_hint_contract.py', ['--check'], 'out/rva23/rvc_hint_contract/report.json'),
         ('audit_rv64a_contract.py', [], 'out/rva23/rv64a_contract_audit.json'),
         ('run_fp_bit_contract.py', ['--check'], 'out/rva23/fp_bit_contract/report.json'),
         ('run_fp_compare_contract.py', ['--check'], 'out/rva23/fp_compare_contract/report.json'),

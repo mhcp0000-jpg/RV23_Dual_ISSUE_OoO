@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["C", "Zihintntl"],
+    "report": "out/rva23/rvc_hint_contract/report.json",
+    "behavior": "All 394 RV64 base-C HINT code points plus NOP on native H/V RTL and identical Sail ELF per batch. 25280 GPR/FPR snapshot values, FCSR and two SRAM guards verify inert behavior; includes four compressed NTL hints and custom-designated shift HINTs under this implementation's inert policy. Four permanent all-zero instruction traps at both halfword phases, exact cause 2/tval 0/no writeback and PC+2 recovery; 20 rejecting controls. Other CSRs, privilege/FS combinations and microarchitectural hint effects separate."
+  },
+  {
     "requirements": ["A", "C", "Ziccrse"],
     "report": "out/rva23/compressed_lrsc_contract/report.json",
     "behavior": "144 native H/V W/D placements with actual 4- and 16-instruction compressed constrained LR/SC loops. All aligned data positions in a 64-byte granule and instruction offsets 0/32/62; 2304 successful updates, plus 144 deliberate no-LR failed SC preconditions executing the compressed retry edge. Same ELF Sail/RTL events and independent byte/result/layout oracle, six rejecting controls. Finite progress, not universal liveness or cross-agent fairness proof; spurious failure remains ISA-permitted."
