@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["V", "F", "H"],
+    "report": "out/rva23/vector_permission_matrix/report.json",
+    "behavior": "690 native VFADD/VADD/VLENB probes across M/HS/VS/U/VU: all host/guest FS/VS Off/on patterns repeated with Initial/Clean/Dirty nonzero states (46 contexts per mode). Identical Sail ELF per mode, precise cause-2 traps, destination/FCSR preservation, and mandatory host/guest Dirty after actual vector or FP state changes. Not full mixed-nonzero Cartesian product, all opcodes, delegation, page/PMP fault priority or all schedules."
+  },
+  {
     "requirements": ["V", "F", "D"],
     "report": "out/rva23/scalar_vector_fp_state/report.json",
     "behavior": "160 native M-mode scalar FADD/vector VFADD or VFDIV/scalar FDIV sequences: SEW32/64 LMUL2, five frm modes and eight active/mask/vstart/vl selections. Identical Sail ELF per width matches 13507 events; 1600 scalar/CSR/memory observations include 640 destination words, 240 active elements, shared flag accrual, preserved frm/vcsr and cleared vstart. Exact-rational oracle and 14 rejecting trace controls. FS/VS enabled only; all instruction families, privilege/fault/interrupt and speculative schedules separate."

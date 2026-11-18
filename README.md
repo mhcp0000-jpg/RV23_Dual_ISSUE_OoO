@@ -85,6 +85,8 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | Zicbop / CMO | PREFETCH.I/R/W의 offset·base 조합 1,413개에서 상태 보존 검사. CBO 권한·ZERO·flush·순서 검증 범위와 함께 [CMO 절별 검토](docs/RVA23_CMO_CLAUSE_REVIEW.md)에 정리 |
 | AMO 필드 범위 | W/D 18형식·모든 aq/rl 인코딩·대표 레지스터 중첩과 선택 데이터의 1,728개 사례. 결과와 갱신 메모리를 독립 계산. [A 절별 검토](docs/RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | FP CSR alias | FCSR/FRM/FFLAGS와 여섯 CSR 명령의 1,664개 사례, 이전 값·alias 결과 6,656개 검사 및 Sail/RTL 이벤트 24,109건 일치. [FP 절별 검토](docs/RVA23_FP_CLAUSE_REVIEW.md)에 산술·boxing·상태·권한 근거도 연결 |
+| 벡터 FS/VS 권한 | 다섯 모드·host/guest FS/VS의 690개 대표 사례, 허용 234/거부 456건 및 Sail/RTL 이벤트 62,815건 일치. [V 상태 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md)에 precise trap·데이터 보존·Dirty 범위 정리 |
+| B/Zicond 조항 검토 | Zba 8·Zbb 24·Zbs 8·Zicond 2형식의 구현과 기존 독립 값 검사를 연결. [B/Zicond 검토표](docs/RVA23_BITMANIP_CLAUSE_REVIEW.md)에 word/unsigned-word 및 timing 검증 범위 구분 |
 | 스칼라/벡터 FP 상태 | SEW32/64·다섯 frm·mask/vstart/vl 선택의 교차 실행 160개. 공유 flags와 destination words 640개 확인, Sail/RTL 이벤트 13,507건 일치. [V 상태·실행 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md) |
 | RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | RV64 압축 산술 범위 | 18형식의 probe 7,226개, 배치별 동일 ELF의 Sail/RTL 이벤트 62,776건 일치. 즉시값·시프트의 유효 범위와 MV/ADD의 비영 레지스터 쌍 전체, 선택 데이터 패턴 및 대조군 60개 포함 |

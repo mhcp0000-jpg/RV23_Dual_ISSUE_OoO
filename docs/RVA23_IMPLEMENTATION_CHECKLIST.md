@@ -23,6 +23,10 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] B/Zicond의 기존 42형식 검사를 [절별 검토표](RVA23_BITMANIP_CLAUSE_REVIEW.md)에 연결했다. Zba 8·Zbb 24·Zbs 8·Zicond 2형식과 `.uw`/W, bit index 및 조건부 zero를 구분한다. 기존 Sail/RTL 1,810 retirements 중 비영 목적지 1,779개와 별도 native 246개 결과, 변조 대조군 42개의 범위이며 새 RTL 실행이나 전체 operand/인코딩/timing 증명을 뜻하지 않는다.
+
+- [x] VFADD/VADD/VLENB read의 host/guest FS·VS 권한을 M/HS/VS/U/VU의 690개 사례로 확인했다. 모든 Off/on 패턴을 Initial/Clean/Dirty 비영 상태에서 반복했으며 서로 다른 비영 상태의 전체 Cartesian product는 아니다. 허용 234/거부 456건, ECALL 포함 trap 1,146건, 관찰 데이터 2,760개와 host/guest Dirty readback 168개를 검사했다. 같은 ELF의 Sail/RTL 이벤트 62,815건이 일치하고 변조 대조군 30개를 거부했다. `scripts/run_vector_permission_matrix.py --check`를 필수 감사에 추가하고 [V 상태 검토](RVA23_VECTOR_CLAUSE_REVIEW.md)에 페이지/PMP·delegation·모든 opcode/스케줄과의 범위를 구분했다.
+
 - [x] 스칼라 FADD→벡터 VFADD/VFDIV→스칼라 FDIV의 공유 FP 상태를 SEW32/64·LMUL2·다섯 frm·여덟 mask/vstart/vl 상태의 160개 사례로 검사했다. 같은 ELF의 Sail/RTL 이벤트 13,507건과 scalar/CSR/memory 값 1,600개가 일치했다. snapshot word 640개에서 비활성·tail 보존, flags 누적, frm/vcsr 보존 및 vstart 초기화를 확인했고 대조군 14개를 거부했다. `scripts/run_scalar_vector_fp_state.py --check`를 필수 감사에 추가했다. [V 상태·실행 검토](RVA23_VECTOR_CLAUSE_REVIEW.md)에 기존 근거와 FS/VS 권한 등 남은 범위를 구분했다.
 
 - [x] FCSR/FRM/FFLAGS의 여섯 CSR 명령과 FCSR의 모든 8비트 값, 선택 상위 비트 쓰기를 1,664개 사례로 실행했다. 이전 값·세 alias 결과 6,656개와 배치별 같은 ELF의 Sail/RTL 이벤트 24,109건이 일치했다. 변조 대조군 96개를 거부했으며 `scripts/run_fcsr_alias_contract.py --check`를 필수 감사에 추가했다. [FP 절별 검토](RVA23_FP_CLAUSE_REVIEW.md)에 산술·NaN boxing·반올림·flag·메모리·FS/guest 권한 및 branch recovery의 기존 근거와 한계를 연결했다. 예약 frm 값은 저장/readback만 하며 해당 상태에서 산술을 실행하지 않는다.

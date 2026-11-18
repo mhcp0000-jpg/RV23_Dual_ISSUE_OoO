@@ -360,6 +360,21 @@ ELF·trace·로그·생성기·참조 모델 해시를 확인하고 독립 검�
 RV32 전용 transfer 형식을 요구하지 않는다. 예약 rm의 trap과 모든 FS 권한,
 분기/인터럽트 조합의 증거를 이 검사로 대신하지 않는다.
 
+### 다섯 모드의 vector FP/integer/CSR 접근 권한
+
+`scripts/run_vector_permission_matrix.py`는 VFADD.VV/VADD.VV/VLENB read를
+M/HS/VS/U/VU에서 실행한다. host FS·VS와 guest FS·VS의 Off/on 조합을
+Initial/Clean/Dirty 비영 상태로 반복한 46개 context, 모드별 138개 사례다.
+690개 중 허용 234개·거부 456개와 ECALL 포함 precise trap 1,146개를 확인했다.
+거부 시 cause 2·정확한 PC·원본 instruction tval와 writeback 없음을 검사한다.
+vector/정수 목적지와 FCSR 보존, 실제 변경의 host/guest Dirty를 확인한다.
+
+동일 ELF의 Sail/RTL 이벤트 62,815건, 관찰 데이터 2,760개 및 Dirty readback
+168개가 일치했다. 변조 대조군 30개를 거부했다. 필수 감사에 `--check`를
+연결하고 [V 상태 검토](RVA23_VECTOR_CLAUSE_REVIEW.md)에 근거를 정리했다.
+Bare의 대표 세 class이며 모든 opcode·mixed-nonzero FS/VS 조합과
+page/PMP fault·delegation·pipeline 스케줄을 검증했다고 하지 않는다.
+
 ### 스칼라·벡터 FP의 공유 frm/fflags
 
 `scripts/run_scalar_vector_fp_state.py`는 scalar FADD→vector VFADD/VFDIV→scalar
@@ -641,6 +656,12 @@ AMO/LR 반환값과 일반 load의 잘못된 결과를 넣은 trace 대조군을
 진행성 테스트의 별도 범위로 유지한다.
 
 ### RV64 B 및 Zicond 계산 의미 검토
+
+필수 42형식의 그룹·구현 연결과 word/unsigned-word 및 timing 범위는
+[B/Zicond 절별 검토](RVA23_BITMANIP_CLAUSE_REVIEW.md)에 정리했다.
+
+그룹별 필수 형식과 word/unsigned-word·조건부 zero의 구현 연결은
+[B/Zicond 절별 검토](RVA23_BITMANIP_CLAUSE_REVIEW.md)에 정리했다.
 
 기준은 [B 1.0.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/b-st-ext.html)과
 [Zicond 1.0.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zicond.html)이다.
