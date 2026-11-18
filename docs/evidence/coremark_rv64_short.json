@@ -3,7 +3,7 @@
   "certified_score": false,
   "complete_benchmark_plan": false,
   "scope": "Short, CRC-checked RTL performance estimates; no measured silicon clock or certified CoreMark result",
-  "source_report_sha256": "f68fe99386de9dba70f33007ca9cd85ed6317d7a8076bd1328fd6742ebb7132f",
+  "source_report_sha256": "3855489922445a29dd3cf7efed824c3395193df27343d2476e2a17dcfcbeeba1",
   "upstream_commit": "1f483d5b8316753a742cbf5590caf5bd0a4e4777",
   "execution_driver_sha256": "8368a65e65f4e36ee4be3809e2e71ec8e6c21f1db48aadb5a4897c157bd4bd08",
   "resumed_driver_sha256": "493bf5007f58d00a7b13cdeb4e245f0223269afafb18a3b76a28f23634e306d6",
@@ -132,7 +132,7 @@
   },
   "compiler_sha256": "9fd3aecdd6ae127a5545709f44f8f154b4a39898b021fe87d2991947b0a235c5",
   "compiler_version": "riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 15.2.0",
-  "reporting_driver_sha256": "110e607b61f53e927a37219d068398424f68252053008e1fa83cc048166e7c70",
+  "reporting_driver_sha256": "4a8a71fd6f5e2d0383aa063886bfa5211af60bbdd5fdc1e132bf467e94498d3e",
   "cases": [
     {
       "variant": "o2_scalar",
@@ -959,6 +959,6 @@
     "out/performance/rv64_latency/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "out/performance/rv64_latency/simulation.log": "e6ae1c22757fc941e5cf20f79f878d9658be7afaaed2666a3de2cee089b9d846",
     "out/performance/rv64_latency/report.json": "03c3b3d26c345f6ea61e22525d7b1fadd03d28627d4d4c09b2588dd69cfcabb0",
-    "out/performance/rv64_coremark/report_short_snapshot.json": "f68fe99386de9dba70f33007ca9cd85ed6317d7a8076bd1328fd6742ebb7132f"
+    "out/performance/rv64_coremark/report_short_snapshot.json": "3855489922445a29dd3cf7efed824c3395193df27343d2476e2a17dcfcbeeba1"
   }
 }

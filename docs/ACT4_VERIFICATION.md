@@ -259,7 +259,8 @@ The RVA23 filter selected all 2,301 RV64 sources from the 15 suites above.
 The selected counts match the source manifest. Sail generated signatures
 for all 2,301 cases, and all 9,204 build tasks completed successfully.
 The generation audit checked every signature, reference run log and final
-ELF. The RTL execution is in progress.
+ELF. All 2,301 selected ELFs passed on the current RTL. The full execution
+audit passed, including current model and artifact hashes and exact test-file witnesses.
 The execution report target is `out/act4/dut/current-rva23-vector.json`.
 Run `python scripts/audit_act4_current_vector.py --selection-only` to
 recheck source hashes, generator inputs, configuration and the official
@@ -277,6 +278,9 @@ python scripts/audit_act4_current_vector.py
 
 The full audit requires all selected RTL runs to pass and verifies the
 ELF, Sail signature, execution log and current RTL model hashes.
+The completed audit is `out/act4/current_vector/execution_audit.json` and is
+required by the integrated RVA23 evidence gate. This is finite architectural
+test evidence; `full_profile_verified` remains false.
 
 Run the inventory audit through the ACT uv environment:
 `uv run --project third_party/riscv-arch-test --no-dev python -X utf8 scripts/audit_act4_inventory.py`.

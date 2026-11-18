@@ -56,16 +56,16 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 
 ### CoreMark 성능
 
-RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **2회 RTL 실행 추정치**다.
-세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수가 아니며 10회 확장 측정은 진행 중이다.
+RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **10회 RTL 실행을 기준으로 측정 중**이다.
+완료된 행은 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
 
 | 빌드 | Cycles | IPC | CoreMark/MHz 추정 |
 |---|---:|---:|---:|
-| O2 scalar | 983,907 | 0.609381 | 2.032712 |
-| O3 scalar | 985,200 | 0.616431 | 2.030045 |
-| O3 auto-RVV | 2,284,058 | 0.241871 | 0.875635 |
+| O2 scalar, 10회 완료 | 4,896,919 | 0.612160 | 2.042100 |
+| O3 scalar, 10회 완료 | 4,902,692 | 0.619334 | 2.039696 |
+| O3 auto-RVV, 10회 실행 중 | — | — | — |
 
-이번 auto-RVV는 실제 벡터 명령을 실행했지만 scalar보다 느렸다. 벡터의 원소 처리·
+별도 2회 예비 비교의 auto-RVV는 실제 벡터 명령을 실행했지만 scalar보다 느렸다. 벡터의 원소 처리·
 메모리 경로와 명령 직렬화가 개선 후보이며, IPC만으로 유용 작업량을 비교하지 않는다.
 예전에 언급한 IPC 1.123518은 별도의 고정 RV32 ELF 결과다.
 [컴파일 옵션·CRC·실측 근거·개선 후보](docs/COREMARK_PERFORMANCE.md)
@@ -76,7 +76,7 @@ RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **2회 RT
 | --- | --- |
 | ACT4 | 체크인 ELF 663/663, 생성 벡터 ELF 2,083/2,083, H·Sv39x4·PMP 보강 ELF 40/40 통과 |
 | 후속 ACT4 | upstream이 요구하는 Sail 0.16으로 RVA23 필터의 체크인 ELF 607/607 및 별도 H·Sv39x4·PMP ELF 40/40 통과 |
-| 후속 ACT4 생성 벡터 | 2,301개 전체의 Sail 기대값·ELF 생성 감사 통과, RTL 회귀 진행 중 |
+| 후속 ACT4 생성 벡터 | 2,301/2,301 RTL 실행 통과. Sail 기대값·ELF·로그·현재 RTL 모델의 전체 생성/실행 감사 통과 |
 | 스칼라 참조 비교 | 동일 ELF의 Sail/RTL 실행 168개, 사용자 모드 ELF 152개의 retire 기록 61,754건 일치 |
 | 코어 및 메모리 통합 | dual issue·execute·retire와 독립 명령의 비순차 실행, I/D 뱅크 동시 접근, AXI64 리필, 스칼라·벡터 메모리와 예외·재시작 검사 통과 |
 | 기본 1 MiB SRAM | OpenSBI에서 S 모드로 인계, DTB 및 SBI BASE/TIME, 타이머 인터럽트 확인 |

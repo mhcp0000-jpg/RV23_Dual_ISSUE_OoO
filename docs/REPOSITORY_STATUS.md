@@ -24,8 +24,10 @@
 `out/act4/current_h_extended/`에 있다. [재현 및 감사](ACT4_VERIFICATION.md)
 
 후속 upstream 생성 벡터 2,301개도 Sail 기대값과 self-checking ELF
-생성을 마쳤다. 전체 RTL 회귀는 진행 중이며 현재 결과는
-`out/act4/dut/current-rva23-vector.json`에서 확인한다.
+생성을 마쳤고 현재 RTL에서 모두 통과했다. `audit_act4_current_vector.py`가
+선택 목록·생성 소스·signature·ELF·RTL/model·실행 로그 해시와 실제 PASS
+witness를 검사했다. 근거는 `out/act4/current_vector/execution_audit.json`이며
+통합 요구사항 감사에도 포함한다. 전체 규격 조항 검토와 공식 인증은 별도다.
 
 | 검사 | 확인한 결과 |
 |---|---|

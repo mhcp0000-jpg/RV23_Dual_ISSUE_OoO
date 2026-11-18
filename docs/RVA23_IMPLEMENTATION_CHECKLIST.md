@@ -69,6 +69,8 @@
 
 ## 3. 통합 검증과 부팅
 
+- [x] 후속 upstream ACT4의 새 생성 벡터 2,301개가 현재 RTL에서 모두 통과했다. 15개 RV64 suite의 선택·소스·Sail signature·ELF·현재 model·실행 로그와 PASS witness 전체 감사가 통과했다. `scripts/audit_act4_current_vector.py`를 통합 요구사항 감사에 포함했다. 전체 프로파일 조항 감사 또는 공식 인증 완료를 뜻하지 않는다.
+
 - [x] Svpbmt 수정 이전 RTL에서 ACT4 체크인 ELF 663개와 생성 벡터 ELF 2,083개가 모두 통과했다. 공식 핀 0.13.1의 H 미지원으로 참조 모델은 Sail 0.16을 사용했다.
 - [x] 후속 upstream ACT4 커밋이 지정한 Sail 0.16으로 H·Sv39x4·PMP ELF 40개를 생성했고 현재 RTL에서 모두 통과했다. `hgatp`, G-stage PTE, VS/VU guest fault, `hstatus.VTVM`, 가상 주소 무효화와 CBO 권한을 확인했다. [ACT4 재현 절차](ACT4_VERIFICATION.md#newer-upstream-act4-sail-pin)
 - [x] 같은 upstream 커밋에서 `--certificate RVA23` 필터로 선택한 체크인 ELF 607개가 모두 현재 RTL에서 통과했다. 34개 suite의 선택 목록과 생성 ELF, Sail signature 및 RTL 실행 로그를 감사한다. 생성 벡터 소스는 별도 검증 목록으로 추적한다.

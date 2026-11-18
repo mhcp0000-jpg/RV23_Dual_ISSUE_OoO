@@ -168,6 +168,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('run_act4_upstream_h.py', ['--check'], 'out/act4/upstream_h_extended/audit.json'),
         ('run_act4_current_h.py', ['--extended', '--check'], 'out/act4/current_h_extended/audit.json'),
         ('audit_act4_current_rva23.py', [], 'out/act4/current_rva23_inventory/execution_audit.json'),
+        ('audit_act4_current_vector.py', [], 'out/act4/current_vector/execution_audit.json'),
         ('run_guest_misaligned.py', ['--check'], 'out/rva23/guest_misaligned/report.json'),
         ('run_guest_pte_mxr.py', ['--check'], 'out/rva23/guest_pte_mxr/report.json'),
         ('audit_rv32_release.py', [], 'out/rv32_release_audit.json'),

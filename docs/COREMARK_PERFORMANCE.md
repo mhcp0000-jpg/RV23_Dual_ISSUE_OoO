@@ -25,7 +25,28 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
   `CoreMark/MHz estimate = iterations × 1,000,000 / cycles`.
   실제 합성 clock 또는 CoreMark/sec를 측정한 것은 아니다.
 
-## RV64 측정 결과
+## RV64 10회 주측정
+
+각 실행은 reset/cold start이며 동일 작업을 10회 반복해 초기 cache·predictor
+영향을 줄인다. warm-only 구간만 따로 측정한 값은 아니다. 완료된 행만
+수치로 표시하며 세 빌드의 10회 비교는 아직 완료되지 않았다.
+
+| Build | Iterations | Cycles | Instructions | IPC | CoreMark/MHz 추정 |
+|---|---:|---:|---:|---:|---:|
+| O2 scalar, 완료 | 10 | 4,896,919 | 2,997,696 | 0.612160 | 2.042100 |
+| O3 scalar, 완료 | 10 | 4,902,692 | 3,036,405 | 0.619334 | 2.039696 |
+| O3 auto-RVV, 실행 중 | 10 | — | — | — | — |
+
+[완료된 실행의 입력·CRC·로그 감사](evidence/coremark_rv64_progress.json)는
+`complete_benchmark_plan=false`로 남긴다. O2는 2회와 10회 모두 I-cache
+miss 138회·D-cache miss 75회, D read engine busy 4,449 cycles였다.
+cycles/iteration은 491,953.5에서 489,691.9로 약 0.46% 감소했다.
+cache miss 카운터와 engine busy는 전체 프로그램 범위라 timed stall
+분해로 해석하지 않는다. 마지막 RVV 10회 실행이 끝나면 같은 회수로 비교한다.
+O3 scalar는 O2보다 IPC가 높지만 명령 수와 cycles도 더 많아 CoreMark/MHz는
+조금 낮았다. 서로 다른 compiler build의 IPC 상승을 그대로 점수 향상으로 보지 않는다.
+
+## RV64 2회 예비 비교
 
 세 빌드의 2회 비교는 완료됐다. 각 행의 seed/list/matrix/state CRC는
 `e9f5/e714/1fd7/8e3a`이며 같은 iteration의 final CRC도 일치했다.
@@ -98,7 +119,7 @@ completion을 통과한 지속 load 처리량은 별개다. 이 결과만으로 
 
 | 우선 검토 | 현재 구조의 제약 | 개선 후보 | 확인할 지표·보존 조건 |
 |---|---|---|---|
-| store 처리 | write-through 응답이 store 완료와 retire를 지연시킨다 | 응답 경로 단축, 가능한 store 병합 및 commit된 store 처리량 개선 | store/retire 대기, 같은 ELF cycles; precise fault·MMIO·FENCE·snoop 순서 보존 |
+| store 처리 | 일반 store는 commit 시 store buffer에 들어가며, write-through 응답을 기다리는 drain이 느리면 buffer 압력으로 retire가 막힐 수 있다. MMIO는 직접 완료를 기다린다 | 응답 경로 단축, 가능한 store 병합 및 commit된 store 처리량 개선 | SB 점유·enqueue backpressure·bus 완료·retire 대기를 함께 계측, 같은 ELF cycles; precise fault·MMIO·FENCE·snoop 순서 보존 |
 | 지속 issue/operand 공급 | 이 ADDI stream에서도 2 instructions/cycle의 지속 처리량이 관찰되지 않았다 | frontend 큐·dispatch·IQ 선택·PRF 읽기·result FIFO의 bubble과 backpressure 계측 | register 선택과 코드 배치별 분리, 동일 ELF의 issue/execute/WB/retire 기록 |
 | 지속 load 공급 | 독립 LD 진단이 서로 다른 뱅크에서도 약 1개/cycle 수준 | frontend/AGU/LQ 선택·refill/완료 경로의 bubble 확인 | 각 단계의 매 cycle 두 요청·두 완료 가능 여부, same/different-bank 분리; ordering/flush/PMP 보존 |
 | load-use와 분기 | 리스트 추적과 CRC에는 의존성·분기가 있다 | forwarding/응답-to-use 경로와 branch recovery 검토 | retire 공백이 집중된 함수·PC, load-use/redirect 실제 계측; gap을 원인으로 단정하지 않음 |
@@ -128,6 +149,8 @@ python scripts/report_coremark_rv64.py
 이 모드는 `complete_benchmark_plan=false`인 별도 근거 파일을 만들며,
 기본 모드는 여섯 실행 전체가 완료돼야 통과한다. 중단 후에는
 `python scripts/run_coremark_rv64.py --iterations 2 10 --resume`으로 해시가 일치하는 완료 결과만 재사용한다.
+10회 결과를 포함해 현재 완료된 실행만 감사할 때는 `--completed-runs`를 사용한다.
+이 모드도 전체 계획 완료로 표시하지 않으며 별도 진행 근거를 생성한다.
 
 원본 ELF·벡터화 보고서·disassembly·로그·retire CSV는 `out/`에 생성된다.
 최소 iteration의 세 실행은 `start_time` 진입부터 `stop_time` 진입까지

@@ -15,12 +15,15 @@ FOLDER = ROOT / 'out/performance/rv64_coremark'
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--short-comparison', action='store_true', help='Publish the completed three-build 2-iteration stage; keep extended plan incomplete')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--short-comparison', action='store_true', help='Publish the completed three-build 2-iteration stage; keep extended plan incomplete')
+    mode.add_argument('--completed-runs', action='store_true', help='Publish completed runs including at least one extended run; keep plan incomplete')
     args = parser.parse_args()
+    partial = args.short_comparison or args.completed_runs
     path = FOLDER / 'report.json'
     report_bytes = path.read_bytes()
     raw = json.loads(report_bytes)
-    assert (raw['passed'] or args.short_comparison) and not raw['certified_score']
+    assert (raw['passed'] or partial) and not raw['certified_score']
     assert raw['driver_sha256'] == sha(ROOT / 'scripts/run_coremark_rv64.py')
     assert raw['compiler_sha256'] == sha(GCC / 'riscv-none-elf-gcc.exe')
     assert source_inputs(raw['inputs']) == raw['inputs']
@@ -29,6 +32,10 @@ def main():
     assert sha(ROOT / model['binary']) == model['binary_sha256']
     expected = {(variant, count) for variant in ('o2_scalar', 'o3_scalar', 'o3_rvv')
                 for count in ((2,) if args.short_comparison else (2, 10))}
+    if args.completed_runs:
+        completed = {(case['variant'], case['iterations']) for case in raw['cases']}
+        assert completed <= expected and any(count == 10 for _, count in completed)
+        expected = completed
     selected = [case for case in raw['cases'] if (case['variant'], case['iterations']) in expected]
     assert {(case['variant'], case['iterations']) for case in selected} == expected
     assert len(selected) == len(expected)
@@ -131,11 +138,12 @@ def main():
         assert record['passed'] and record['exit_code'] == 0 and sha(ROOT / record['log']) == record['log_sha256']
         artifacts[record['log']] = record['log_sha256']
     artifacts[probe_path.relative_to(ROOT).as_posix()] = sha(probe_path)
-    snapshot = FOLDER / ('report_short_snapshot.json' if args.short_comparison else 'report_final_snapshot.json')
+    snapshot = FOLDER / ('report_short_snapshot.json' if args.short_comparison else
+                         'report_progress_snapshot.json' if args.completed_runs else 'report_final_snapshot.json')
     snapshot.write_bytes(report_bytes)
     report_digest = hashlib.sha256(report_bytes).hexdigest()
     artifacts[snapshot.relative_to(ROOT).as_posix()] = report_digest
-    compact = dict(passed=True, certified_score=False, complete_benchmark_plan=not args.short_comparison,
+    compact = dict(passed=True, certified_score=False, complete_benchmark_plan=not partial,
         scope='Short, CRC-checked RTL performance estimates; no measured silicon clock or certified CoreMark result',
         source_report_sha256=report_digest, upstream_commit=raw['upstream_commit'],
         execution_driver_sha256=raw['driver_sha256'],
@@ -144,7 +152,8 @@ def main():
         software_inputs=raw['inputs'], compiler_sha256=raw['compiler_sha256'],
         compiler_version=subprocess.check_output([str(GCC / 'riscv-none-elf-gcc.exe'), '--version'], text=True).splitlines()[0],
         reporting_driver_sha256=sha(__file__), cases=rows, latency_probes=probe['cases'], artifacts=artifacts)
-    target = 'coremark_rv64_short.json' if args.short_comparison else 'coremark_rv64.json'
+    target = ('coremark_rv64_short.json' if args.short_comparison else
+              'coremark_rv64_progress.json' if args.completed_runs else 'coremark_rv64.json')
     dump(ROOT / 'docs/evidence' / target, compact)
     lines = ['| Build | Iterations | Cycles | Instructions | IPC | CoreMark/MHz estimate | Static V |',
              '|---|---:|---:|---:|---:|---:|---:|']
@@ -152,7 +161,7 @@ def main():
         lines.append(f"| {row['variant']} | {row['iterations']} | {row['cycles']:,} | {row['instructions']:,} | {row['ipc']:.6f} | {row['coremark_per_mhz_estimate']:.6f} | {row['static_vector_instructions']} |")
     (FOLDER / 'measured_table.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print('PASS completed RV64 CoreMark stage:', len(rows), 'runs; CRC equality per iteration and current content hashes;',
-          'extended benchmark plan complete:', not args.short_comparison)
+          'extended benchmark plan complete:', not partial)
 
 
 if __name__ == '__main__':

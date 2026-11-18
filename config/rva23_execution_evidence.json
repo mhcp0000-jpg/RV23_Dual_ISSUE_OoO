@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["V", "Zvbb", "Zvfhmin"],
+    "report": "out/act4/current_vector/execution_audit.json",
+    "behavior": "2301 generated current upstream ACT4 vector ELFs with pinned Sail 0.16 signatures, exact RVA23 selection, and content-bound full-core RTL execution"
+  },
+  {
     "requirements": [
       "I",
       "A",
