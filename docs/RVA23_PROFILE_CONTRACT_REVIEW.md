@@ -82,6 +82,30 @@ oracle에서 확인하지만 이 표만으로 모든 주소 경계 입력을 실
 주장하지 않는다. 감사 결과는 `out/rva23/rv64i_compute_control_audit.json`이며
 현재 소스·실행 파일·ELF·로그·trace 해시에 묶여 통합 감사에 포함된다.
 
+### RV64I load/store 값 검토
+
+`python scripts/audit_rv64i_memory_values.py`는 LB/LBU/LH/LHU/LW/LWU/LD와
+SB/SH/SW/SD의 ELF 11개 및 `ld_st`·`st_ld`·`ma_data`를 검사한다.
+ELF64의 file-backed PT_LOAD 바이트를 초기 메모리로 읽고, retire 순서의
+store를 little-endian 바이트 모델에 적용한다. 쓰기 전 NOBITS 영역을
+임의로 0이라고 가정하지 않으며, load의 모든 바이트가 초기 ELF나 선행
+store에서 알려져 있어야 한다. 중간에 실행한 C.LW/C.LD/C.SW/C.SD와
+각 SP형도 원본 16비트 인코딩에서 해석한다.
+
+| 조항 | RTL 근거 | 확인한 실행 범위 |
+|---|---|---|
+| rs1+signed immediate의 유효 주소 | decoder와 LSU 주소 경로 | 복원한 정수 레지스터와 I/S immediate로 바이트 주소 계산 |
+| byte/half/word load의 signed/unsigned 확장과 LD | LSU `format_load_data` 및 비정렬 assist | load 831회의 값 확인; x0 목적지는 결과값 관찰 범위에서 제외 |
+| store의 크기와 하위 데이터·부분 쓰기 | LSU store strobe/forward 및 assist 경로 | store 760회를 바이트 모델에 적용하고 그중 618회의 일부 또는 전체 바이트를 후속 load에서 관찰 |
+| 메모리 byte 순서와 비정렬 값 | LSU 및 head memory assist | 전체 1,591개 메모리 명령 중 비정렬 268회 |
+
+Sail과 같은 ELF의 trace를 대조한 후 독립 바이트 계산을 적용한다.
+load 결과를 바꾼 14개와 첫 store의 주소를 한 바이트 옮긴 네 trace
+대조군을 거부했다. 이 대조군은 감사기의 검출력을 확인하며 수정된
+RTL을 실행한 결과가 아니다. 버스 요청 수·순서, 읽히지 않은 store
+바이트, 예외와 동시 접근은 기존 별도 검사 범위다. 결과는
+`out/rva23/rv64i_memory_value_audit.json`에 남기고 통합 요구사항 감사에 포함한다.
+
 `run_profile_csr_geometry.py --compare-before out/rva23/hgatp_warl_before`는
 보관한 ELF를 수정 전후의 SoC에서 그대로 재실행한다. 두 모델의 RTL
 입력 해시에서 `rv_hypervisor_csrs.sv`만 다른 것을 확인한 뒤 비교한다.

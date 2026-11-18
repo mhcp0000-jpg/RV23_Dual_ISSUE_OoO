@@ -271,7 +271,7 @@ recheck the completed signature and ELF generation. Its output is
 After ELF generation completes, execute the selected binaries.
 
 ```powershell
-python scripts/run_act4_dut.py --act-source-root out/act4/upstream_act4_current --elf-root out/act4/current_vector/work/rv23-RVA23S64-current-vector/elfs --report current-rva23-vector.json --workers 6 --timeout 1200
+python scripts/run_act4_dut.py --act-source-root out/act4/upstream_act4_current --elf-root out/act4/current_vector/work/rv23-RVA23S64-current-vector/elfs --report current-rva23-vector.json --workers 12 --timeout 1200
 python scripts/audit_act4_current_vector.py
 ```
 

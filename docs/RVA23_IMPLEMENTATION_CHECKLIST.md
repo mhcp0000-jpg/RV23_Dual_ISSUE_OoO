@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] RV64I load/store의 주소·크기·확장·little-endian 바이트 값을 기존 전체 H/V ELF 14개에서 독립 계산했다. load 831회·store 760회와 비정렬 접근 268회를 포함하며 압축 메모리 명령도 해석했다. 후속 load로 store 618회의 값을 관찰했고 잘못된 load 결과 14개와 store 주소 변경 4개를 거부했다. `scripts/audit_rv64i_memory_values.py`를 통합 감사에 포함했다. 읽히지 않은 쓰기와 버스/예외/동시성은 별도 범위다.
+
 - [x] RV64I 정수 계산·제어 명령 38종의 RTL 경로를 검토했다. 현재 H/V 실행의 피연산자를 복원해 초기화 포함 6,252개 명령의 결과·다음 PC를 독립 계산으로 검사하고 38개 잘못된 결과/PC 대조군을 거부했다. 여섯 조건 분기의 taken/not-taken 모두를 확인했다. `scripts/audit_rv64i_compute_control.py`가 실행 근거를 감사하며 load/store·trap·예약 인코딩·FENCE는 별도 범위다.
 
 - [x] RV64M의 하위·상위 곱, 부호 조합, W형의 하위 입력과 부호 확장, 0 나누기 및 signed overflow 조항을 RTL과 연결했다. 기존 전체 H/V 실행에서 13개 명령의 피연산자를 복원해 결과 296개를 Python 정수 계산으로 확인하고, 잘못된 결과 13개를 거부했다. `scripts/audit_rv64m_contract.py`를 통합 감사에 포함했다. 전 피연산자·pipeline 스케줄 증명은 아니며 다른 스칼라 확장의 검토를 대신하지 않는다.
