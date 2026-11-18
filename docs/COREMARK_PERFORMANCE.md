@@ -28,21 +28,23 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 ## RV64 10회 주측정
 
 각 실행은 reset/cold start이며 동일 작업을 10회 반복해 초기 cache·predictor
-영향을 줄인다. warm-only 구간만 따로 측정한 값은 아니다. 완료된 행만
-수치로 표시하며 세 빌드의 10회 비교는 아직 완료되지 않았다.
+영향을 줄인다. warm-only 구간만 따로 측정한 값은 아니다. 세 빌드의
+10회 비교와 CRC·입력·모델·ELF·로그 해시 감사가 모두 완료됐다.
 
 | Build | Iterations | Cycles | Instructions | IPC | CoreMark/MHz 추정 |
 |---|---:|---:|---:|---:|---:|
 | O2 scalar, 완료 | 10 | 4,896,919 | 2,997,696 | 0.612160 | 2.042100 |
 | O3 scalar, 완료 | 10 | 4,902,692 | 3,036,405 | 0.619334 | 2.039696 |
-| O3 auto-RVV, 실행 중 | 10 | — | — | — | — |
+| O3 auto-RVV, 완료 | 10 | 11,396,161 | 2,762,088 | 0.242370 | 0.877488 |
 
-[완료된 실행의 입력·CRC·로그 감사](evidence/coremark_rv64_progress.json)는
-`complete_benchmark_plan=false`로 남긴다. O2는 2회와 10회 모두 I-cache
+[여섯 실행의 입력·CRC·로그 감사](evidence/coremark_rv64.json)는
+`complete_benchmark_plan=true`다. 이는 측정 계획 완료이며 공식 CoreMark 인증이나
+전체 RVA23S64 검증 완료를 뜻하지 않는다. 이전 다섯 실행 시점의 진행 근거는
+`coremark_rv64_progress.json`에 별도로 보존한다. O2는 2회와 10회 모두 I-cache
 miss 138회·D-cache miss 75회, D read engine busy 4,449 cycles였다.
 cycles/iteration은 491,953.5에서 489,691.9로 약 0.46% 감소했다.
 cache miss 카운터와 engine busy는 전체 프로그램 범위라 timed stall
-분해로 해석하지 않는다. 마지막 RVV 10회 실행이 끝나면 같은 회수로 비교한다.
+분해로 해석하지 않는다. RVV 10회는 O3 scalar의 약 2.324배 cycles를 사용했다.
 O3 scalar는 O2보다 IPC가 높지만 명령 수와 cycles도 더 많아 CoreMark/MHz는
 조금 낮았다. 서로 다른 compiler build의 IPC 상승을 그대로 점수 향상으로 보지 않는다.
 
@@ -50,7 +52,7 @@ O3 scalar는 O2보다 IPC가 높지만 명령 수와 cycles도 더 많아 CoreMa
 
 세 빌드의 2회 비교는 완료됐다. 각 행의 seed/list/matrix/state CRC는
 `e9f5/e714/1fd7/8e3a`이며 같은 iteration의 final CRC도 일치했다.
-10회 확장 측정은 진행 중이다. 아래 표를 전체 확장 측정 완료로 해석하지 않는다.
+10회 확장 결과는 위 표와 전체 측정 근거에 있다. 아래는 별도로 보존한 예비 비교다.
 
 | Build | Iterations | Cycles | Instructions | IPC | CoreMark/MHz 추정 | Static V |
 |---|---:|---:|---:|---:|---:|---:|

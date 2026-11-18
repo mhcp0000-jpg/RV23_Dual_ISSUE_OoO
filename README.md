@@ -56,16 +56,16 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 
 ### CoreMark 성능
 
-RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **10회 RTL 실행을 기준으로 측정 중**이다.
-완료된 행은 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
+RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **10회 RTL 실행 결과**다.
+세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
 
 | 빌드 | Cycles | IPC | CoreMark/MHz 추정 |
 |---|---:|---:|---:|
 | O2 scalar, 10회 완료 | 4,896,919 | 0.612160 | 2.042100 |
 | O3 scalar, 10회 완료 | 4,902,692 | 0.619334 | 2.039696 |
-| O3 auto-RVV, 10회 실행 중 | — | — | — |
+| O3 auto-RVV, 10회 완료 | 11,396,161 | 0.242370 | 0.877488 |
 
-별도 2회 예비 비교의 auto-RVV는 실제 벡터 명령을 실행했지만 scalar보다 느렸다. 벡터의 원소 처리·
+auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보다 약 2.32배 많은 cycles를 썼다. 벡터의 원소 처리·
 메모리 경로와 명령 직렬화가 개선 후보이며, IPC만으로 유용 작업량을 비교하지 않는다.
 예전에 언급한 IPC 1.123518은 별도의 고정 RV32 ELF 결과다.
 [컴파일 옵션·CRC·실측 근거·개선 후보](docs/COREMARK_PERFORMANCE.md)
