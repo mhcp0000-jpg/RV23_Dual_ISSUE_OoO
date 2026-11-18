@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zimop", "Zcmop"],
+    "report": "out/rva23/mop_contract/report.json",
+    "behavior": "3368 native H/V probes: all 32 MOP.R and eight MOP.RR forms across all destinations with selected independent/alias sources in M, all 40 forms in a U subset, and all eight C.MOP forms with full GPR/FPR snapshots. Default zero-result versus compressed no-write distinction, PC+4/PC+2 and FCSR checked on identical Sail ELF per batch; 1848 destination/source aliases and 92 rejecting controls. No redefining CFI extension, full register Cartesian product, every privilege/state combination or RVWMO dependency proof claimed."
+  },
+  {
     "requirements": ["Zicsr"],
     "report": "out/rva23/zicsr_rmw_contract/report.json",
     "behavior": "378 native H/V six-form CSR RMW cases on mscratch/minstret/mhartid with identical Sail ELF. Encoded nonzero rs1 containing zero, zero-register/immediate suppression, rd/rs1 alias, return-old/readback and 114 exact read-only traps. Independent per-retirement instret oracle checks explicit-write priority and adjacent write/read values 0x1234/0x1235; five rejecting controls. Other CSR banks/WARL, all privilege modes, custom read/field side effects and inter-agent ordering separate."

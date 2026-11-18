@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] Zimop/Zcmop의 기본 의미를 3,368개 사례로 검증했다. M mode에서 MOP.R 32개·MOP.RR 8개의 모든 목적지 x0~x31과 선택된 별도/중첩 source를 조합한 3,072개, U mode의 전 40형식 288개, C.MOP 8개를 실행했다. 비영 목적지를 미리 채워 R/RR의 0 쓰기를 확인하고, C형식은 GPR/FPR snapshot 512개 보존을 검사했다. destination/source 중첩 1,848건과 무시된 목적지 x0 192건, FCSR 보존을 확인했다. 같은 ELF의 Sail/RTL 이벤트 51,165건이 일치하고 대조군 92개를 거부했다. `scripts/run_mop_contract.py --check`를 통합 감사에 연결하고 [절별 검토표](RVA23_MOP_CLAUSE_REVIEW.md)에 의미 재정의 확장 및 모든 권한/상태 조합의 한계를 구분했다.
+
 - [x] Zicsr의 6개 명령을 mscratch·minstret·mhartid에서 378개 사례로 실행했다. encoded rs1≠x0에 값 0이 든 RS/RC 36건과 rd=rs1 72건을 포함하며, 읽기 전용 쓰기 의도 114건의 cause 2·원본 instruction tval·writeback 없음을 확인했다. 독립 retirement 카운터 모델로 minstret 읽기 212건과 명시적 쓰기 242건을 검사했다. ELF에서 바로 인접한 write/read/read가 0x1234/0x1234/0x1235를 보이는 동작도 자체 검사한다. 같은 ELF의 Sail/RTL 이벤트 9,182개가 일치하고 대조군 5개를 거부했다. `scripts/run_zicsr_rmw_contract.py --check`를 통합 감사에 연결했고 [절별 검토표](RVA23_ZICSR_CLAUSE_REVIEW.md)에 CSR bank/권한 및 side-effect 검토의 한계를 구분했다.
 
 - [x] RV64I HINT 표의 31개 연산군과 특수 표식을 36분류·1,132개 선택 사례로 실행했다. rd=x0 데이터 연산, U/I 즉시값 경계, shift 범위, NTL·PAUSE·null-set FENCE의 무시된 rd/rs1, standalone semihost 표식을 포함한다. 같은 전체 H/V SoC와 Sail의 배치별 같은 ELF 이벤트 168,849개가 일치했고 GPR/FPR snapshot 값 72,448개·FCSR·SRAM guard 보존 및 실제 PC+4를 확인했다. 변조 대조군 44개를 거부하고 `scripts/run_rv64i_hint_contract.py --check`를 통합 감사에 연결했다. [I/M 절별 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)에 기존 산술·메모리·FENCE·trap 근거도 연결했다. 전체 HINT 공간·CSR/권한·semihost ABI·타이밍·보편적 memory ordering 증명은 아니다.

@@ -32,6 +32,31 @@
 
 ## 추가한 경계 사례
 
+### Zimop의 0 쓰기와 Zcmop의 no-write 기본 의미
+
+기준은 [Zimop/Zcmop 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zimop.html)이다.
+`scripts/run_mop_contract.py`는 의미를 재정의하는 확장이 없는 현재 기본 동작을
+같은 전체 H/V SoC와 Sail에 배치별 같은 ELF로 실행한다. 인코딩의 number
+필드는 [공식 riscv-opcodes의 Zimop 정의](https://github.com/riscv/riscv-opcodes/blob/master/extensions/rv_zimop)와 대조했다.
+
+| 대상 | 실제 검사 |
+|---|---|
+| MOP.R.0~31 | 모든 rd=x0~x31에 별도 source와 rd=rs1을 조합 |
+| MOP.RR.0~7 | 모든 rd에 별도 source, rd=rs1, rd=rs2 및 rd=rs1=rs2를 조합 |
+| M/U | M mode 3,072개와 전 40형식의 U mode 선택 사례 288개. U 종료 ECALL 외에 trap을 허용하지 않음 |
+| R/RR 결과 | 목적지의 초기값을 비영 값으로 채워 현재 기본 동작이 단순 NOP가 아니라 0 쓰기임을 확인. 바뀌지 않아야 할 source 값과 FCSR도 자체 검사 |
+| C.MOP.1/3/5/7/9/11/13/15 | 8개 모두 no-write. 기존 immutable snapshot scaffold에서 GPR/FPR 512개 값과 FCSR/guard 보존, PC+2 확인 |
+
+총 3,368개 probe에서 source/destination 중첩 1,848건과 무시된 목적지 x0
+192건을 확인했다. 같은 ELF의 Sail/RTL 이벤트 51,165건이 일치했고, 결과나
+FCSR 및 compressed snapshot/예외 값을 바꾼 trace 대조군 92개를 거부했다.
+이는 변경 RTL 실행이 아니다. 현재 reference 설정에서 Zicfilp/Zicfiss는 비활성이다.
+
+`out/rva23/mop_contract/report.json`과 `--check`가 현재 RTL/model·Sail·ELF·
+assembly·trace·로그·공유 snapshot helper의 해시 및 기대값을 재검사한다.
+모든 source register 직교 조합이나 H/VS/VU 상태, 재정의된 MOP 기능 또는
+RVWMO dependency의 보편적 증명을 뜻하지 않는다. [절별 검토표](RVA23_MOP_CLAUSE_REVIEW.md)에 연결한다.
+
 ### Zicsr의 encoded-zero와 명시적 counter 쓰기
 
 기준은 [Zicsr 2.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zicsr.html)이다.
