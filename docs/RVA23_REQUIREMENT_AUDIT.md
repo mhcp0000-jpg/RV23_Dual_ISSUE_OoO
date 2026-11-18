@@ -378,6 +378,16 @@ boot audit records S-mode entry, the U-mode vector instruction, successful
 `/init` vector computation and orderly power-off in
 `out/linux_bringup/hgatp_vector/boot_audit.json`.
 
+The separate Linux 6.14 run additionally checks the userspace `prctl` path
+for PMLEN 0→7→0 and scalar/vector memory accesses through a tagged pointer.
+Use the integration audit with that run to require the Supm evidence.
+
+```powershell
+python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm
+```
+
+[Linux 6.14 console excerpt](evidence/linux-supm-boot-2026-11-17.txt)
+
 The clause audit now includes the Sscofpmf `scountovf` visibility matrix and
 the Sstc timer compare read/write permission matrix. See the
 [profile contract review](RVA23_PROFILE_CONTRACT_REVIEW.md) for the executed

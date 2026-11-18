@@ -4,7 +4,7 @@ import argparse
 import json
 
 from run_sail_event_comparison import compare, read_csv
-from run_vector_overlap import ILLEGAL, SOURCE
+from run_vector_overlap import SHARED_ILLEGAL, SOURCE
 from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 
 
@@ -16,8 +16,8 @@ def compare_traces(sail_csv, rtl_csv):
     count, mismatch = compare(reference_rows, rtl_rows)
     assert mismatch is None, mismatch
     traps = [row for row in rtl_rows if row['trap'] == '1' and int(row['pc'], 16) >= 0x80000000]
-    assert [int(row['cause']) for row in traps] == [2] * 7
-    assert tuple(int(row['tval'], 16) for row in traps) == ILLEGAL[-7:]
+    assert [int(row['cause']) for row in traps] == [2] * len(SHARED_ILLEGAL)
+    assert tuple(int(row['tval'], 16) for row in traps) == SHARED_ILLEGAL
     return count, traps
 
 

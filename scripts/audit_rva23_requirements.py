@@ -159,14 +159,19 @@ def recheck_opensbi_handoff():
     return {path: sha(ROOT / path), trace: sha(ROOT / trace)}
 
 
-def recheck_integration(linux_variant):
+def recheck_integration(linux_variant, require_linux_supm):
+    linux_options = ['--variant', linux_variant, '--require-isa']
+    if require_linux_supm:
+        linux_options.append('--require-supm')
     audits = [
         ('audit_act4_results.py', ['--current'], 'out/act4/current_execution_audit.json'),
         ('run_act4_upstream_h.py', ['--check'], 'out/act4/upstream_h_extended/audit.json'),
+        ('run_act4_current_h.py', ['--extended', '--check'], 'out/act4/current_h_extended/audit.json'),
+        ('audit_act4_current_rva23.py', [], 'out/act4/current_rva23_inventory/execution_audit.json'),
         ('run_guest_misaligned.py', ['--check'], 'out/rva23/guest_misaligned/report.json'),
         ('run_guest_pte_mxr.py', ['--check'], 'out/rva23/guest_pte_mxr/report.json'),
         ('audit_rv32_release.py', [], 'out/rv32_release_audit.json'),
-        ('audit_linux_boot.py', ['--variant', linux_variant, '--require-isa'],
+        ('audit_linux_boot.py', linux_options,
          f'out/linux_bringup/{linux_variant}/boot_audit.json'),
         ('audit_rv64_ooo_integration.py', [], 'out/rva23/rv64_ooo/audit.json'),
         ('audit_profile_contracts.py', [], 'out/rva23/contract_evidence.json'),
@@ -367,9 +372,13 @@ def main():
                         help='Recheck current execution artifacts in addition to the feature checkpoint')
     parser.add_argument('--linux-variant', default='modern_isa',
                         help='Name of the completed current-source Linux run used by the integration audit')
+    parser.add_argument('--require-linux-supm', action='store_true',
+                        help='Require the selected integration Linux run to verify userspace pointer masking')
     args=parser.parse_args()
     if not re.fullmatch(r'[a-z][a-z0-9_]{0,31}', args.linux_variant):
         parser.error('invalid Linux variant name')
+    if args.require_linux_supm and not args.with_integration_evidence:
+        parser.error('--require-linux-supm requires --with-integration-evidence')
     require_checkpoint = args.with_evidence or args.with_integration_evidence
 
     inventory=read('config/rva23_required_extensions.json')
@@ -453,7 +462,8 @@ def main():
         evidence['hgatp_warl_comparison_sha256'] = recheck_hgatp_warl()
         evidence['guest_pbmt_precedence_sha256'] = recheck_guest_pbmt()
         evidence['hs_sie_isolation_report_hashes'] = recheck_sie_isolation()
-        evidence['integration_report_hashes'] = recheck_integration(args.linux_variant)
+        evidence['integration_report_hashes'] = recheck_integration(
+            args.linux_variant, args.require_linux_supm)
         evidence['timing_artifact_comparison'] = recheck_timing()
         execution = requirement_execution(required, evidence, evidence_map, execution_entries)
         assert not execution['without_mapped_execution'], execution['without_mapped_execution']

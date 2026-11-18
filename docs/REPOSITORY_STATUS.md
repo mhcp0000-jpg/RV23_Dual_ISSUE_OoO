@@ -1,6 +1,6 @@
 # RV23 Dual-Issue OoO 작업 정리
 
-2026-11-17 기준. 목표는 기존 `core_from_home` RTL을 재사용한 공식 RVA23S64
+2026-11-18 기준. 목표는 기존 `core_from_home` RTL을 재사용한 공식 RVA23S64
 구현이다. 필수 확장 58개와 RV64I 기본 ISA의 경로는
 [구현 맵](../config/rva23_implementation_map.json)에 기록한다. 전체 프로파일
 판정은 남은 규격 조항의 실행 근거와 통합 재검증이 필요하다.
@@ -18,13 +18,22 @@
 
 ## 검증 기록
 
+2026-11-18에 후속 upstream ACT4의 Sail 0.16 조합에서 RVA23 필터의
+체크인 ELF 607개와 별도 H·Sv39x4·PMP ELF 40개가 모두 통과했다.
+새 목록의 생성·실행 근거는 `out/act4/current_rva23_inventory/`,
+`out/act4/current_h_extended/`에 있다. [재현 및 감사](ACT4_VERIFICATION.md)
+
+후속 upstream 생성 벡터 2,301개도 Sail 기대값과 self-checking ELF
+생성을 마쳤다. 전체 RTL 회귀는 진행 중이며 현재 결과는
+`out/act4/dut/current-rva23-vector.json`에서 확인한다.
+
 | 검사 | 확인한 결과 |
 |---|---|
 | `hgatp` 수정 검증 | 같은 ELF가 수정 전 218번 CSR 사례에서 실패했고 수정 후 279개 CSR 사례를 통과했다. 게스트 명령어 매핑 갱신은 Sail과 수정 후 RTL에서 실행 이벤트 2,880개가 일치했다. |
 | RV64 기능 회귀 | `hgatp` 수정 후 70단계 통과. |
 | RV32 회귀 | `hgatp` 수정 후 릴리스 게이트 6개 통과. |
 | OoO와 뱅크 | `hgatp` 수정 후 dual issue·execute·retire 각각 4회, 후속 독립 명령 선행 실행 6회, I/D 뱅크 동시 읽기 104회/2회를 다시 관찰했다. SRAM 라인 재충전은 AXI 64비트 읽기 8회였다. |
-| 혼합 EEW | 전체 SoC에서 허용 동작 5개와 불법 명령 예외 14개. 혼합 EEW 사례의 동일 ELF Sail/RTL 비교에서 208개 이벤트 일치 |
+| 벡터 레지스터 그룹·인코딩 | 전체 SoC에서 허용 동작 5개와 불법 명령 예외 20개. 혼합 EEW와 예약 메모리 인코딩의 동일 ELF Sail/RTL 비교에서 예외 13개를 포함한 이벤트 351개 일치 |
 | 벡터 상태·FP | 현재 RTL에서 Sail과 22개 SEW/LMUL 설정의 벡터 상태, 66개 agnostic 정책 사례, FP 결과·플래그 40개를 대조했다. 스칼라 이동 120건과 예외 6건을 추가했다. |
 | 벡터 설정 | 타입·AVL 조합 928건과 설정 전환 13건을 실행했다. `vl` 유지, `vill`과 정상 설정 복구를 확인했고 같은 ELF의 Sail·RTL 이벤트 16,908개가 일치했다. |
 | OpenSBI | 기본 1 MiB 구성에서 보관한 ELF로 S 모드 인계, SBI BASE/TIME 및 supervisor 타이머 인터럽트를 재검증했다. |
@@ -32,7 +41,11 @@
 | ACT4 | `hgatp` 수정 후 고정 체크인 ELF 663개와 생성 벡터 ELF 2,083개가 통과했다. 추가 H·Sv39x4·PMP ELF 40개도 통과했다. 현재 RTL 통합 감사에 결과를 반영했다. [ACT4 절차와 Sail 버전 차이](ACT4_VERIFICATION.md) |
 | 게스트 비정렬 접근 | VS·VU와 MPRV+MPV 경로에서 32비트 load/store를 검증했다. 페이지 변환 예외 16건과 PMP가 PTE 읽기를 차단한 접근 예외 8건의 메타데이터가 정확했고 메모리와 목적 레지스터가 보존됐다. |
 
-Linux 6.14의 사용자 포인터 마스킹(Supm) 부팅 검증은 진행 중이다. 커널 빌드와 테스트 소스는 `scripts/build_linux_supm_msys.sh`, `tb/fixtures/opensbi/linux_supm_init.S`에 있다.
+Linux 6.14의 사용자 포인터 마스킹(Supm) 검증도 32 MiB RTL에서 통과했다.
+`/init`이 `prctl`로 `PMLEN=0→7→0`을 설정하고 각 설정을 읽어 확인했다.
+마스킹을 켠 상태에서 태그 주소로 스칼라·벡터 읽기/쓰기를 실행했고,
+태그가 없는 주소에서 벡터 결과 24와 28을 확인했다. 22,423,386개 명령을
+retire하고 전원을 껐다. [콘솔 발췌](evidence/linux-supm-boot-2026-11-17.txt)
 
 제작 단계에서 사용한 빌드 파일, 전체 trace, Linux Image와 ACT4 ELF는
 각 실행의 `out/`에 생성된다. upstream 소스는 고정 커밋의 Git submodule로 받는다.

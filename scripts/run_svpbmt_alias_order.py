@@ -14,6 +14,9 @@ PA = 0x80090000
 VIRTUAL = (0x40003000, 0x40004000, 0x40005000)
 CASES = [(source, target, vector_store) for source, target in permutations(range(3), 2)
          for vector_store in (False, True)]
+ZERO_STRIDE_OFFSET = 64 * len(CASES)
+ZERO_STRIDE_LOAD = PA + ZERO_STRIDE_OFFSET
+ZERO_STRIDE_STORE = ZERO_STRIDE_LOAD + 8
 FENCE = 0x0ff0000f
 CBO_FLUSH = 0x0025200f  # cbo.flush (a0)
 
@@ -60,6 +63,14 @@ def fixture():
             lines += ['fence iorw,iorw', 'mv a0,s1', '.word 0x0025200f', 'fence iorw,iorw',
                       'ld a0,0(s0)', 'bne a0,s2,fail']
     lines += [
+        # PBMT=IO makes each active element request observable on AXI.
+        f'li s0,{VIRTUAL[2] + ZERO_STRIDE_OFFSET:#x}', 'addi s1,s0,8',
+        'li s2,21', 'sd s2,0(s0)', 'sd zero,0(s1)', 'fence iorw,iorw',
+        'vsetivli zero,4,e64,m2,tu,mu', 'li t2,0', 'vlse64.v v8,(s0),t2',
+        'vmseq.vx v16,v8,s2', 'vcpop.m a0,v16', 'li t0,4', 'bne a0,t0,fail',
+        'li t0,5', 'vmv.s.x v0,t0', 'li s2,27', 'vmv.v.x v8,s2',
+        'vsse64.v v8,(s1),t2,v0.t', 'fence iorw,iorw',
+        'ld a0,0(s1)', 'bne a0,s2,fail',
         'li t1,1', 'j finish', 'fail:', 'li t1,3', 'finish:', 'la t0,tohost',
         'sd t1,0(t0)', 'halt: j halt',
         '.section .tohost,"aw"', '.balign 8', '.globl tohost,fromhost',
@@ -88,6 +99,7 @@ def verify_traces(sail_trace, rtl_trace):
             expected.extend((CBO_FLUSH, FENCE))
         if source == 0:
             expected.extend((FENCE, CBO_FLUSH, FENCE))
+    expected.extend((FENCE, FENCE))
     assert observed == expected
     return dict(access_pairs=len(CASES), cached_round_trips=sum(source == 0 for source, _, _ in CASES),
                 flushes=observed.count(CBO_FLUSH), matched_events=events)
@@ -95,12 +107,15 @@ def verify_traces(sail_trace, rtl_trace):
 
 def verify_bus(log):
     reads = [[] for _ in CASES]
+    zero_stride_reads = []
     pattern = r'^BUSDBG .* AR=1/1 .*?addr=([\da-f]+) len=([\da-f]+) .*?cache=([\da-f]+) '
     for address_text, length, cache in re.findall(pattern, log, re.M):
         address = int(address_text, 16)
         if PA <= address < PA + 64 * len(CASES):
             assert int(length, 16) == 0
             reads[(address - PA) // 64].append((address, int(cache, 16)))
+        elif address in (ZERO_STRIDE_LOAD, ZERO_STRIDE_STORE):
+            zero_stride_reads.append((address, int(length, 16), int(cache, 16)))
     cache_line_refills = uncached_reads = pma_vector_reads = 0
     for index, (source, target, vector_store) in enumerate(CASES):
         line = PA + 64 * index
@@ -118,9 +133,18 @@ def verify_bus(log):
         cache_line_refills += sum(cache == 3 for _, cache in reads[index]) // 8
         uncached_reads += sum(cache == 0 for _, cache in reads[index])
         pma_vector_reads += 2 if target == 0 and not vector_store else 0
+    assert zero_stride_reads == [(ZERO_STRIDE_LOAD, 0, 0)] * 4 + [(ZERO_STRIDE_STORE, 0, 0)]
+    zero_stride_writes = []
+    for address_text in re.findall(r'^BUSDBG .* AW=1/1 addr=([\da-f]+)$', log, re.M):
+        address = int(address_text, 16)
+        if address in (ZERO_STRIDE_LOAD, ZERO_STRIDE_STORE):
+            zero_stride_writes.append(address)
+    # The first two writes are scalar setup. Mask=0101 enables two vector stores.
+    assert zero_stride_writes == [ZERO_STRIDE_LOAD, ZERO_STRIDE_STORE] + [ZERO_STRIDE_STORE] * 2
     assert 'PASS rv32_program_tb' in log
     return dict(cache_line_refills=cache_line_refills, uncached_reads=uncached_reads,
-                pma_vector_reads=pma_vector_reads)
+                pma_vector_reads=pma_vector_reads, zero_stride_vector_reads=4,
+                zero_stride_masked_vector_writes=2)
 
 
 def main():

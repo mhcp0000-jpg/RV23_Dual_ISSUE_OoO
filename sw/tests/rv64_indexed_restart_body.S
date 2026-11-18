@@ -123,6 +123,40 @@ indexed_write:
   expect_pair s2,33,44
   expect_pair s3,55,66
   expect s6,3
+
+  # Elements 0, 1 and 3 write the same word. Element 2 faults on the next
+  # page, so the handler must see element 1 and must not see element 3.
+  prepare (old_pa >> 2) | 0x47
+  la t0,ordered_indices
+  vl2re64.v v12,(t0)
+  la t0,ordered_values
+  vl2re64.v v8,(t0)
+  li s7,4
+  li a4,15
+  li a5,next_va+8
+  li a7,2
+  la a3,ordered_write
+ordered_write:
+  vsoxei64.v v8,(s0),v12
+  sd s8,0(s9)
+  expect s6,4
+  csrr t0,vstart
+  bnez t0,fail
+  expect_pair s1,99,222
+  expect_pair s2,33,44
+  expect_pair s3,55,77
+  vloxei64.v v8,(s0),v12
+  vmv.x.s t0,v8
+  expect t0,99
+  vslidedown.vi v16,v8,1
+  vmv.x.s t0,v16
+  expect t0,99
+  vslidedown.vi v16,v8,2
+  vmv.x.s t0,v16
+  expect t0,77
+  vslidedown.vi v16,v8,3
+  vmv.x.s t0,v16
+  expect t0,99
   li t1,1
   j finish
 
@@ -138,6 +172,8 @@ s_trap:
   ld t4,0(s9)
   bnez t4,fail
   addi s6,s6,1
+  li t4,4
+  beq s7,t4,check_ordered_prefix
   li t4,3
   bne s7,t4,repair
   # Both older elements of the indexed store were visible before the fault.
@@ -145,6 +181,10 @@ s_trap:
   ld t6,8(s1)
   expect t5,99
   expect t6,99
+  j repair
+check_ordered_prefix:
+  ld t5,0(s1)
+  expect t5,22
 repair:
   li t5,111
   sd t5,0(s1)
@@ -173,6 +213,8 @@ fromhost: .dword 0
 .section .rodata
 .balign 8
 indices: .dword 8,0,0x1008,0x1000
+ordered_indices: .dword 0,0,0x1008,0
+ordered_values: .dword 11,22,77,99
 
 .section .bss,"aw",@nobits
 .balign 4096

@@ -9,16 +9,41 @@ module rv23_fence_order_tb;
   localparam logic [31:0] READ_ADDR = 32'h80020040;
   localparam logic [31:0] ATOMIC_ADDR = 32'h80020080;
   localparam logic [31:0] MSIP_ADDR = 32'h02000000;
+  localparam logic [31:0] ZERO_BLOCK = 32'h80020100;
+  localparam logic [63:0] DEBUG_VALUE = 64'h13579bdf2468ace0;
   longint unsigned cycle = 0;
   bit program_started;
   bit pending[64];
   bit pending_write[64];
   bit atomic_pending;
   logic [31:0] pending_addr[64];
+  int unsigned zero_writes = 0;
+
+  initial begin
+    wait (zero_writes == 1);
+    core.u_host.write_register64(ZERO_BLOCK, DEBUG_VALUE);
+  end
 
   `define BACKEND core.u_dut.u_core.u_backend
   always @(posedge core.clk) if (core.rst_n && core.load_done) begin
     cycle++;
+    if (core.u_dut.sram_write_snoop &&
+        core.u_dut.sram_write_snoop_addr[31:6] == ZERO_BLOCK[31:6]) begin
+      if (core.u_dut.sram_write_snoop_data == 0) begin
+        if (core.u_dut.sram_write_snoop_strb != 8'hff)
+          $fatal(1, "Incomplete CBO.ZERO write beat");
+        zero_writes++;
+        $display("FENCE_ORDER %0d zero_beat %08h", cycle, core.u_dut.sram_write_snoop_addr);
+      end else if (core.u_dut.sram_write_snoop_data == DEBUG_VALUE) begin
+        if (core.u_dut.sram_write_snoop_addr != ZERO_BLOCK ||
+            core.u_dut.sram_write_snoop_strb != 8'hff)
+          $fatal(1, "Unexpected debug write shape");
+        $display("FENCE_ORDER %0d debug_write %08h", cycle, ZERO_BLOCK);
+      end
+    end
+    if (`BACKEND.vector_active_q && `BACKEND.vector_memory_valid && `BACKEND.cbo_write_ready_i &&
+        !`BACKEND.vector_memory_write)
+      $display("FENCE_ORDER %0d vector_read %08h", cycle, `BACKEND.vector_memory_address);
     for (int lane = 0; lane < 2; lane++)
       if (core.trace_valid[lane] && core.trace_pc[lane] >= 64'h80000000)
         program_started = 1;
@@ -49,6 +74,9 @@ module rv23_fence_order_tb;
         $display("FENCE_ORDER %0d retire %08h", cycle, core.trace_instr[lane]);
       if (core.trace_valid[lane] && !core.trace_trap[lane] && core.trace_instr[lane][6:0] == 7'h2f)
         $display("FENCE_ORDER %0d atomic_retire %08h", cycle, core.trace_instr[lane]);
+      if (core.trace_valid[lane] && !core.trace_trap[lane] &&
+          core.trace_instr[lane] inside {32'h004a200f, 32'h020af407})
+        $display("FENCE_ORDER %0d block_retire %08h", cycle, core.trace_instr[lane]);
     end
     for (int lane = 0; lane < 2; lane++) begin
       logic [5:0] request_id;

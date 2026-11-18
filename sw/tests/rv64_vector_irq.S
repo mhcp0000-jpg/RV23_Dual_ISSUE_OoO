@@ -37,6 +37,48 @@ wait_interrupt:
   bne s2,t0,fail
   ld t0,0(s1)
   bne t0,s4,fail
+
+  # The testbench pulses sources 2–4 when this enable write reaches PLIC.
+  li t0,0x0c000008
+  li t1,2
+  sw t1,0(t0)
+  li t1,3
+  sw t1,4(t0)
+  li t1,1
+  sw t1,8(t0)
+  li t0,0x0c002000
+  li t1,0x1c
+  sw t1,0(t0)
+  fence iorw,iorw
+
+  # Lanes 0 and 2 read the same claim register, in element order.
+  li s5,0x0c200004
+  vsetivli zero,4,e32,m1,tu,mu
+  vmv.v.i v12,0
+  vmv.v.i v8,15
+  li t0,5
+  vmv.s.x v0,t0
+  vloxei32.v v8,(s5),v12,v0.t
+  lw t0,0(s5)
+  li t1,4
+  bne t0,t1,fail
+  lw t0,0(s5)
+  bnez t0,fail
+  vmv.x.s t0,v8
+  li t1,3
+  bne t0,t1,fail
+  vslidedown.vi v16,v8,1
+  vmv.x.s t0,v16
+  li t1,15
+  bne t0,t1,fail
+  vslidedown.vi v16,v8,2
+  vmv.x.s t0,v16
+  li t1,2
+  bne t0,t1,fail
+  vslidedown.vi v16,v8,3
+  vmv.x.s t0,v16
+  li t1,15
+  bne t0,t1,fail
   li t1,1
   j finish
 

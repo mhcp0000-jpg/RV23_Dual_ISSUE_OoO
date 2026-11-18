@@ -1,4 +1,4 @@
-"""Observe an actual PLIC interrupt arriving during a native vector store."""
+"""Check native PLIC interrupts and ordered vector claims."""
 
 import json
 import re
@@ -12,6 +12,7 @@ SOURCE = 'sw/tests/rv64_vector_irq.S'
 TESTBENCH = 'tb/rv23_vector_irq_tb.sv'
 VECTOR_STORE = 0x02040427
 SCALAR_STORE = 0x0144b023
+VECTOR_CLAIM = 0x0ccae407  # vloxei32.v v8,(s5),v12,v0.t
 
 
 def verify(trace, log):
@@ -21,6 +22,8 @@ def verify(trace, log):
     first, pending, pending_bytes, last, retire, trap, scalar = map(int, witness.groups())
     assert first < pending < last < retire < trap and pending_bytes in range(1, 128)
     assert last < scalar
+    claims = re.search(r'^PLIC CLAIM ORDER vector=(\d+) scalar=(\d+)$', log, re.MULTILINE)
+    assert claims and tuple(map(int, claims.groups())) == (2, 2)
     observed = []
     for row in read_csv(trace):
         if int(row['pc'], 16) < 0x80000000:
@@ -31,10 +34,13 @@ def verify(trace, log):
             observed.append('interrupt')
         elif word in (VECTOR_STORE, SCALAR_STORE):
             observed.append('vector_store' if word == VECTOR_STORE else 'scalar_store')
-    assert observed == (['vector_store', 'scalar_store', 'interrupt'] if scalar < trap else
-                        ['vector_store', 'interrupt', 'scalar_store'])
+        elif word == VECTOR_CLAIM:
+            observed.append('vector_claim')
+    expected = (['vector_store', 'scalar_store', 'interrupt'] if scalar < trap else
+                ['vector_store', 'interrupt', 'scalar_store'])
+    assert observed == [*expected, 'vector_claim']
     return dict(bytes_at_pending=pending_bytes, cycles_pending_to_trap=trap - pending,
-                observed_order=observed)
+                observed_order=observed, vector_claims=2, scalar_claims=2)
 
 
 def main():
@@ -67,7 +73,7 @@ def main():
     dump(folder / 'report.json', dict(passed=True, model=model, runtime_inputs=runtime,
         generator_sha256=sha(__file__), source_sha256=runtime[SOURCE], elf_sha256=elf_digest,
         trace_sha256=sha(trace), compile=compile_run, run=run, outcomes=outcomes))
-    print('PASS native PLIC interrupt across vector store', outcomes, flush=True)
+    print('PASS native PLIC interrupt boundary and ordered claims', outcomes, flush=True)
 
 
 if __name__ == '__main__':

@@ -47,6 +47,7 @@ import run_vector_fixed_point_contract as fixed_point
 import run_vector_irq_boundary as vector_irq
 import run_vector_overlap as vector_overlap
 import run_vector_scalar_moves as scalar_moves
+import run_vector_whole_moves as whole_moves
 import run_zvbb_native as zvbb_native
 import run_wrs_debug_wake as wrs_debug
 import run_xret_memory_contract as xret_memory
@@ -340,6 +341,13 @@ def main():
         scalar_moves_folder / 'sail.csv', scalar_moves_folder / 'commit.csv')
     assert scalar_moves_outcomes == scalar_moves_report['outcomes']
 
+    whole_moves_report = audit(whole_moves.FOLDER, 'run_vector_whole_moves.py', source=whole_moves.SOURCE)
+    whole_moves_folder = ROOT / whole_moves.FOLDER
+    audit_sail_artifacts(whole_moves_folder, whole_moves_report)
+    whole_moves_outcomes = whole_moves.verify_traces(
+        whole_moves_folder / 'sail.csv', whole_moves_folder / 'commit.csv')
+    assert whole_moves_outcomes == whole_moves_report['outcomes']
+
     vector_config_report = audit(vector_config.FOLDER, 'run_vector_config_contract.py')
     vector_config_folder = ROOT / vector_config.FOLDER
     assert (vector_config_folder / 'test.S').read_text(encoding='utf-8') == vector_config.fixture()
@@ -443,9 +451,12 @@ def main():
     zvbb_folder = ROOT / zvbb_native.FOLDER
     zvbb_source, zvbb_cases = zvbb_native.fixture()
     assert (zvbb_folder / 'test.S').read_text(encoding='utf-8') == zvbb_source
+    audit_sail_artifacts(zvbb_folder, zvbb)
     zvbb_trace = zvbb_folder / 'commit.csv'
-    zvbb_outcomes = zvbb_native.verify_trace(zvbb_trace, zvbb_cases)
-    assert zvbb_outcomes == zvbb['outcomes'] == dict(forms=16, cases=183, destination_words=1464)
+    zvbb_outcomes = zvbb_native.verify_traces(zvbb_folder / 'sail.csv', zvbb_trace, zvbb_cases)
+    assert zvbb_outcomes == zvbb['outcomes']
+    assert (zvbb_outcomes['forms'], zvbb_outcomes['cases'],
+            zvbb_outcomes['destination_words'], zvbb_outcomes['fractional_lmul_cases']) == (16, 471, 3768, 288)
     encodings = [entry for entry in read(zvbb_native.TABLE)['instructions'] if entry['extension'] == 'ZVBB']
     observed_forms = []
     with zvbb_trace.open(newline='') as stream:
@@ -456,7 +467,6 @@ def main():
             observed_forms.extend((entry['name'], bool(word & (1 << 25))) for entry in encodings
                                   if word & entry['mask'] == entry['match'])
     assert observed_forms == [(case['form'], case['mode'] != 'masked_restart') for case in zvbb_cases]
-    assert zvbb_native.MARKER in (ROOT / zvbb['run']['log']).read_text(encoding='utf-8')
 
     top = 'rv23_instruction_fetch_atomic_tb'
     fetch_log = audit_testbench(f'out/regression/{top}/report.json', 'run_instruction_fetch_atomicity.py', top, rtl)
@@ -497,6 +507,7 @@ def main():
         split_fetch_cases=12,split_fetch_traps=24,
         vector_overlap_restart=outcomes,
         vector_scalar_moves=scalar_moves_outcomes,
+        vector_whole_moves=whole_moves_outcomes,
         vector_configuration=vector_config_outcomes,
         vector_fixed_point=fixed_point_outcomes,
         vector_irq_boundary=irq_outcomes,

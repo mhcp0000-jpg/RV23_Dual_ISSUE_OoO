@@ -85,6 +85,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--variant', help='Audit a separately named Linux run')
     parser.add_argument('--require-isa', action='store_true', help='Require Linux to detect I/M/A/C from the DTB')
+    parser.add_argument('--require-supm', action='store_true',
+                        help='Require successful Linux userspace pointer masking')
     args = parser.parse_args()
     folder = ROOT / 'out/linux_bringup'
     if args.variant:
@@ -111,6 +113,8 @@ def main():
     image = image_path.read_bytes()
     vector = report.get('linux_vector', False)
     supm = report.get('linux_supm', False)
+    if args.require_supm:
+        assert supm, 'Selected Linux run has no userspace pointer-masking probe'
     if vector:
         init = ROOT / report['linux_vector_init']
         archive = ROOT / report['linux_vector_initramfs']

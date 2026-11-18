@@ -173,5 +173,110 @@ supplemental set. It retains the upstream source and ELFs under
 The original 2,746-ELF regression retains its pinned test inputs.
 [Supplemental ACT4 revision](https://github.com/riscv/riscv-arch-test/tree/1c3e9f2a89e103eeed0a3e6ba1bc699f100fd481)
 
+## Newer upstream ACT4 Sail pin
+
+The separate upstream `act4` commit
+`8adba12816e0e99c46ccf01626752dbf2e1e40fb` requires Sail 0.16 directly.
+The Windows runner used the matching Sail 0.16 model without a version
+override. The upstream framework produced four self-checking ELFs. The
+current RTL passed all four, covering `hgatp` modes, G-stage PTE rules,
+VS guest faults and `hstatus.VTVM`. This run used the existing Windows
+toolchain setup and board configuration, including the declared HPM3
+parameters. The broader ACT results above retain their original inputs.
+[Upstream framework version requirement](https://github.com/riscv/riscv-arch-test/blob/8adba12816e0e99c46ccf01626752dbf2e1e40fb/framework/src/act/config.py#L128)
+
+Build and run with `python scripts/run_act4_current_h.py`. Recheck the
+framework inputs, Sail signatures, ELF and RTL execution with
+`python scripts/run_act4_current_h.py --check`.
+The output is `out/act4/current_h_probe/audit.json`.
+
+Run the broader H, Sv39x4 and PMP selection against this same upstream
+revision with `python scripts/run_act4_current_h.py --extended`. The
+framework selects 40 out of 42 staged sources, and all 40 generated ELFs
+passed on the current RTL. The two page-straddle sources
+declare `sequential_bytes` and are filtered by the DUT's split strategy.
+Recheck the run with `python scripts/run_act4_current_h.py --extended --check`.
+The verification artifacts use `out/act4/current_h_extended/`.
+
+## Checked-in RVA23 certification selection
+
+The upstream `--certificate RVA23` filter selects 607 checked-in cases
+from 34 suites with the current DUT configuration, including 516 under
+`rv64i` and 91 under `priv`. The planned ELF names
+match the framework's suite counts and all 607 generated ELFs. The local
+`generation_audit.json` records their hashes and the build log hash. The
+RTL execution report is `out/act4/dut/current-rva23-checked-in.json`.
+All 607 ELFs passed on the current RTL. Recheck the selection, generated
+ELF hashes, Sail signatures, configuration and actual RTL run logs with
+`python scripts/audit_act4_current_rva23.py`.
+This count covers the checked-in
+sources. Generator output from the upstream vector generation step can
+extend the inventory. The selection and build directories are
+`out/act4/current_rva23_inventory/`. This selection is separate from the
+unfiltered H/PMP selection above.
+[Upstream RVA23 test workflow](https://github.com/riscv/riscv-arch-test/blob/8adba12816e0e99c46ccf01626752dbf2e1e40fb/docs/RVA23Cert.md)
+
+To reproduce the checked-in run, copy the H probe configuration directory
+to `out/act4/current_rva23_inventory/config/` and set the DUT name to
+`rv23-RVA23S64-current-inventory` in both YAML files. With the standard
+Windows ACT4 toolchain and workspace junction, run the following.
+
+```powershell
+$env:RV23_ACT4_PYTHON = '3.13'
+$env:RV23_ACT4_SOURCE_ROOT = 'C:/rv_workspaces/rv23/out/act4/upstream_act4_current'
+$env:RV23_ACT4_CONFIG = 'C:/rv_workspaces/rv23/out/act4/current_rva23_inventory/config/test_config.yaml'
+$env:RV23_ACT4_WORKDIR = 'C:/rv_workspaces/rv23/out/act4/current_rva23_inventory/work'
+$env:RV23_ACT4_LOG = 'current_rva23_inventory/build.log'
+python scripts/run_act4.py --certificate RVA23 --jobs 6 --keep-going
+python scripts/run_act4_dut.py --act-source-root out/act4/upstream_act4_current --elf-root out/act4/current_rva23_inventory/work/rv23-RVA23S64-current-inventory/elfs --report current-rva23-checked-in.json --workers 6 --timeout 1200
+```
+
+## Generated vectors on the newer upstream revision
+
+The unmodified generator at `8adba12816e0e99c46ccf01626752dbf2e1e40fb`
+produced 2,301 RV64 assembly sources across Vx8/16/32/64, Vls8/16/32/64,
+Vf32/64, Zvfhmin and Zvbb8/16/32/64. Source generation completed for all
+30 requested XLEN/suite combinations. The generated RV32 counterparts
+also remain under the local output directory. The source hashes, generator
+inputs and DUT configuration are recorded in
+`out/act4/current_vector/source_manifest.json`.
+
+Generate sources from the `out/act4/upstream_act4_current/` directory.
+
+```powershell
+uv run --no-dev --python 3.13 testgen testplans -o C:/rv_workspaces/rv23/out/act4/current_vector/tests --extensions Vx8,Vx16,Vx32,Vx64,Vls8,Vls16,Vls32,Vls64,Vf32,Vf64,Zvfhmin,Zvbb8,Zvbb16,Zvbb32,Zvbb64 --jobs 4 *> C:/rv_workspaces/rv23/out/act4/current_vector_generation.log
+```
+
+From the workspace root, run `python scripts/prepare_act4_current_vector.py`
+after successful generation. Use `RV23_ACT4_CONFIG` at
+`C:/rv_workspaces/rv23/out/act4/current_vector/config/test_config.yaml`,
+`RV23_ACT4_WORKDIR` at
+`C:/rv_workspaces/rv23/out/act4/current_vector/work`, and
+`RV23_ACT4_LOG=current_vector/framework.log`. Keep the newer upstream
+source root from the checked-in command above, and then run
+`python scripts/run_act4.py --certificate RVA23 --test-dir C:/rv_workspaces/rv23/out/act4/current_vector/tests --jobs 6 --keep-going`.
+The RVA23 filter selected all 2,301 RV64 sources from the 15 suites above.
+The selected counts match the source manifest. Sail generated signatures
+for all 2,301 cases, and all 9,204 build tasks completed successfully.
+The generation audit checked every signature, reference run log and final
+ELF. The RTL execution is in progress.
+The execution report target is `out/act4/dut/current-rva23-vector.json`.
+Run `python scripts/audit_act4_current_vector.py --selection-only` to
+recheck source hashes, generator inputs, configuration and the official
+selection while the build is in progress.
+Use `python scripts/audit_act4_current_vector.py --generation-only` to
+recheck the completed signature and ELF generation. Its output is
+`out/act4/current_vector/generation_audit.json`.
+
+After ELF generation completes, execute the selected binaries.
+
+```powershell
+python scripts/run_act4_dut.py --act-source-root out/act4/upstream_act4_current --elf-root out/act4/current_vector/work/rv23-RVA23S64-current-vector/elfs --report current-rva23-vector.json --workers 6 --timeout 1200
+python scripts/audit_act4_current_vector.py
+```
+
+The full audit requires all selected RTL runs to pass and verifies the
+ELF, Sail signature, execution log and current RTL model hashes.
+
 Run the inventory audit through the ACT uv environment:
 `uv run --project third_party/riscv-arch-test --no-dev python -X utf8 scripts/audit_act4_inventory.py`.

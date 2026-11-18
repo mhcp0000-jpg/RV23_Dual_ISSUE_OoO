@@ -21,12 +21,15 @@
 | 검사 | 확인한 결과 |
 | --- | --- |
 | ACT4 | 체크인 ELF 663/663, 생성 벡터 ELF 2,083/2,083, H·Sv39x4·PMP 보강 ELF 40/40 통과 |
+| 후속 ACT4 | upstream이 요구하는 Sail 0.16으로 RVA23 필터의 체크인 ELF 607/607 및 별도 H·Sv39x4·PMP ELF 40/40 통과 |
+| 후속 ACT4 생성 벡터 | 2,301개 전체의 Sail 기대값·ELF 생성 감사 통과, RTL 회귀 진행 중 |
 | 스칼라 참조 비교 | 동일 ELF의 Sail/RTL 실행 168개, 사용자 모드 ELF 152개의 retire 기록 61,754건 일치 |
 | 코어 및 메모리 통합 | dual issue·execute·retire와 독립 명령의 비순차 실행, I/D 뱅크 동시 접근, AXI64 리필, 스칼라·벡터 메모리와 예외·재시작 검사 통과 |
 | 기본 1 MiB SRAM | OpenSBI에서 S 모드로 인계, DTB 및 SBI BASE/TIME, 타이머 인터럽트 확인 |
 | Linux 6.12 | 32 MiB RTL 시뮬레이션에서 OpenSBI 인계, 사용자 모드 `/init`과 벡터 명령 retire, 정상 종료 확인 |
+| Linux 6.14 | 32 MiB RTL 시뮬레이션에서 사용자 포인터 마스킹(Supm) `PMLEN=0→7→0`, 태그 주소의 스칼라·벡터 읽기/쓰기, 정상 종료 확인 |
 
-ACT4는 H 참조 실행을 위해 Sail 0.16 호환 경로를 사용했다. ACT4의 원래 Sail 고정 버전은 0.13.1이다. FPGA 합성·타이밍·실기 적용은 별도 검증이 필요하다. [ACT4 범위와 재현 절차](docs/ACT4_VERIFICATION.md) · [프로파일 조항별 체크리스트](docs/RVA23_IMPLEMENTATION_CHECKLIST.md) · [Linux 콘솔 발췌](docs/evidence/linux-vector-boot-2026-11-17.txt)
+ACT4 4.1.0의 대규모 회귀는 원래 Sail 핀 0.13.1 대신 H를 지원하는 0.16을 사용했다. 후속 upstream 버전에서는 해당 버전이 요구하는 Sail 0.16으로 H·Sv39x4·PMP 테스트 40개를 모두 통과했다. FPGA 합성·타이밍·실기 적용은 별도 검증이 필요하다. [ACT4 범위와 재현 절차](docs/ACT4_VERIFICATION.md) · [프로파일 조항별 체크리스트](docs/RVA23_IMPLEMENTATION_CHECKLIST.md) · [Linux 콘솔 발췌](docs/evidence/linux-vector-boot-2026-11-17.txt)
 
 ## 실행 방법
 
@@ -49,6 +52,14 @@ Linux 6.12 데모는 MSYS2 UCRT64에서 커널 소스를 `out/linux_bringup/linu
 bash scripts/build_linux_image_msys.sh vector
 python scripts/run_opensbi_handoff.py --linux-image out/linux_bringup/vector/kbuild-native/arch/riscv/boot/Image --variant vector --linux-vector
 python scripts/audit_linux_boot.py --variant vector --require-isa
+```
+
+Linux 6.14의 Supm 데모는 아카이브를 `out/linux_bringup/downloads/linux-6.14.tar.xz`에 두고, `out/linux_bringup/linux-6.14/`에 압축을 푼 뒤 실행한다. [Linux 6.14 콘솔 발췌](docs/evidence/linux-supm-boot-2026-11-17.txt)
+
+```sh
+bash scripts/build_linux_supm_msys.sh
+python scripts/run_opensbi_handoff.py --linux-image out/linux_bringup/supm/kbuild-native/arch/riscv/boot/Image --variant supm --linux-vector --linux-supm
+python scripts/audit_linux_boot.py --variant supm --require-isa --require-supm
 ```
 
 [현재 작업 기록과 검증 결과](docs/REPOSITORY_STATUS.md) · [검증 도구와 실행 범위](docs/VALIDATION.md)

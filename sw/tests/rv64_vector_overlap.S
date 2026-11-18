@@ -112,6 +112,16 @@ _start:
   vmv.v.i v10,3
   vmv.v.i v11,0
   illegal 0x26b58527,1        # vsuxseg2ei8.v v10,(a1),v11
+  illegal 0x26b5d507,1        # vluxseg2ei16.v v10,(a1),v11 aliases a destination field
+  illegal 0x2285d587,1        # vl2re16.v v11,(a1) starts on an odd register
+  illegal 0x4285d407,1        # reserved whole-register load of three registers
+  illegal 0x1205d407,1        # vle16.v with reserved mew=1
+  illegal 0x00b58407,1        # vlm.v with reserved vm=0
+  vsetivli zero,4,e16,m2,tu,mu
+  illegal 0x2205df07,1        # vlseg2e16.v v30,(a1) extends past v31
+  vsetivli zero,4,e16,m1,tu,mu
+  vmv.x.s t0,v10
+  expect 3
   ld t0,(a1)
   expect 0
   vmv.v.i v10,2
@@ -123,11 +133,11 @@ _start:
   expect 2
   mv t0,s2
 #ifdef MIXED_EEW_HTIF
-  expect 7
+  expect 13
   li t1,1
   j finish
 #else
-  expect 14
+  expect 20
   lui t0,0x10000
   li t1,0x564f4c50
   sw t1,0xc(t0)

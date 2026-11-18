@@ -1,0 +1,20 @@
+RV23 Linux 6.14 userspace pointer masking, 32 MiB RTL simulation
+Selected console lines, with the kernel build user and host omitted.
+
+LINUX_RTL_S_ENTRY pc=0000000080200000
+Linux version 6.14.0
+riscv: base ISA extensions acdfimv
+riscv: ELF capabilities acdfimv
+LINUX_RTL_U_RETIRE pc=00000000000100e8
+LINUX_RTL_U_VECTOR_RETIRE pc=0000000000010146 instruction=0282b457
+RV23 LINUX USER SUPM PASS
+RV23 LINUX USER VECTOR PASS
+<0>RV23 LINUX INIT PASS
+reboot: Power down
+[host-finish code=0]
+PASS rv_act4_program_tb commits=22423386
+
+Full local log: out/linux_bringup/supm/firmware/rtl.log
+Full log SHA-256: 26beb3a41ffdf48ed1fc8108c633fcd095e91bdc95bdfca1f34edba98cfe877f
+Firmware ELF SHA-256: 4eb2fe43c248047576a20335ea8e98300060b63caed07b9bcc94a072d31c0e2a
+Simulator SHA-256: 98942192d2989d9b35ee0981ab7737c0b529bbeecedd323d4394dbcccd7c0f29

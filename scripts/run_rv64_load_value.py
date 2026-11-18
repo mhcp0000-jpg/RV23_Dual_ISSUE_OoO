@@ -14,6 +14,61 @@ STORES = {1: 'sb', 2: 'sh', 4: 'sw', 8: 'sd'}
 LOADS = (('ld', 't3', 28, 0, 8, False), ('ld', 't4', 29, 8, 8, False),
          ('ld', 'a0', 10, 4, 8, False), ('lwu', 'a1', 11, 4, 4, False),
          ('lb', 'a2', 12, 7, 1, True), ('lbu', 'a3', 13, 7, 1, False))
+STORE_ALIAS = 0x40003ff8
+LOAD_ALIAS = 0x40013ff8
+
+
+def check_loads(code, memory, base):
+    expected = []
+    for mnemonic, register, rd, offset, width, signed in LOADS:
+        code.append(f'{mnemonic} {register},{offset}({base})')
+        value = int.from_bytes(memory[offset:offset + width], 'little', signed=signed) & ((1 << 64) - 1)
+        expected.append([rd, value])
+    for (_, register, *_), (_, value) in zip(LOADS, expected, strict=True):
+        code += [f'li t0,{value:#x}', f'bne {register},t0,fail']
+    return expected
+
+
+def supervisor_setup():
+    code = ['la t0,fail', 'csrw stvec,t0', 'li t0,-1', 'csrw pmpaddr0,t0',
+            'li t0,31', 'csrw pmpcfg0,t0', 'la t0,root', 'la t1,level1',
+            'srli t1,t1,2', 'ori t1,t1,1', 'sd t1,8(t0)',
+            'li t1,0x200000cf', 'sd t1,16(t0)', 'la t0,level1', 'la t1,level0',
+            'srli t1,t1,2', 'ori t1,t1,1', 'sd t1,0(t0)', 'la t0,level0']
+    for page, physical in ((3, 0x800a0000), (4, 0x800b0000),
+                           (19, 0x800a0000), (20, 0x800b0000)):
+        code += [f'li t1,{((physical >> 2) | 0xc7):#x}', f'sd t1,{page * 8}(t0)']
+    return code + ['la t0,root', 'srli t0,t0,12', 'li t1,0x8000000000000000',
+                   'or t0,t0,t1', 'csrw satp,t0', 'sfence.vma', 'la t0,supervisor',
+                   'csrw mepc,t0', 'li t0,0x800', 'csrw mstatus,t0', 'mret',
+                   'supervisor:', f'li s0,{STORE_ALIAS:#x}', f'li s1,{LOAD_ALIAS:#x}']
+
+
+def split_store_cases(code):
+    cases = []
+    code += supervisor_setup()
+    old = 0x8877665544332211
+    store = 0xf1e2d3c4b5a69788
+    for width in (2, 4, 8):
+        for offset, delayed in itertools.product(range(9 - width, 8), ('address', 'data')):
+            # Both aliases span the same pair of nonadjacent physical pages.
+            code += [f'li t0,{old:#x}', 'sd t0,0(s0)', 'sd t0,8(s0)', 'fence rw,rw']
+            value = store & ((1 << (8 * width)) - 1)
+            if delayed == 'address':
+                code += [f'li t5,{3 * (STORE_ALIAS + offset):#x}', 'divu t1,t5,t6',
+                         f'li t2,{value:#x}', f'{STORES[width]} t2,0(t1)']
+            else:
+                high, low = divmod(value, 4)
+                code += [f'li t5,{3 * high:#x}', 'divu t1,t5,t6', 'slli t1,t1,2',
+                         f'ori t1,t1,{low}', f'{STORES[width]} t1,{offset}(s0)']
+            code += ['li t2,0xa2', 'sb t2,9(s1)']
+            memory = bytearray(old.to_bytes(8, 'little') * 2)
+            memory[offset:offset + width] = value.to_bytes(width, 'little')
+            memory[9] = 0xa2
+            cases.append(dict(width=width, offset=offset, delayed=delayed,
+                              store_alias=STORE_ALIAS, load_alias=LOAD_ALIAS,
+                              loads=check_loads(code, memory, 's1')))
+    return cases
 
 
 def fixture():
@@ -52,18 +107,14 @@ def fixture():
         for offset, width, value in ((first_offset, first_width, first), (second_offset, second_width, second),
                                      (8, 8, other)):
             ram[offset:offset + width] = value.to_bytes(8, 'little')[:width]
-        expected = []
-        for mnemonic, register, rd, offset, width, signed in LOADS:
-            code.append(f'{mnemonic} {register},{offset}(s0)')
-            value = int.from_bytes(ram[offset:offset + width], 'little', signed=signed) & ((1 << 64) - 1)
-            expected.append([rd, value])
-        for (_, register, *_), (_, value) in zip(LOADS, expected, strict=True):
-            code += [f'li t0,{value:#x}', f'bne {register},t0,fail']
         cases.append(dict(address=address, line_offset=line_offset, first_width=first_width,
-                          second_width=second_width, delayed=delayed, loads=expected))
+                          second_width=second_width, delayed=delayed, loads=check_loads(code, ram, 's0')))
+    cases.extend(split_store_cases(code))
     code += ['li t1,1', 'j finish', 'fail:', 'li t1,3', 'finish:', 'la t0,tohost',
              'sd t1,0(t0)', '1: j 1b', '.section .tohost,"aw"', '.balign 8',
-             '.globl tohost,fromhost', 'tohost: .dword 0', 'fromhost: .dword 0']
+             '.globl tohost,fromhost', 'tohost: .dword 0', 'fromhost: .dword 0',
+             '.section .bss,"aw",@nobits', '.balign 4096',
+             'root: .space 4096', 'level1: .space 4096', 'level0: .space 4096']
     return '\n'.join(code) + '\n', cases
 
 
@@ -76,7 +127,8 @@ def verify_traces(reference, trace, cases):
     loads = [[int(row['rd']), int(row['wdata'], 16)] for row in rows
              if int(row['instruction'], 16) & 0x7f == 0x03 and row['rd_write'] == '1']
     assert loads == [value for case in cases for value in case['loads']], 'Retired load values differ from byte oracle'
-    return dict(matched_events=matched, load_count=len(loads))
+    return dict(matched_events=matched, load_count=len(loads),
+                split_store_cases=sum('store_alias' in case for case in cases))
 
 
 def main():

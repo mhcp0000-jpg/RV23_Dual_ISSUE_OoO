@@ -2,10 +2,31 @@
   {
     "requirements": [
       "I",
-      "A"
+      "A",
+      "V",
+      "Zicboz"
     ],
     "report": "out/rva23/fence_order/report.json",
-    "behavior": "Ordering for ten FENCE cases across SRAM/CLINT and six SRAM atomic cases, including AMO aq/rl/aqrl and a successful LR.aq/SC.rl pair"
+    "behavior": "Ordering for ten FENCE cases across SRAM/CLINT, six atomics, and external debug AXI write interleaving within a CBO.ZERO followed by fenced vector and scalar reads"
+  },
+  {
+    "requirements": [
+      "I",
+      "H",
+      "Sv39"
+    ],
+    "report": "out/act4/current_rva23_inventory/execution_audit.json",
+    "behavior": "607 checked-in upstream ACT4 ELFs selected by the RVA23 certificate filter with required Sail 0.16 and content-bound RTL execution"
+  },
+  {
+    "requirements": [
+      "H",
+      "Sha",
+      "Shgatpa",
+      "Svinval"
+    ],
+    "report": "out/act4/current_h_extended/audit.json",
+    "behavior": "Upstream ACT4 with its required Sail 0.16: 40 H, Sv39x4 and PMP RTL ELFs covering hgatp, G-stage and VS/VU faults, invalidation and CBO"
   },
   {
     "requirements": [
@@ -120,7 +141,7 @@
       "V"
     ],
     "report": "out/rva23/vector_overlap",
-    "behavior": "Native mixed-EEW source overlap traps, legal same-EEW aliases and destination overlap restart"
+    "behavior": "Native mixed-EEW and reserved vector memory traps, legal same-EEW aliases and destination overlap restart"
   },
   {
     "requirements": [
@@ -129,6 +150,13 @@
     ],
     "report": "out/rva23/vector_scalar_moves",
     "behavior": "Identical ELF scalar transfers at vl/vstart boundaries, NaN boxing, reserved masks and half-precision move traps with only Zvfhmin"
+  },
+  {
+    "requirements": [
+      "V"
+    ],
+    "report": "out/rva23/vector_whole_moves",
+    "behavior": "All whole-register move widths at VL=0, partial copies from vstart, and native effective-length and vill behavior with separate Sail policy evidence"
   },
   {
     "requirements": [
@@ -149,14 +177,14 @@
       "V"
     ],
     "report": "out/rva23/vector_irq_boundary",
-    "behavior": "PLIC interrupt pending during a full vector store, architectural retirement and scalar memory ordering at the interrupt boundary"
+    "behavior": "PLIC interrupt pending during a full vector store, scalar ordering at the interrupt boundary, and element order and mask preservation for non-idempotent PLIC claim reads"
   },
   {
     "requirements": [
       "V"
     ],
     "report": "out/rva23/vector_mixed_eew_sail/report.json",
-    "behavior": "Sail and RTL execute the same ELF with seven exact mixed-EEW traps and two legal same-width aliases"
+    "behavior": "Sail and RTL execute the same ELF with thirteen exact overlap and reserved vector memory traps and two legal same-width aliases"
   },
   {
     "requirements": [
@@ -179,7 +207,7 @@
       "Zvbb"
     ],
     "report": "out/rva23/zvbb_native",
-    "behavior": "16 forms, widening, mask/prestart/tail preservation and zero-length execution"
+    "behavior": "Same-ELF Sail/RTL comparison for 16 Zvbb forms, fractional LMUL, widening, mask/prestart/tail preservation and zero-length execution"
   },
   {
     "requirements": [
@@ -283,7 +311,7 @@
       "Sstvala"
     ],
     "report": "out/rva23/indexed_memory_restart",
-    "behavior": "Svade A/D faults, scalar and unordered indexed retry at the same PC after remap, and masked lanes on an unmapped page"
+    "behavior": "Svade A/D faults, scalar and ordered/unordered indexed retry at the same PC after remap, duplicate-address ordered stores at a fault boundary, and masked lanes on an unmapped page"
   },
   {
     "requirements": [
@@ -343,7 +371,7 @@
       "I"
     ],
     "report": "out/rva23/svpbmt_alias_order",
-    "behavior": "Scalar/vector Svpbmt attribute transitions, ordered non-cacheable aliases, and physical block flush via a non-cacheable alias with line refill"
+    "behavior": "Scalar/vector Svpbmt attribute transitions, physical block flush via a non-cacheable alias with line refill, and AXI counts for active elements of zero-stride PBMT=IO accesses"
   },
   {
     "requirements": [
@@ -400,7 +428,7 @@
       "Zicclsm"
     ],
     "report": "out/rva23/rv64_load_value",
-    "behavior": "RVWMO load-value byte oracle and Sail comparison for mixed-width overlapping stores with delayed addresses or values, adjacent banks, and misaligned cross-line loads"
+    "behavior": "RVWMO load-value byte oracle and Sail comparison for late mixed-width overlapping stores and Sv39 alias accesses across nonadjacent physical pages"
   },
   {
     "requirements": [

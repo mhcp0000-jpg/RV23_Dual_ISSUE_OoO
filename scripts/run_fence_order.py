@@ -1,4 +1,4 @@
-"""Verify RV64 FENCE and atomic ordering around SRAM and CLINT operations."""
+"""Verify RV64 FENCE, atomic and cache-block ordering on the running SoC."""
 import argparse
 import json
 import re
@@ -14,6 +14,9 @@ SRAM_READ = ('read', 0x80020040)
 CLINT_WRITE = ('write', 0x02000000)
 CLINT_READ = ('read', 0x02000000)
 ATOMIC_ADDR = 0x80020080
+ZERO_BLOCK = 0x80020100
+CBO_ZERO = 0x004a200f
+VECTOR_LOAD = 0x020af407
 IO_CASES = (
     (0x0140000f, SRAM_WRITE, CLINT_WRITE, 'sd t1,0(t0)', 'sw t4,0(s0)', []),
     (0x0820000f, CLINT_READ, SRAM_READ, 'lw t5,0(s0)', 'ld t3,64(t0)', ['bne t5,t4,fail', 'bne t3,t2,fail']),
@@ -51,7 +54,16 @@ def fixture():
     for _, instruction, expected in ATOMIC_CASES:
         lines += ['sd t1,0(t0)', instruction, 'ld t3,64(t0)',
                   f'li t4,{expected}', 'bne t5,t4,fail', 'bne t3,t2,fail']
-    lines += ['ld t3,0(s2)', 'bne t3,s3,fail']
+    lines += ['ld t3,0(s2)', 'bne t3,s3,fail',
+              'li s5,0x80020100', 'addi s4,s5,13', 'li t3,-1',
+              'sd t3,-8(s5)', 'sd t3,64(s5)']
+    lines += [f'sd t3,{offset}(s5)' for offset in range(0, 64, 8)]
+    lines += ['ld t4,0(s5)', 'bne t4,t3,fail', 'li t4,0x600', 'csrs mstatus,t4',
+              'vsetivli zero,8,e64,m4,tu,mu', f'.word 0x{CBO_ZERO:08x}', 'fence rw,rw',
+              'vle64.v v8,(s5)', 'vmv.x.s t4,v8', 'li t2,0x13579bdf2468ace0',
+              'bne t4,t2,fail', 'vmseq.vi v0,v8,0', 'vcpop.m t4,v0', 'li t2,7',
+              'bne t4,t2,fail', 'ld t4,0(s5)', 'li t2,0x13579bdf2468ace0', 'bne t4,t2,fail',
+              'ld t4,-8(s5)', 'bne t4,t3,fail', 'ld t4,64(s5)', 'bne t4,t3,fail']
     lines += ['lui t0,0x10000', 'li t1,0x46454e43', 'sw t1,0xc(t0)',
               'sw zero,0x14(t0)', 'halt: j halt',
               'fail: lui t0,0x10000', 'li t1,1', 'sw t1,0x14(t0)', 'j halt',
@@ -74,7 +86,7 @@ def verify(log):
         expected.extend([('write_request', SRAM_WRITE[1]), ('write_response', SRAM_WRITE[1]),
                          ('atomic_request', ATOMIC_ADDR), ('atomic_response', ATOMIC_ADDR),
                          ('atomic_retire', word), ('read_request', SRAM_READ[1]), ('read_response', SRAM_READ[1])])
-    assert [(event, value) for _, event, value in observed] == expected, observed
+    assert [(event, value) for _, event, value in observed[:len(expected)]] == expected, observed
     coverage = []
     for index, (word, predecessor, successor) in enumerate(cases):
         start, response, retire, request, completed = [cycle for cycle, _, _ in observed[index * 5:index * 5 + 5]]
@@ -86,14 +98,35 @@ def verify(log):
                              predecessor_request=start, predecessor_response=response, fence_retire=retire,
                              successor_request=request, successor_response=completed, drain_wait_cycles=len(waits)))
     atomics = []
-    atomic_events = observed[5 * len(cases):]
+    atomic_events = observed[5 * len(cases):len(expected)]
     for index, (word, _, _) in enumerate(ATOMIC_CASES):
         start, response, memory_request, memory_response, retire, request, completed = (
             cycle for cycle, _, _ in atomic_events[7 * index:7 * index + 7])
         assert start < response < memory_request < memory_response < retire <= request < completed
         atomics.append(dict(instruction=f'{word:08x}', write_response=response, atomic_request=memory_request,
                             atomic_response=memory_response, atomic_retire=retire, read_request=request))
-    return dict(fences=coverage, atomics=atomics)
+    zero_events = observed[len(expected):]
+    zero_beats = [(cycle, value) for cycle, event, value in zero_events if event == 'zero_beat']
+    debug_writes = [(cycle, value) for cycle, event, value in zero_events if event == 'debug_write']
+    vector_reads = [(cycle, value) for cycle, event, value in zero_events if event == 'vector_read']
+    control = [(cycle, event, value) for cycle, event, value in zero_events
+               if event not in ('zero_beat', 'debug_write', 'vector_read')]
+    block_words = list(range(ZERO_BLOCK, ZERO_BLOCK + 64, 8))
+    assert [value for _, value in zero_beats] == block_words, zero_events
+    assert [value for _, value in vector_reads] == block_words, zero_events
+    assert len(debug_writes) == 1 and debug_writes[0][1] == ZERO_BLOCK, zero_events
+    assert [(event, value) for _, event, value in control] == [
+        ('block_retire', CBO_ZERO), ('retire', FENCES[0]), ('block_retire', VECTOR_LOAD)]
+    first, last = zero_beats[0][0], zero_beats[-1][0]
+    debug_cycle = debug_writes[0][0]
+    zero_retire, fence_retire, vector_retire = [cycle for cycle, _, _ in control]
+    assert first < debug_cycle < last < zero_retire < fence_retire <= vector_reads[0][0], zero_events
+    assert vector_reads[-1][0] < vector_retire, zero_events
+    return dict(fences=coverage, atomics=atomics,
+                block_zero=dict(zero_writes=len(zero_beats), vector_reads=len(vector_reads),
+                                first_cycle=first, last_cycle=last, debug_cycle=debug_cycle,
+                                zero_retire=zero_retire, fence_retire=fence_retire,
+                                vector_retire=vector_retire))
 
 
 def check(record, inputs):
@@ -140,7 +173,7 @@ def main():
         check(record, inputs)
         dump(report, record)
     check(record, inputs)
-    print('PASS RV64 ordering: ten FENCE and six atomic cases')
+    print('PASS RV64 ordering: ten FENCE, six atomics and concurrent CBO.ZERO', record['coverage']['block_zero'])
 
 
 if __name__ == '__main__':

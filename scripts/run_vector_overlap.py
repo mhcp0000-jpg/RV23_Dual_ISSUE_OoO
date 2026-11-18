@@ -8,10 +8,13 @@ from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 FOLDER = 'out/rva23/vector_overlap'
 SOURCE = 'sw/tests/rv64_vector_overlap.S'
 MARKER = 'data=0x564f4c50'
+SHARED_ILLEGAL = (
+    0xd284a857, 0xb2848a57, 0x3a940a57, 0x5e842a57, 0xc2848a57, 0xd2849857, 0x26b58527,
+    0x26b5d507, 0x2285d587, 0x4285d407, 0x1205d407, 0x00b58407, 0x2205df07,
+)
 ILLEGAL = (
     0xc2856457, 0xb280b4d7, 0x3a880457, 0x5e842457, 0x5e802657, 0x02822657, 0xc2856457,
-    0xd284a857, 0xb2848a57, 0x3a940a57, 0x5e842a57, 0xc2848a57, 0xd2849857, 0x26b58527,
-)
+) + SHARED_ILLEGAL
 LEGAL = (0xc2956457, 0xb280b457, 0x6a854457, 0x02a50a57, 0x06a5d527)
 
 

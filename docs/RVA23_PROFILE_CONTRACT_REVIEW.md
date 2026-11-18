@@ -65,11 +65,12 @@ segment 값과 마스크된 목적지를 검사했으며, 동일 ELF의 Sail·RT
 [V 1.0 전체 레지스터 저장·복원](https://docs.riscv.org/reference/isa/v20240411/_attachments/riscv-unprivileged.pdf)
 
 `scripts/run_zvbb_native.py`는 ACT4의 생성 벡터 시험에 별도 항목이 없는
-Zvbb의 16개 형식을 실제 RV64 SoC에서 실행한다. 합법적인 SEW 8/16/32/64
-조합에서 일반 실행, 마스크와 `vstart=1`을 함께 적용한 실행, `vl=0`을
-포함해 183건을 확인했다. 목적지 레지스터에서 읽은 64비트 값 1,464개와
-`vstart` 초기화를 검사했으며, 감사에서 명령 인코딩과 마스크 비트도
-대조한다. [Zvbb 규격](https://docs.riscv.org/reference/isa/unpriv/vector-crypto.html)
+Zvbb의 16개 형식을 같은 ELF로 Sail과 전체 RV64 SoC에서 실행한다.
+SEW 8/16/32/64의 LMUL=2 사례에 합법적인 분수 LMUL 조합 6개를 더해
+471건을 확인했다. 일반 실행, 마스크와 `vstart=1`, `vl=0`의 목적지
+레지스터에서 읽은 64비트 값 3,768개를 예상값과 대조했다.
+`vstart` 초기화, 명령 인코딩과 마스크 비트를 검사했으며 두 모델의
+실행 이벤트 30,809개가 일치했다. [Zvbb 규격](https://docs.riscv.org/reference/isa/v20250508/unpriv/vector-crypto.html)
 
 `scripts/run_guest_superpages.py`는 실제 H/V SoC에서 VS-stage Sv39와
 G-stage Sv39x4의 2 MiB·1 GiB leaf를 각각 사용한다. 두 오프셋의 `HLV.D`와
@@ -96,11 +97,14 @@ widening reduction·FP, indexed segment store의 일곱 사례를 전체 SoC에�
 cause 2와 해당 명령 인코딩을 담은 `mtval`을 기록했다.
 [RVV 1.0 규격 §31.5.2](https://docs.riscv.org/reference/isa/v20240411/_attachments/riscv-unprivileged.pdf)
 
-`scripts/run_vector_mixed_eew_sail.py`는 같은 소스의 mixed-EEW 사례를
-HTIF ELF 하나로 만들어 Sail과 RV64 H/V RTL에서 실행한다. PC, 명령 인코딩,
-예외 원인과 스칼라 writeback을 포함한 208개 이벤트가 일치했다. 일곱 번의
-예외에서 핸들러의 `mtval`과 복귀 직후 `vstart`를 확인했다. 거부된
-indexed segment store의 목적지 메모리도 보존됐다.
+`scripts/run_vector_mixed_eew_sail.py`는 mixed-EEW와 예약 메모리
+인코딩 사례를 같은 HTIF ELF로 만들어 Sail과 RV64 H/V RTL에서 실행한다.
+indexed segment load의 인덱스와 목적지 겹침, 홀수 시작 레지스터,
+3개 whole-register 전송, 예약 `mew=1`, 마스크된 `vlm.v`, v31을 넘는
+segment 그룹을 추가했다. 예외 13건의 cause 2와 `mtval`, 복귀 직후의
+`vstart`를 확인했으며 PC·명령·예외·스칼라 결과 351개가 일치했다.
+지정한 벡터 레지스터의 초기 값과 indexed segment store의 목적지
+메모리도 보존됐다. [RVV 1.0 벡터 메모리 규격](https://docs.riscv.org/reference/isa/extensions/vector/_attachments/riscv-v-spec.pdf#page=30)
 
 `scripts/run_vector_source_groups_matrix.py`는 벡터 실행 유닛에서 위 소스
 겹침 규칙을 10개 명령 형식과 SEW/LMUL 조합에 걸쳐 검사한다. 허용된
@@ -120,6 +124,15 @@ LSU 인터페이스에서 선행 접근 응답 → FENCE retire → 후속 접�
 감사가 테스트벤치, 모델, ELF와 로그 해시를 대조하고 순서를 다시 검사한다.
 [RV64I가 상속하는 FENCE 규격](https://docs.riscv.org/reference/isa/v20240411/unpriv/rv32.html)
 
+같은 테스트에 `CBO.ZERO`와 외부 debug AXI 쓰기를 겹치는 사례를 추가했다.
+`CBO.ZERO`는 비정렬 주소가 속한 64바이트 라인에 8바이트 쓰기 8회를
+냈다. 첫 쓰기는 사이클 1021, 첫 워드를 다시 쓴 debug AXI는 1026,
+마지막 zero 쓰기는 1082였다. `CBO.ZERO`와 `FENCE RW,RW`가 차례로
+retire한 뒤 벡터 load가 여덟 워드를 요청했다. 벡터와 스칼라가 모두
+debug 값을 읽었고, 벡터는 나머지 일곱 워드가 0임을 확인했다. 스칼라는
+대상 블록 밖의 양쪽 워드가 보존됐는지도 확인했다.
+[Zicboz와 RVWMO](https://docs.riscv.org/reference/isa/unpriv/cmo.html)
+
 같은 계측에서 `AMOADD.D`의 일반·`.aq`·`.rl`·`.aqrl` 네 인코딩과
 `LR.D.AQ`·`SC.D.RL`을 실행했다. 세 SRAM 주소를 분리해, 선행 일반
 쓰기의 응답이 atomic 엔진 요청보다 먼저 오고 atomic 응답과 retire가
@@ -134,6 +147,15 @@ SC가 저장한 최종 값도 검사했다. 이 실행은 현재 코어의 직�
 경계를 포함한 load 576개의 결과를 검사했다. 동일 ELF에서 Sail과 RTL의
 실행 이벤트 8,578개가 일치했다. 이 실행은 단일 하트의 load 값을 다룬다.
 [RVWMO의 Load Value Axiom](https://docs.riscv.org/reference/isa/v20240411/_attachments/riscv-unprivileged.pdf)
+
+같은 시험에서 두 Sv39 가상 주소 범위를 동일한 두 비인접 물리 페이지에
+매핑했다. 한 별칭으로 페이지를 걸치는 2·4·8바이트 store를 실행하고,
+다른 별칭으로 한 바이트를 덮어쓴 뒤 두 페이지를 읽었다. 페이지를
+걸치는 11개 위치마다 나눗셈으로 store 주소 또는 값을 지연시켜 22개를
+검사했다. 정렬된 두 load와 경계를 걸치는 비정렬 load가 최신 바이트를
+읽었다. 기존 사례를 합쳐 독립 바이트 예상값과 load 708건을 대조했고,
+동일 ELF의 Sail·RTL 이벤트 10,095개가 일치했다.
+[RVA23 Zicclsm](https://docs.riscv.org/reference/rva23/v1.0/rva23-profiles.html)
 
 `scripts/run_sv39x4_root.py`는 GPA[40:39] 네 조합의 G-stage leaf PTE를 각각
 다른 물리 페이지로 바꾼 뒤 `SFENCE.W.INVAL`, 주소 지정 `HINVAL.GVMA`,
@@ -266,8 +288,32 @@ S 모드 핸들러가 예외 PC·주소와 `vstart`를 읽고 두 번째 페이�
 앞선 원소와 벡터 store 후 핸들러가 수정한 앞선 메모리 값이 보존됐다.
 핸들러에서는 뒤따르는 스칼라 store가 아직 반영되지 않았음을 확인했다.
 두 번째 페이지를 매핑하지 않은 마스크 load/store에서는 첫 두 원소만
-갱신됐다. 동일 ELF의 Sail·RTL 이벤트 417개가 일치했다.
+갱신됐다.
+
+Ordered indexed store `vsoxei64.v`는 원소 0·1·3이 같은 워드를 쓰고
+원소 2가 Svade D-bit 예외를 내도록 구성했다. 핸들러에서 같은 워드에
+원소 1의 값 22가 보였고, 후속 스칼라 store의 위치는 여전히 0이었다.
+매핑을 바꾼 뒤 `vstart=2`부터 복귀해 원소 2를 새 물리 페이지에 쓰고
+원소 3의 값 99를 반복 주소에 썼다. 후속 스칼라 load와 ordered indexed
+load `vloxei64.v`가 두 물리 페이지의 최종 값을 확인했다. 스칼라,
+ordered 및 unordered indexed 시나리오를 합쳐 같은 PC 재시도 4건과
+동일 ELF의 Sail·RTL 이벤트 524개를 대조했다.
 [V 1.0의 정확한 예외와 벡터 메모리 접근](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+## 전체 벡터 레지스터 이동
+
+`run_vector_whole_moves.py`는 `vmv1r.v`·`vmv2r.v`·`vmv4r.v`·`vmv8r.v`를
+모두 `vl=0`에서 실행했다. SEW 8·16·32·64마다 `vstart`를 처음, 중간,
+마지막 원소로 설정했다. 동일 ELF의 공통 48개 사례에서 Sail·RTL 실행
+이벤트 50,198개가 일치했다.
+
+RTL은 추가 19개 사례도 통과했다. `vstart=evl`인 15개는 목적지를
+그대로 유지했고, `vill=1`인 4개는 전체 그룹을 복사했다. 모든 RTL
+사례에서 목적지와 인접 영역을 합쳐 8,576바이트를 비교했다. Sail 0.16은
+같은 추가 사례에서 cause 2를 냈다. `vstart=evl`은 구현이 해당 명령에서
+생성할 수 없는 `vstart`를 거부할 수 있다는 규칙이 적용된다. `vill`의
+경우 RVV 1.0은 whole-register move가 가능한 명령임을 명시한다.
+[RVV 1.0 vstart와 vill](https://docs.riscv.org/reference/isa/extensions/vector/_attachments/riscv-v-spec.pdf#page=13) · [전체 레지스터 이동](https://docs.riscv.org/reference/isa/extensions/vector/_attachments/riscv-v-spec.pdf#page=88)
 
 ## 벡터 store 중 PLIC 인터럽트
 
@@ -277,6 +323,14 @@ S 모드 핸들러가 예외 PC·주소와 `vstart`를 읽고 두 번째 페이�
 외부 인터럽트에 진입했으며, 복귀 후 스칼라 store가 한 번 실행됐다.
 핸들러가 `mepc`, `mtval=0`, `vstart=0` 및 SRAM의 128바이트를
 확인했다. [V 1.0의 정확한 예외](https://docs.riscv.org/reference/isa/unpriv/v-st-ext)
+
+같은 테스트의 다음 단계는 PLIC 소스 2·3·4를 올리고, 원소 0과 2만
+활성화한 `vloxei32.v`로 같은 claim 레지스터를 두 번 읽었다. 읽을 때
+pending 상태가 바뀌는 레지스터에서 우선순위 순으로 ID 3과 2가 각 원소에
+들어갔으며, 마스크된 원소 1과 3은 초기값 15를 유지했다. 바로 뒤의
+스칼라 claim 두 번은 4와 0을 읽었다. PLIC AXI에서 벡터 읽기 두 번이 모두
+수락된 뒤 스칼라 읽기 두 번이 수락됐음을 확인했다.
+[PLIC claim 동작](https://docs.riscv.org/reference/plic/plic-claims.html)
 
 ## Svnapot의 64 KiB 매핑
 
@@ -302,8 +356,13 @@ S 모드에서는 NAPOT 하위 페이지 경계를 넘는 벡터 load와 첫 번
 캐시 가능 주소로 돌아오는 네 경우에서 라인 재충전을 확인했다.
 네이티브 AXI 계측은 64바이트 라인 재충전 10건, 비캐시 읽기 24건,
 PMA 속성의 벡터 원소 읽기 4건을 확인했다. 동일 ELF의 Sail·RTL
-실행 이벤트 347개가 일치했다.
+실행 이벤트 369개가 일치했다. 이 비교에는 PBMT=IO의 zero-stride
+벡터 접근도 포함했다. `x0` 이외의 레지스터에 stride 값 0을 넣고
+`vl=4`로 반복 주소를 읽었다. AXI에서 벡터 읽기 4회와 마스크
+`0101`을 적용한 벡터 쓰기 2회를 확인했다. 네 load 원소의 데이터와
+후속 스칼라 load가 읽은 store 결과도 검사했다.
 [Svpbmt 1.0 별칭 순서](https://docs.riscv.org/reference/isa/v20240411/priv/svpbmt.html)
+[RVV 1.0 strided 접근](https://docs.riscv.org/reference/isa/extensions/vector/_attachments/riscv-v-spec.pdf#page=33)
 
 ## 남아 있는 전체 감사 범위
 

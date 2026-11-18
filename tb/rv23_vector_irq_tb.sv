@@ -2,6 +2,8 @@
 module rv23_vector_irq_tb;
   localparam logic [31:0] VECTOR_BASE = 32'h800a0000;
   localparam logic [31:0] SCALAR_ADDRESS = 32'h800a0100;
+  localparam logic [31:0] PLIC_ENABLE = 32'h0c002000;
+  localparam logic [31:0] PLIC_CLAIM = 32'h0c200004;
   localparam int VECTOR_BYTES = 128;
   rv32_program_tb #(.XLEN(64),.HAS_V(1),.HAS_H(1),.HAS_MISALIGNED(1),
     .HAS_D(1),.HAS_ZFHMIN(1),.HAS_ZFA(1),.HAS_ZAWRS(1),.HAS_ZIMOP(1),
@@ -19,6 +21,7 @@ module rv23_vector_irq_tb;
   int unsigned cycle = 0, writes = 0;
   int unsigned first_write = 0, pending = 0, pending_bytes = 0, last_write = 0;
   int unsigned retired = 0, trap = 0, scalar_write = 0;
+  int unsigned enable_writes = 0, vector_claims = 0, scalar_claims = 0;
 
   initial begin
     wait(writes == 1);
@@ -27,10 +30,28 @@ module rv23_vector_irq_tb;
     wait(trap != 0);
     @(negedge core.clk);
     release core.external_irq;
+    wait(enable_writes == 2);
+    @(negedge core.clk);
+    force core.external_irq = 31'h0000000e;
+    repeat (2) @(negedge core.clk);
+    release core.external_irq;
   end
 
   always @(posedge core.clk) if (core.rst_n && core.load_done) begin
     cycle++;
+    if (core.u_dut.u_system.plic_axi.aw_valid && core.u_dut.u_system.plic_axi.aw_ready &&
+        core.u_dut.u_system.plic_axi.aw_addr == PLIC_ENABLE)
+      enable_writes++;
+    if (enable_writes == 2 && core.u_dut.u_system.plic_axi.ar_valid &&
+        core.u_dut.u_system.plic_axi.ar_ready && core.u_dut.u_system.plic_axi.ar_addr == PLIC_CLAIM) begin
+      if (vector_active) begin
+        if (scalar_claims != 0) $fatal(1,"Scalar claim bypassed an ordered vector claim");
+        vector_claims++;
+      end else begin
+        if (vector_claims != 2) $fatal(1,"Expected two active vector claim requests");
+        scalar_claims++;
+      end
+    end
     if (vector_write) begin
       if (vector_address != VECTOR_BASE + writes || writes >= VECTOR_BYTES)
         $fatal(1,"Unexpected vector write address %h at byte %0d", vector_address, writes);
@@ -67,7 +88,9 @@ module rv23_vector_irq_tb;
 
   final begin
     if (trap == 0 || scalar_write == 0) $error("Missing vector IRQ or following scalar write");
+    if (vector_claims != 2 || scalar_claims != 2) $error("Missing PLIC claim request");
     $display("VECTOR IRQ first=%0d pending=%0d pending_bytes=%0d last=%0d retire=%0d trap=%0d scalar=%0d",
              first_write,pending,pending_bytes,last_write,retired,trap,scalar_write);
+    $display("PLIC CLAIM ORDER vector=%0d scalar=%0d", vector_claims, scalar_claims);
   end
 endmodule
