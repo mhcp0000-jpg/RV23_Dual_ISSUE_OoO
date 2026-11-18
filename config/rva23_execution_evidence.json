@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zicbop"],
+    "report": "out/rva23/prefetch_hint_contract/report.json",
+    "behavior": "1413 M-mode native H/V ignored-prefetch HINT probes across I/R/W forms: all 128 signed offsets with x0/x8/x31 and every base register with selected minimum/zero/maximum offsets. Identical Sail ELF per batch, exact raw instruction and PC+4, full GPR/FPR snapshots, FCSR and guards, and rejecting snapshot corruptions. Not all raw encodings, all privilege/protection states, bus-side-effect observation or actual prefetch performance; source review separately connects to ordinary ORI rd=x0 with no memory-request decode."
+  },
+  {
     "requirements": ["Zcb"],
     "report": "out/rva23/zcb_contract/report.json",
     "behavior": "2300 native H/V probes cover all 1008 legal RV64 Zcb encodings across 12 forms with selected data. Same ELF per Sail/RTL batch matches 53712 events; independent integer/byte oracles check 408 fully observed stores, 172 memory base/data aliases, 24 misaligned accesses, 12 line crossings, six Bare physical page crossings and FCSR preservation. Twenty corrupt-result/observed-byte controls rejected. Semantic memory expansion is confined to the byte-oracle copy; raw Sail comparison retains original compressed instruction and PC. M-mode only; optional feature-disabled legality, all operand values, fault/permission and timing/schedule coverage separate."

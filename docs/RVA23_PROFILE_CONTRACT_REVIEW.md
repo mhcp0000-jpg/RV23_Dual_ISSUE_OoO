@@ -46,6 +46,21 @@ Sail/RTL 이벤트 53,712건이 일치했다. 독립 정수/바이트 모델로 
 포괄하지 않는다. [Zcb 절별 검토](RVA23_ZCB_CLAUSE_REVIEW.md)에 범위를 연결한다.
 `--check`를 필수 통합 감사에 추가했다.
 
+### Zicbop의 ignored-hint 정책과 CMO 연결
+
+`scripts/run_prefetch_hint_contract.py`는 PREFETCH.I/R/W 각각의 signed offset
+128개를 선택 base에서 실행하고, 모든 base를 최소·0·최대 offset에서 실행한다.
+중복 제외 1,413개 사례이며 기존 immutable RV64I snapshot 검사기로 원본 명령,
+PC+4와 GPR/FPR 64개·FCSR·guard 보존을 확인한다. 각 배치에서 같은 ELF를
+Sail과 전체 H/V RTL에 사용한다. 실제 prefetch 성능이나 bus 부작용 부재를
+trace만으로 증명한 것은 아니다. 현재 decoder의 ORI rd=x0 연결은 별도로 검토한다.
+
+12개 ELF에서 Sail/RTL 이벤트 211,068건과 snapshot 값 90,432개가 일치했고,
+snapshot 변조 대조군 14개를 거부했다. 필수 통합 감사에 `--check`를 추가했다.
+[CMO 절별 검토](RVA23_CMO_CLAUSE_REVIEW.md)는
+기존 CBO 권한 255개, 주소 보호와 ZERO/debug·fence 순서 검증의 범위도 연결한다.
+모든 privilege/translation 상태, 다중 hart 및 일반 RVWMO 전체 감사는 별도다.
+
 ### Zimop의 0 쓰기와 Zcmop의 no-write 기본 의미
 
 기준은 [Zimop/Zcmop 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zimop.html)이다.
