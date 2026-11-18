@@ -32,6 +32,34 @@
 
 ## 추가한 경계 사례
 
+### RV64 B 및 Zicond 계산 의미 검토
+
+기준은 [B 1.0.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/b-st-ext.html)과
+[Zicond 1.0.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zicond.html)이다.
+`rv_ooo_pkg.decode_bitmanip`이 인코딩·즉시값·word 동작을 선택하고,
+`rv_int_alu`가 계산하며 일반 정수 issue/result/WB/retire 경로로 전달한다.
+
+| 조항 | RTL 연결과 독립 계산의 범위 |
+|---|---|
+| Zba의 shift/add와 `.uw` | 8형식. `.uw`의 rs1 하위 32비트를 zero-extend한 뒤 XLEN 계산 |
+| Zbb의 논리·count·min/max·확장 | 부호/비부호 비교, 0의 CLZ/CTZ, byte/half 확장과 word count |
+| Zbb의 rotate·byte 연산 | 32/64비트 rotate와 word 결과 부호 확장, OR-combine·byte reverse. rotate는 Python 비트열 순환으로 계산 |
+| Zbs의 bit 조작 | register/immediate 8형식, 마스킹된 index의 bit clear/extract/invert/set |
+| Zicond의 조건부 zero | 두 형식 각각 rs2=0 및 비0 실행 확인 |
+
+`python scripts/audit_rv64b_contract.py`는 기존 전체 H/V SoC와 Sail의 같은
+ELF 42개에서 trace·로그·ELF·현재 RTL/model 해시를 확인한다. 앞선 정수
+writeback으로 실제 입력을 복원했다. retire 1,810건 중 x0 목적지 31건은
+결과값 관찰에서 제외했고 나머지 결과 1,779개를 독립 계산했다. 각 형식의
+결과를 바꾼 trace 대조군 42개를 모두 거부했다. 이 대조군은 감사기의
+검출력을 확인하며 변경 RTL 실행은 아니다. 근거는
+`out/rva23/rv64b_contract_audit.json`이며 통합 감사에 포함한다.
+기존 `scalar/bitmanip` H/V replay의 246개 결과도 독립 계산으로 검사했다.
+이 별도 fixture는 CLZW/CTZW/CPOPW에서 상위 32비트가 0이 아닌 입력과
+0 입력을 포함해 upstream trace의 빈틈을 보완하며 추가 Sail 대조로 표시하지 않는다.
+유한한 적법 명령 실행 범위로, 모든 입력·예약 인코딩·권한·flush/stall 조합의
+증명이나 전체 프로파일 인증을 뜻하지 않는다.
+
 ### RV64M 곱셈·나눗셈 의미 검토
 
 기준은 [M 2.0의 곱셈·나눗셈 조항](https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/chapters/m-st-ext.html)이다.

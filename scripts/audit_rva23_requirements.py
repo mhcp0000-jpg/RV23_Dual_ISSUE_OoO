@@ -179,6 +179,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('run_fence_order.py', ['--check'], 'out/rva23/fence_order/report.json'),
         ('audit_scalar_vector_order.py', [], 'out/rva23/scalar_vector_order_audit.json'),
         ('audit_rv64m_contract.py', [], 'out/rva23/rv64m_contract_audit.json'),
+        ('audit_rv64b_contract.py', [], 'out/rva23/rv64b_contract_audit.json'),
         ('audit_rv64i_compute_control.py', [], 'out/rva23/rv64i_compute_control_audit.json'),
         ('audit_rv64i_memory_values.py', [], 'out/rva23/rv64i_memory_value_audit.json'),
         ('audit_ptw_debug_coherence.py', ['--with-negative'], 'out/rva23/ptw_debug_coherence/audit.json'),

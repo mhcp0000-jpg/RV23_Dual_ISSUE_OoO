@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["B", "Zicond"],
+    "report": "out/rva23/rv64b_contract_audit.json",
+    "behavior": "42 RV64 Zba/Zbb/Zbs/Zicond forms, 1810 identical Sail/RTL retirements with 1779 independently calculated nonzero-destination values, 42 rejected result mutations, and 246 supplemental H/V values including nonzero upper inputs to word counts; finite legal instruction coverage"
+  },
+  {
     "requirements": ["V", "Zvbb", "Zvfhmin"],
     "report": "out/act4/current_vector/execution_audit.json",
     "behavior": "2301 generated current upstream ACT4 vector ELFs with pinned Sail 0.16 signatures, exact RVA23 selection, and content-bound full-core RTL execution"
