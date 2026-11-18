@@ -32,6 +32,34 @@
 
 ## 추가한 경계 사례
 
+### FP 상태·정확한 예외와 분기 취소
+
+기준은 [특권 1.13의 extension context 상태](https://docs.riscv.org/reference/isa/priv/machine.html)다.
+FS=Off의 상태 접근은 illegal instruction이며 FS 설정 변경이 기존 FP
+레지스터를 지우지는 않는다. 규격은 보수적·추측적 Dirty 갱신도 허용한다.
+따라서 Dirty의 정밀 추적 정책과 취소된 명령의 데이터·flags 유출을 구분한다.
+
+현재 backend는 `retire_fire`로 FP destination write와 flags 누적을 CSR에
+전달한다. `rv_fpu_rva23`은 더 젊은 owner를 flush하면 결과 valid를 막고
+slow datapath를 reset한다. 다음 근거를 통합 요구사항 감사에 연결했다.
+
+| 검토 조건 | 실행 근거 |
+|---|---|
+| M 모드 FS/SD | `audit_fp_state_contract.py`가 기존 전체 H/V replay의 readback 5건을 확인. VS=XS=0에서 FS가 Initial/Dirty/Clean/Dirty/Dirty, SD가 Dirty에 대응. FCLASS가 Clean을 유지하는 것은 현재 정책 |
+| FS-Off와 예약 rm | FS-Off의 arithmetic·load·store·raw move·FCSR 접근 5건과 예약 static/dynamic rm 2건에서 cause 2·원본 mtval·writeback 없음. 예약 rm의 illegal trap은 현재 구현 선택 |
+| 잘못된 경로의 FP | `run_fp_branch_order.py`의 8개 대표 명령이 실제 dispatch됨. 그중 목표 FP 요청 5건 수락, 4건 완료 후 취소. dependency-chain의 중간 FP 요청은 이 대표 명령 수와 별개 |
+| 실행 중 FDIV 취소 | dependency-chain 뒤 FDIV가 SLOW 상태인 동안 flush를 관찰. 다음 cycle에 IDLE 및 결과 valid 없음, 이후 정상 FADD와 새 FDIV의 결과 확인 |
+| 보호되는 상태 | FP·정수 결과, flags와 SRAM 보존. wrong-path FP store·bad load·FS-Off 명령은 retire/trap하지 않음. FS Off→Initial에서 FP 데이터와 `fflags=5` 유지 |
+
+분기 fixture는 같은 ELF로 Sail·기본 RTL·관찰 RTL의 이벤트 409개가 각각
+일치했다. 관찰 wrapper는 production RTL을 수정하거나 신호를 강제하지
+않으며 두 모델의 RTL 입력 해시를 대조한다. 목표 PC/sequence의 수락·완료·
+flush 및 slow 상태를 관찰해 단지 명령이 실행되지 않은 경우와 구분한다.
+요청/복구/kill witness 누락 대조군 3개와 기존 상태 trace 대조군 19개를
+거부했다. 대조군은 변경 RTL 실행이 아니다. 근거는
+`out/rva23/fp_branch_order/report.json`과 `out/rva23/fp_state_contract_audit.json`이다.
+이 유한 M 모드 검사는 모든 guest FS·권한·interrupt·schedule 조합을 대신하지 않는다.
+
 ### F/D/Zfhmin 메모리와 half raw 이동
 
 기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html),

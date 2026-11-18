@@ -1,5 +1,15 @@
 [
   {
+    "requirements": ["F", "D", "Ss1p13"],
+    "report": "out/rva23/fp_state_contract_audit.json",
+    "behavior": "Current full-H/V M-mode replay: five FS/SD readbacks under the core's precise dirty policy, five FS-Off and two reserved-rm precise illegal traps, flags and 19 rejected trace mutations. Imprecise Dirty is ISA-permitted; guest FS/privilege combinations separate."
+  },
+  {
+    "requirements": ["F", "D", "I"],
+    "report": "out/rva23/fp_branch_order/report.json",
+    "behavior": "Eight wrong-path FP cases with identical Sail/basic RTL/observed RTL ELF: representative requests accepted in five cases, four completed speculative results, one in-flight FDIV owner killed and a new correct-path FDIV completed; FP/int/flags/memory state and FS Off-to-Initial preservation checked, with three rejecting pipeline witness controls."
+  },
+  {
     "requirements": ["F", "D", "Zfhmin", "C", "Zicclsm"],
     "report": "out/rva23/fp_memory_contract/report.json",
     "behavior": "688 native H/V probes of 12 H/S/D memory, compressed D memory and raw H move forms with identical Sail ELF per width; independent ELF-backed byte model, NaN payload/boxing, complemented load destination, misaligned and line/page crossings, full observation of 320 FP stores and surrounding guards. Bus atomicity/order, faults, nonzero compressed offsets and FS/pipeline races separate."

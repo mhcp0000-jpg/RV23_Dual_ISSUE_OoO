@@ -23,6 +23,9 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] 실제 분기 복구에서 잘못된 경로의 FP 대표 명령 8개를 dispatch했다. 5개 케이스에서 목표 FP 요청 수락, 4개에서 완료 결과를 관찰했고, 실행 중 FDIV 1개를 flush해 owner가 해제되고 새 정상 FDIV가 완료됐다. FP·정수·메모리·flags와 FS Off→Initial의 데이터 보존이 통과했으며 같은 ELF의 Sail·기본 RTL·관찰 RTL 이벤트 409개가 각각 일치했다. `scripts/run_fp_branch_order.py --check`를 통합 감사에 포함했다.
+- [x] 기존 전체 H/V replay의 M 모드 FS/SD readback 5건, FS-Off 접근 5건·예약 rm 2건의 정확한 cause 2·원본 tval, flags를 별도 감사하고 19개 잘못된 trace 대조군을 거부했다. `scripts/audit_fp_state_contract.py`를 통합 감사에 포함했다. Clean의 정밀 추적은 현재 구현 정책이며 규격이 허용한 보수적 Dirty 자체를 ISA 오류로 보지 않는다. guest FS/권한 조합은 별도 검토다.
+
 - [x] FLH/FLW/FLD·FSH/FSW/FSD, 압축 D load/store 네 형식과 half raw 이동 두 형식의 probe 688개를 전체 H/V SoC와 Sail에서 폭별 같은 ELF로 검증했다. 독립 ELF 바이트 모델로 NaN payload·boxing·부분 쓰기·주변 32바이트 보존과 비정렬/라인/페이지 경계를 확인했다. load 목적지는 읽을 값의 보수로 미리 채웠고, FP store 320개 모두 후속 load에서 전 바이트를 관찰했다. `scripts/run_fp_memory_contract.py --check`를 통합 감사에 연결했다. bus 원자성·동시성·fault·nonzero C offset·FS 권한은 별도 범위다.
 
 - [x] F/D의 ADD/SUB/MUL/DIV/SQRT와 네 FMA, 총 18형식의 probe 2,700개를 정확한 유리수·정수 제곱근 oracle로 검사했다. 전체 H/V SoC와 Sail에 배치별 같은 ELF를 사용했다. 다섯 정적/동적 반올림 모드, ±0·NaN·무한대·비정규 수·OF/UF/DZ/NV/NX 및 FMA 단일 반올림 사례를 포함한다. `scripts/run_fp_arithmetic_contract.py --check`를 통합 감사에 연결했다. 전 입력·예약 rm·FS 권한·pipeline 경합 증명은 별도 범위다.

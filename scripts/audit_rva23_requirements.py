@@ -187,6 +187,8 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('run_fp_format_contract.py', ['--check'], 'out/rva23/fp_format_contract/report.json'),
         ('run_fp_arithmetic_contract.py', ['--check'], 'out/rva23/fp_arithmetic_contract/report.json'),
         ('run_fp_memory_contract.py', ['--check'], 'out/rva23/fp_memory_contract/report.json'),
+        ('audit_fp_state_contract.py', [], 'out/rva23/fp_state_contract_audit.json'),
+        ('run_fp_branch_order.py', ['--check'], 'out/rva23/fp_branch_order/report.json'),
         ('audit_rv64i_compute_control.py', [], 'out/rva23/rv64i_compute_control_audit.json'),
         ('audit_rv64i_memory_values.py', [], 'out/rva23/rv64i_memory_value_audit.json'),
         ('audit_ptw_debug_coherence.py', ['--with-negative'], 'out/rva23/ptw_debug_coherence/audit.json'),
