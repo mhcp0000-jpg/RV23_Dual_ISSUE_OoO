@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] F/D의 ADD/SUB/MUL/DIV/SQRT와 네 FMA, 총 18형식의 probe 2,700개를 정확한 유리수·정수 제곱근 oracle로 검사했다. 전체 H/V SoC와 Sail에 배치별 같은 ELF를 사용했다. 다섯 정적/동적 반올림 모드, ±0·NaN·무한대·비정규 수·OF/UF/DZ/NV/NX 및 FMA 단일 반올림 사례를 포함한다. `scripts/run_fp_arithmetic_contract.py --check`를 통합 감사에 연결했다. 전 입력·예약 rm·FS 권한·pipeline 경합 증명은 별도 범위다.
+
 - [x] S↔D・H↔S・H↔D의 여섯 포맷 변환을 전체 H/V SoC와 Sail에서 목적지별 같은 ELF로 검증했다. probe 1,600개에서 정확한 유리수 oracle로 다섯 정적/동적 반올림 모드, tiny/overflow/tie 경계, NaN과 잘못된 S/H boxing, 결과 boxing 및 flags를 검사했다. D→S→H의 이중 반올림과 직접 D→H가 달라지는 사례도 확인했다. `scripts/run_fp_format_contract.py --check`를 통합 감사에 연결했다. half 메모리/이동·산술·예약 rm·FS 권한·pipeline 경합은 별도 범위다.
 
 - [x] W/WU/L/LU와 S/D 사이의 정수·FP 변환 16형식을 검증했다. 전체 H/V SoC의 포맷별 같은 ELF를 Sail과 비교하고 probe 2,760개의 결과·flag를 정확한 유리수 모델로 검사했다. 다섯 정적/동적 반올림 모드, 정적 모드에서 다른 `frm`, tie·범위 초과·NaN/무한대·잘못된 S boxing과 W/WU 부호 확장을 포함한다. `scripts/run_fp_integer_contract.py --check`를 통합 감사에 연결했다. 포맷 간 변환·예약 rm·FS 권한·pipeline 경합은 별도 범위다.

@@ -32,6 +32,35 @@
 
 ## 추가한 경계 사례
 
+### F/D 산술과 FMA의 단일 반올림
+
+기준은 [F 2.2의 산술](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)과
+[D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)다.
+`rv_fp_format`은 HardFloat add/mul/FMA와 iterative div/sqrt를 사용한다.
+`rv_fpu_rva23`은 format·rounding·결과 tag 및 slow owner를 관리하고
+ROB에서 결과·flags를 commit한다. `python scripts/run_fp_arithmetic_contract.py`는
+18형식의 probe 2,700개를 배치별 같은 ELF로 Sail과 전체 H/V SoC에서 실행한다.
+예상값은 `fp_reference.BinaryFP`의 정확한 유리수와 정수 제곱근 계산이며
+호스트 부동소수점 연산을 사용하지 않는다.
+
+| 조항 | 실행 검사 |
+|---|---|
+| ADD/SUB/MUL/DIV/SQRT.S/D | ±0·정상/비정규 수·무한대·qNaN/sNaN, 취소·inexact·overflow·underflow·0 나누기·음수 sqrt |
+| 정적·동적 반올림 | 다섯 모드 각각. 정적 모드에서는 `frm`을 다른 값으로 설정 |
+| 예외 누적 | 결과마다 flags를 읽는다. 기본 산술 배치에서 NV/DZ/OF/UF/NX 모두 실제 발생했고 FMA 배치에서는 NV/OF/UF/NX를 확인 |
+| 네 FMA의 부호 | FMADD/FMSUB/FNMSUB/FNMADD의 product·addend 부호, signed zero와 무한대 조합 |
+| FMA 단일 반올림 | `(1+2⁻ᶠ)(1−2⁻ᶠ)−1`의 RNE 결과는 `−2⁻²ᶠ`(f=23/52). 곱셈을 먼저 반올림한 결과 0을 잘못된 trace 결과로 거부 |
+| FMA 예외 경계 | 곱셈만 하면 overflow지만 융합 결과는 유한한 취소 사례, `∞×0+qNaN`의 NV 발생 |
+
+S/D 각각 기본 산술 750개·FMA 600개가 통과했고 배치별 같은 ELF의
+Sail/RTL 이벤트 합계 54,330건이 일치했다. 결과·각 flag 변경 및 split
+multiply/add 반올림 대조군 110개를 독립 검사기가 거부했다. 대조군은
+변경 RTL 실행이 아니다. ELF·trace·로그·현재 RTL/model·
+Sail·생성기와 oracle/helper 해시는 `out/rva23/fp_arithmetic_contract/`의
+개별 보고서와 상위 `report.json`에 연결한다. `--check`는 ELF 재빌드 없이
+근거를 재검사한다. 전 입력, 예약 rounding mode, FS 권한과 speculative
+flush/owner 경합은 이 검사의 완료 범위로 확대하지 않는다.
+
 ### S/D/H 포맷 변환과 직접 반올림
 
 기준은 [D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)와
