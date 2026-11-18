@@ -61,6 +61,19 @@ snapshot 변조 대조군 14개를 거부했다. 필수 통합 감사에 `--chec
 기존 CBO 권한 255개, 주소 보호와 ZERO/debug·fence 순서 검증의 범위도 연결한다.
 모든 privilege/translation 상태, 다중 hart 및 일반 RVWMO 전체 감사는 별도다.
 
+### AMO의 aq/rl 필드와 레지스터 중첩
+
+`scripts/run_amo_field_contract.py`는 W/D 18형식·네 aq/rl 인코딩·중첩 여섯
+패턴·선택 데이터 네 쌍의 1,728개 사례를 실행한다. 배치별 같은 ELF의
+Sail/RTL 이벤트 67,538건이 일치했다. 독립 정수/바이트 모델로 비영 목적지
+결과 1,440개, rd=x0 288건을 포함한 메모리 갱신 1,728건의 전 바이트를
+검사했다. 후속 guard 읽기는 6,912건이며 변조 대조군 44개를 거부했다.
+
+필수 통합 감사의 `--check`가 source/model·ELF·trace·로그·helper를 재확인한다.
+이 검사는 M-mode Bare의 값 검사다. [A 절별 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)에
+기존 LR/SC.W/D와 외부 debug 간섭, 주소 보호 및 별도 순서 검증을 연결했다.
+aq/rl 인코딩 실행을 일반 acquire/release·RVWMO 증명으로 확대하지 않는다.
+
 ### Zimop의 0 쓰기와 Zcmop의 no-write 기본 의미
 
 기준은 [Zimop/Zcmop 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zimop.html)이다.

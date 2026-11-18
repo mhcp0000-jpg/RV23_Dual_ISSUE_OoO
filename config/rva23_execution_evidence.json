@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["A"],
+    "report": "out/rva23/amo_field_contract/report.json",
+    "behavior": "1728 native M-mode Bare AMO W/D probes: 18 forms, all four aq/rl encodings, six selected register alias patterns including rd=x0 and triple alias, and four old/operand patterns. Identical Sail ELF per batch and independent byte/result oracle require all target writes to be fully observed in later guard reads. Ordering evidence is separate; no all-register/input, LR/SC, fault/privilege or universal concurrency claim."
+  },
+  {
     "requirements": ["Zicbop"],
     "report": "out/rva23/prefetch_hint_contract/report.json",
     "behavior": "1413 M-mode native H/V ignored-prefetch HINT probes across I/R/W forms: all 128 signed offsets with x0/x8/x31 and every base register with selected minimum/zero/maximum offsets. Identical Sail ELF per batch, exact raw instruction and PC+4, full GPR/FPR snapshots, FCSR and guards, and rejecting snapshot corruptions. Not all raw encodings, all privilege/protection states, bus-side-effect observation or actual prefetch performance; source review separately connects to ordinary ORI rd=x0 with no memory-request decode."

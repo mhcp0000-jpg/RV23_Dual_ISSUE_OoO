@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] AMO W/D 18형식의 네 aq/rl 인코딩, 대표 레지스터 중첩 여섯 패턴과 선택 데이터 네 쌍의 1,728개 사례를 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 67,538건이 일치했다. 비영 목적지 결과 1,440개와 rd=x0 288건을 포함한 메모리 갱신 1,728건의 모든 바이트를 독립 계산/관찰했고, 변조 대조군 44개를 거부했다. `scripts/run_amo_field_contract.py --check`를 필수 감사에 추가했다. [A 절별 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)에 기존 LR/SC.W/D 진행성·간섭 및 별도 순서/주소 보호 근거와 한계를 연결했다.
+
 - [x] Zicbop의 PREFETCH.I/R/W에서 모든 offset과 선택 base, 모든 base와 선택 offset을 조합한 1,413개 사례를 현재 H/V SoC에서 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 211,068건과 GPR/FPR snapshot 값 90,432개, FCSR/guard 및 PC+4를 확인했다. 변조 대조군 14개를 거부했고 `scripts/run_prefetch_hint_contract.py --check`를 필수 감사에 연결했다. [CMO 절별 검토](RVA23_CMO_CLAUSE_REVIEW.md)에 기존 권한·ZERO·flush·순서 근거와 새 검사의 M-mode 상태 보존 범위를 구분했다. 실제 prefetch 성능이나 버스 부작용 관찰을 주장하지 않는다.
 
 - [x] Zcb의 RV64 합법 인코딩 1,008개를 포함한 12형식·2,300개 사례를 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 53,712건이 일치했다. 독립 정수/바이트 모델로 저장 408건 전 바이트, 메모리 base/data 중첩 172건, 비정렬 24건, 라인 경계 12건과 Bare 물리 페이지 경계 6건 및 FCSR 보존을 검사했다. 변조 대조군 20개를 거부했으며 `scripts/run_zcb_contract.py --check`를 필수 감사에 연결했다. [Zcb 절별 검토](RVA23_ZCB_CLAUSE_REVIEW.md)에 M-mode 실행 및 데이터/권한/스케줄의 한계를 명시했다.
