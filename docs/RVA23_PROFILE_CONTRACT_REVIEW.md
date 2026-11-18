@@ -32,6 +32,32 @@
 
 ## 추가한 경계 사례
 
+### RV64 A의 값과 메모리 갱신 검토
+
+기준은 [A 2.1의 AMO와 LR/SC 조항](https://docs.riscv.org/reference/isa/v20260120/unpriv/a-st-ext.html)이다.
+atomic head가 순서·번역·권한을 확인하고 `rv23_atomic_engine`이 전용 AXI
+exclusive ID로 읽기·계산·쓰기를 수행한다. W형은 하위 32비트로 계산하고
+이전 값을 부호 확장해 돌려준다. bridge의 exclusive monitor와 snoop가
+충돌한 접근을 처리하며 AMO 쓰기 응답 실패 시 재시도 경로가 있다.
+
+`python scripts/audit_rv64a_contract.py`는 같은 전체 H/V SoC와 Sail의
+ELF 19개에서 다음 유한 실행 범위를 검사한다.
+
+| 조항 | 독립 계산·실행 근거 |
+|---|---|
+| 9가지 AMO의 W/D 계산 | ELF의 file-backed 바이트와 선행 store로 메모리를 구성한다. 실제 rs1/rs2를 복원하고 ADD/SWAP/XOR/OR/AND/MIN/MAX/MINU/MAXU를 계산한다. |
+| 이전 값 반환·W형 확장 | AMO 42회 중 rd=x0인 1회를 제외한 41개 이전 값을 확인한다. W형은 상위 rs2 비트가 0이 아닌 입력과 음수인 이전 값을 포함한다. |
+| 메모리 갱신과 rd=x0 | rd=x0도 쓰기를 생략하지 않는다. AMO 갱신 42회 모두 후속 일반 load가 전 바이트를 관찰했다. 초기 NOBITS를 0이라고 가정하지 않는다. |
+| LR/SC.W | LR 1,025회, SC 성공 1,025회·실패 3회. 성공에는 최근 LR의 주소·폭 일치를 요구하고 SC 시도 뒤 예약을 소비한다. 실패는 허용되는 관찰 결과로 사용하며 항상 성공해야 한다고 가정하지 않는다. |
+
+AMO/LR 반환값과 일반 load의 잘못된 결과를 넣은 trace 대조군을 각각
+19개씩 거부했다. 이 대조군은 변경 RTL 실행이 아니다. ELF·로그·trace와
+현재 RTL/model 및 감사기의 해시를 `out/rva23/rv64a_contract_audit.json`에
+묶고 통합 감사에서 재검사한다. 이 값 검사는 aq/rl의 순서, 외부 writer와의
+원자성, fault, LR/SC.D 및 진행성의 증명이 아니다. 해당 조건은 기존
+`run_fence_order.py`, atomic/guest replay, debug reservation과 LR/SC
+진행성 테스트의 별도 범위로 유지한다.
+
 ### RV64 B 및 Zicond 계산 의미 검토
 
 기준은 [B 1.0.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/b-st-ext.html)과

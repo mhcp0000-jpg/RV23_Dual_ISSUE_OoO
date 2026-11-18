@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] A 확장의 AMO W/D 18형식을 RTL atomic head/engine에 연결했다. 같은 Sail/RTL ELF 19개에서 AMO 42회의 이전 값과 계산 후 바이트를 검사했고, 갱신 42회 모두 후속 load로 전 바이트를 관찰했다. LR.W 1,025회와 SC.W 1,028회도 검사했다. SC 성공 1,025회는 일치하는 예약을 요구하고 실패 3회는 관찰된 결과로 소비한다. 결과 변경 대조군 38개를 거부했다. `scripts/audit_rv64a_contract.py`를 통합 감사에 포함했다. 순서·동시성·fault·LR/SC.D·진행성은 별도 근거다.
+
 - [x] B의 Zba/Zbb/Zbs와 Zicond 42개 형식을 RTL decoder·ALU와 연결했다. 기존 전체 H/V 실행의 retire 1,810건 중 x0 목적지 31건을 제외한 결과 1,779개를 Python 정수·비트열 계산으로 검사하고 잘못된 결과 42개를 거부했다. 기존 H/V replay의 246개 결과를 별도 검사해 word count의 상위 입력 무시 사례를 보완했다. 두 조건부 zero 형식은 조건이 0/비0인 실행 모두를 확인했다. `scripts/audit_rv64b_contract.py`를 통합 감사에 포함했다. 전 피연산자·예약 인코딩·pipeline 검증을 뜻하지 않는다.
 
 - [x] RV64I load/store의 주소·크기·확장·little-endian 바이트 값을 기존 전체 H/V ELF 14개에서 독립 계산했다. load 831회·store 760회와 비정렬 접근 268회를 포함하며 압축 메모리 명령도 해석했다. 후속 load로 store 618회의 값을 관찰했고 잘못된 load 결과 14개와 store 주소 변경 4개를 거부했다. `scripts/audit_rv64i_memory_values.py`를 통합 감사에 포함했다. 읽히지 않은 쓰기와 버스/예외/동시성은 별도 범위다.

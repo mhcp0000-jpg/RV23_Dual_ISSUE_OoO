@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["A", "Ziccamoa"],
+    "report": "out/rva23/rv64a_contract_audit.json",
+    "behavior": "19 identical Sail/RTL ELFs: 18 AMO W/D forms with independently calculated old values and all 42 updates observed by later loads; 1025 LR.W and 1028 SC.W retirements, including success eligibility and observed failure outcomes; 38 rejected result mutations. Ordering, faults, LR/SC.D and progress remain separate evidence."
+  },
+  {
     "requirements": ["B", "Zicond"],
     "report": "out/rva23/rv64b_contract_audit.json",
     "behavior": "42 RV64 Zba/Zbb/Zbs/Zicond forms, 1810 identical Sail/RTL retirements with 1779 independently calculated nonzero-destination values, 42 rejected result mutations, and 246 supplemental H/V values including nonzero upper inputs to word counts; finite legal instruction coverage"
