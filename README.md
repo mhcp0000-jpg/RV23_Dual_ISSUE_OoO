@@ -78,6 +78,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | 후속 ACT4 | upstream이 요구하는 Sail 0.16으로 RVA23 필터의 체크인 ELF 607/607 및 별도 H·Sv39x4·PMP ELF 40/40 통과 |
 | 후속 ACT4 생성 벡터 | 2,301/2,301 RTL 실행 통과. Sail 기대값·ELF·로그·현재 RTL 모델의 전체 생성/실행 감사 통과 |
 | 스칼라 참조 비교 | 동일 ELF의 Sail/RTL 실행 168개, 사용자 모드 ELF 152개의 retire 기록 61,754건 일치 |
+| RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | FP 비트 동작 | F/D 분류·부호·이동 12형식의 probe 1,110개, 동일 ELF의 Sail/RTL 이벤트 18,532건 일치. 잘못된 S boxing·raw 이동과 `fflags` 보존 포함 |
 | FP 비교·min/max | F/D 10형식의 probe 1,215개, 동일 ELF의 Sail/RTL 이벤트 19,099건 일치. NaN·±0 및 NV 누적과 잘못된 결과/flag 대조군 30개 포함 |
 | FP·정수 변환 | W/WU/L/LU↔S/D 16형식의 probe 2,760개, 포맷별 동일 ELF의 Sail/RTL 이벤트 합계 36,574건 일치. 5개 정적·동적 반올림 모드와 대조군 48개 포함 |

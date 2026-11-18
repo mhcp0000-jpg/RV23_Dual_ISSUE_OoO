@@ -180,6 +180,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('audit_scalar_vector_order.py', [], 'out/rva23/scalar_vector_order_audit.json'),
         ('audit_rv64m_contract.py', [], 'out/rva23/rv64m_contract_audit.json'),
         ('audit_rv64b_contract.py', [], 'out/rva23/rv64b_contract_audit.json'),
+        ('audit_rv64c_contract.py', [], 'out/rva23/rv64c_contract_audit.json'),
         ('audit_rv64a_contract.py', [], 'out/rva23/rv64a_contract_audit.json'),
         ('run_fp_bit_contract.py', ['--check'], 'out/rva23/fp_bit_contract/report.json'),
         ('run_fp_compare_contract.py', ['--check'], 'out/rva23/fp_compare_contract/report.json'),

@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] 기존 전체 H/V `rv64uc/rvc`의 같은 ELF에서 Sail/RTL 이벤트 305개를 재대조하고, 16비트 인코딩 직접 계산으로 산술·제어 24형식의 retire 122건을 검사했다. BEQZ/BNEZ의 taken/not-taken, JALR의 PC+2 링크와 다음 PC, word 결과 부호 확장을 확인했다. ELF 바이트 모델로 정수 압축 메모리 8형식과 후속 load의 store 관찰도 검사하고 변조 대조군 33개를 거부했다. `scripts/audit_rv64c_contract.py`를 통합 감사에 연결했다. C.EBREAK·FP 메모리·예약/HINT 인코딩과 모든 즉시값/피연산자/스케줄 조합의 검증을 뜻하지 않는다.
+
 - [x] Zfa의 RV64 S/D 15형식을 전체 H/V SoC와 Sail에서 포맷별 같은 ELF로 검증했다. 독립 비트·유리수 기대값과 probe 1,447개, 이벤트 32,781개가 일치하고 결과/NX/NV 변조 대조군 45개를 거부했다. FLI 상수 32개, 정적·동적 5개 반올림 모드, NaN·signed zero·boxing, FCVTMOD의 modulo 결과 및 FCVT.W.D RTZ와 같은 flags를 확인했다. `scripts/run_zfa_contract.py --check`를 통합 감사에 연결했다. 선택 H/Q/RV32 형식과 예약 rm·모든 권한/스케줄 조합은 이 범위에 포함하지 않는다.
 
 - [x] M/HS/VS/U/VU에서 host FS 0~3 × guest FS 0~3 × FP 명령·CSR 11종, 총 880개 probe를 같은 전체 H/V SoC와 Sail에서 모드별 같은 ELF로 검증했다. FS-Off의 정확한 cause 2·EPC·원본 tval과 상태 보존, 실제 상태가 바뀐 허용 명령의 host Dirty 및 guest 실행 시 guest Dirty를 검사했다. `scripts/run_fp_permission_matrix.py --check`를 통합 감사에 연결했다. non-writer의 보수적 Dirty는 허용하며 delegation·변환 fault·전체 스케줄 조합을 대신하지 않는다.

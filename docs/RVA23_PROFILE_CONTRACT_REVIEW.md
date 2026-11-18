@@ -32,6 +32,29 @@
 
 ## 추가한 경계 사례
 
+### RV64C의 직접 인코딩 계산과 다음 PC
+
+기준은 [C 2.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
+`scripts/audit_rv64c_contract.py`는 기존 전체 H/V SoC의 `rv64uc/rvc` 실행을
+다시 읽는다. 같은 ELF를 사용한 Sail/RTL 이벤트 305건을 재대조하고, DUT의
+expander 출력 대신 원래 16비트 필드와 직전 정수 레지스터 값으로 의미를 계산한다.
+
+산술·제어 24형식(NOP 포함)의 retire 122건에서 즉시값과 word 부호 확장,
+순차 PC+2 및 분기·jump 목적지를 확인했다. BEQZ/BNEZ는 taken/not-taken
+양쪽이 있고 JALR은 링크가 PC+2인지 별도로 검사한다. 같은 ELF 바이트 모델로
+LW/LD/SW/SD 및 각 SP 형식 8종의 메모리 명령 13건을 검사하며, 네 store
+모두 후속 load에서 관찰된다. 관찰되지 않은 메모리를 0으로 가정하지 않는다.
+
+형식별 결과/다음 PC 대조군 24개, JALR 링크를 PC+4로 바꾼 대조군 1개,
+압축 load 결과 4개 및 store offset 4개를 바꾼 대조군을 모두 거부했다.
+이는 trace 변조 검사이며 다른 RTL을 실행한 결과는 아니다. 현재 RTL/model,
+Sail, upstream 입력 및 ELF·trace·로그·독립 검사 helper를 해시로 연결한
+보고서는 `out/rva23/rv64c_contract_audit.json`이다.
+
+이 감사는 기존 실행에 독립 의미 검사를 추가한다. C.EBREAK 예외, FP 압축
+메모리, 예약/HINT 인코딩과 전 즉시값·피연산자·스케줄 조합을 이 결과로
+검증했다고 간주하지 않는다.
+
 ### Zfa의 상수·반올림·조용한 비교와 모듈러 변환
 
 기준은 [Zfa 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zfa.html)이다.

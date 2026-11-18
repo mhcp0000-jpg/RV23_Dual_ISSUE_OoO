@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["C", "I"],
+    "report": "out/rva23/rv64c_contract_audit.json",
+    "behavior": "Existing native H/V rv64uc/rvc ELF: all 305 Sail/RTL events identical; direct 16-bit field oracle checks 122 compute/control retirements across 24 forms including NOP, conditional taken/not-taken paths and PC+2 JALR link. ELF byte oracle checks eight integer compressed memory forms with observed stores. 33 altered result, PC, link and memory controls rejected. FP memory, illegal/hint encodings and all operands/immediates/schedules separate."
+  },
+  {
     "requirements": ["Zfa", "F", "D"],
     "report": "out/rva23/zfa_contract/report.json",
     "behavior": "1447 native H/V probes of 15 RV64 S/D Zfa forms with identical Sail ELF per format and independent bit/rational expectations. All 32 FLI constants, NaN and signed zero, static/dynamic rounding, FCVTMOD modular data and ordinary FCVT.W.D RTZ flags, accumulated flags and 45 rejecting trace controls. Optional H/Q/RV32 forms, reserved rm and all scheduling/permission combinations separate."
