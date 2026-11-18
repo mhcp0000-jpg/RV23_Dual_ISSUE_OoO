@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] FCSR/FRM/FFLAGS의 여섯 CSR 명령과 FCSR의 모든 8비트 값, 선택 상위 비트 쓰기를 1,664개 사례로 실행했다. 이전 값·세 alias 결과 6,656개와 배치별 같은 ELF의 Sail/RTL 이벤트 24,109건이 일치했다. 변조 대조군 96개를 거부했으며 `scripts/run_fcsr_alias_contract.py --check`를 필수 감사에 추가했다. [FP 절별 검토](RVA23_FP_CLAUSE_REVIEW.md)에 산술·NaN boxing·반올림·flag·메모리·FS/guest 권한 및 branch recovery의 기존 근거와 한계를 연결했다. 예약 frm 값은 저장/readback만 하며 해당 상태에서 산술을 실행하지 않는다.
+
 - [x] AMO W/D 18형식의 네 aq/rl 인코딩, 대표 레지스터 중첩 여섯 패턴과 선택 데이터 네 쌍의 1,728개 사례를 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 67,538건이 일치했다. 비영 목적지 결과 1,440개와 rd=x0 288건을 포함한 메모리 갱신 1,728건의 모든 바이트를 독립 계산/관찰했고, 변조 대조군 44개를 거부했다. `scripts/run_amo_field_contract.py --check`를 필수 감사에 추가했다. [A 절별 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)에 기존 LR/SC.W/D 진행성·간섭 및 별도 순서/주소 보호 근거와 한계를 연결했다.
 
 - [x] Zicbop의 PREFETCH.I/R/W에서 모든 offset과 선택 base, 모든 base와 선택 offset을 조합한 1,413개 사례를 현재 H/V SoC에서 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 211,068건과 GPR/FPR snapshot 값 90,432개, FCSR/guard 및 PC+4를 확인했다. 변조 대조군 14개를 거부했고 `scripts/run_prefetch_hint_contract.py --check`를 필수 감사에 연결했다. [CMO 절별 검토](RVA23_CMO_CLAUSE_REVIEW.md)에 기존 권한·ZERO·flush·순서 근거와 새 검사의 M-mode 상태 보존 범위를 구분했다. 실제 prefetch 성능이나 버스 부작용 관찰을 주장하지 않는다.

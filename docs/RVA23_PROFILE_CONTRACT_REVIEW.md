@@ -360,6 +360,20 @@ ELF·trace·로그·생성기·참조 모델 해시를 확인하고 독립 검�
 RV32 전용 transfer 형식을 요구하지 않는다. 예약 rm의 trap과 모든 FS 권한,
 분기/인터럽트 조합의 증거를 이 검사로 대신하지 않는다.
 
+### FP CSR의 여섯 명령과 alias 마스크
+
+`scripts/run_fcsr_alias_contract.py`는 FFLAGS/FRM/FCSR와 여섯 CSR 명령,
+선택 상위 비트 및 FCSR 전체 256개 low-byte 값을 조합한 1,664개 사례를
+M-mode FS-enabled 상태에서 실행한다. 배치별 같은 ELF의 Sail/RTL 이벤트
+24,109건이 일치하며 이전 값과 세 alias 결과 6,656개를 검사했다.
+결과 변조 대조군 96개를 거부했다. 다른 field의 보존과 현재 미사용인 상위
+비트의 read-as-zero/write-ignored 동작을 확인한다.
+
+예약 frm=5/6/7은 저장/readback하며 그 상태에서 FP 산술을 실행하지 않는다.
+산술 flag 누적과 권한·FS/guest 상태·pipeline 경합은 별도 근거와 연결한다.
+`--check`를 필수 감사에 추가했으며 [FP 절별 검토](RVA23_FP_CLAUSE_REVIEW.md)에
+F/D/Zfhmin/Zfa의 기존 실행 근거와 남은 범위를 정리했다.
+
 ### 다섯 모드의 FP 상태 접근과 host/guest Dirty
 
 기준은 [H 1.0의 `vsstatus`](https://docs.riscv.org/reference/isa/v20260120/priv/hypervisor.html)와

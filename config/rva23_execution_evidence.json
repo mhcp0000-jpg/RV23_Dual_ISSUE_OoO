@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["F", "D", "Zicsr"],
+    "report": "out/rva23/fcsr_alias_contract/report.json",
+    "behavior": "1664 native M-mode FS-enabled probes cover six CSR forms across fflags/frm/fcsr, selected upper-bit masks and every FCSR low-byte value. Identical Sail ELF per batch matches 24109 events; 6656 previous-value/alias results checked and 96 corrupt-result controls rejected. Reserved frm values stored/read without executing arithmetic. Arithmetic flag accrual, FS/guest permissions, all CSR side effects and pipeline ordering are separate suites."
+  },
+  {
     "requirements": ["A"],
     "report": "out/rva23/amo_field_contract/report.json",
     "behavior": "1728 native M-mode Bare AMO W/D probes: 18 forms, all four aq/rl encodings, six selected register alias patterns including rd=x0 and triple alias, and four old/operand patterns. Identical Sail ELF per batch and independent byte/result oracle require all target writes to be fully observed in later guard reads. Ordering evidence is separate; no all-register/input, LR/SC, fault/privilege or universal concurrency claim."

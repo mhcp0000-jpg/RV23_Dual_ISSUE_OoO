@@ -84,6 +84,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | Zcb 압축 확장 | RV64 합법 인코딩 1,008개를 포함한 2,300개 사례, Sail/RTL 이벤트 53,712건 일치. 저장 408건 전 바이트 관찰 및 비정렬·경계·중첩 검사. [Zcb 절별 검토](docs/RVA23_ZCB_CLAUSE_REVIEW.md) |
 | Zicbop / CMO | PREFETCH.I/R/W의 offset·base 조합 1,413개에서 상태 보존 검사. CBO 권한·ZERO·flush·순서 검증 범위와 함께 [CMO 절별 검토](docs/RVA23_CMO_CLAUSE_REVIEW.md)에 정리 |
 | AMO 필드 범위 | W/D 18형식·모든 aq/rl 인코딩·대표 레지스터 중첩과 선택 데이터의 1,728개 사례. 결과와 갱신 메모리를 독립 계산. [A 절별 검토](docs/RVA23_ATOMIC_CLAUSE_REVIEW.md) |
+| FP CSR alias | FCSR/FRM/FFLAGS와 여섯 CSR 명령의 1,664개 사례, 이전 값·alias 결과 6,656개 검사 및 Sail/RTL 이벤트 24,109건 일치. [FP 절별 검토](docs/RVA23_FP_CLAUSE_REVIEW.md)에 산술·boxing·상태·권한 근거도 연결 |
 | RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | RV64 압축 산술 범위 | 18형식의 probe 7,226개, 배치별 동일 ELF의 Sail/RTL 이벤트 62,776건 일치. 즉시값·시프트의 유효 범위와 MV/ADD의 비영 레지스터 쌍 전체, 선택 데이터 패턴 및 대조군 60개 포함 |
 | RV64 압축 제어 경계 | 분기·점프 5형식의 probe 3,042개, 배치별 동일 ELF의 Sail/RTL 이벤트 45,146건 일치. 음수 오프셋·2바이트 경계·홀수 간접 포인터·JALR x1 중첩과 대조군 23개 포함 |
