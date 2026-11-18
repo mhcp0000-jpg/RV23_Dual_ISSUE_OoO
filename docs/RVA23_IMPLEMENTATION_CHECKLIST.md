@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] RV64I HINT 표의 31개 연산군과 특수 표식을 36분류·1,132개 선택 사례로 실행했다. rd=x0 데이터 연산, U/I 즉시값 경계, shift 범위, NTL·PAUSE·null-set FENCE의 무시된 rd/rs1, standalone semihost 표식을 포함한다. 같은 전체 H/V SoC와 Sail의 배치별 같은 ELF 이벤트 168,849개가 일치했고 GPR/FPR snapshot 값 72,448개·FCSR·SRAM guard 보존 및 실제 PC+4를 확인했다. 변조 대조군 44개를 거부하고 `scripts/run_rv64i_hint_contract.py --check`를 통합 감사에 연결했다. [I/M 절별 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)에 기존 산술·메모리·FENCE·trap 근거도 연결했다. 전체 HINT 공간·CSR/권한·semihost ABI·타이밍·보편적 memory ordering 증명은 아니다.
+
 - [x] RV64 C HINT 표의 394개 코드 포인트와 NOP를 같은 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 실행했다. HINT마다 GPR 32개·FPR 32개를 SRAM에 저장 후 읽어 총 25,280개 값을 독립 바이트 모델로 검사하고 FCSR 및 SRAM guard 보존을 확인했다. all-zero 16비트 명령의 cause 2·tval 0·writeback 없음 및 PC+2 복귀를 PC mod 4=0/2에서 네 번 확인했다. 이벤트 59,261개가 일치하고 변조 대조군 20개를 거부했다. `scripts/run_rvc_hint_contract.py --check`를 통합 감사에 연결했다. [C 절별 검토표](RVA23_C_CLAUSE_REVIEW.md)에 산술·메모리·제어·진행성·HINT·예외의 근거와 공유 조항의 한계를 연결했다. 이 표는 전체 RVA23 완료 판정이 아니다.
 
 - [x] C 규격의 제한된 LR/SC 반복문 조항을 보강했다. 기존 `run_lrsc_progress.py`는 압축을 끈 32비트 명령만 사용했으므로, 새 `scripts/run_compressed_lrsc_contract.py`에서 4/16명령·12/36바이트의 실제 압축 반복문을 실행했다. W/D의 64B 내 모든 정렬 데이터 위치와 명령 라인 offset 0/32/62의 144개 배치에서 갱신 2,304회를 완료했다. 각 배치에 LR 없는 SC 사전 검사 1회를 넣어 실패 144회와 압축 재시도 backedge도 실행했다. 이는 제한된 반복문의 진행성 성공 횟수와 분리한다. 같은 ELF의 Sail/RTL 이벤트 29,804개와 독립 바이트·명령 layout·결과 검사가 일치하고 대조군 6개를 거부했다. `--check`를 통합 감사에 연결했다. 유한 실행이며 보편적 liveness·외부 master 공정성 증명을 뜻하지 않는다.

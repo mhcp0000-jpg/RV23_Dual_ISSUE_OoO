@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["I", "Zihintpause", "Zihintntl"],
+    "report": "out/rva23/rv64i_hint_contract/report.json",
+    "behavior": "1132 native H/V samples covering 31 RV64I HINT mnemonics and 36 tagged families: selected immediate/register fields, full shift domains with selected rs1, NTL, PAUSE, null-set fences with ignored rd/rs1 fields and standalone semihost markers. Same Sail ELF per batch, exact PC+4, checked snapshot stores/loads and 72448 GPR/FPR values plus FCSR/guards; 44 rejecting controls. Not exhaustive HINT code points, all CSRs/privileges, semihost service ABI, timing or global memory-order proof."
+  },
+  {
     "requirements": ["C", "Zihintntl"],
     "report": "out/rva23/rvc_hint_contract/report.json",
     "behavior": "All 394 RV64 base-C HINT code points plus NOP on native H/V RTL and identical Sail ELF per batch. 25280 GPR/FPR snapshot values, FCSR and two SRAM guards verify inert behavior; includes four compressed NTL hints and custom-designated shift HINTs under this implementation's inert policy. Four permanent all-zero instruction traps at both halfword phases, exact cause 2/tval 0/no writeback and PC+2 recovery; 20 rejecting controls. Other CSRs, privilege/FS combinations and microarchitectural hint effects separate."

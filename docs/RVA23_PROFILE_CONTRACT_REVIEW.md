@@ -32,6 +32,36 @@
 
 ## 추가한 경계 사례
 
+### RV64I HINT의 형식별 상태 보존
+
+기준은 [RV64I 2.1 HINT 표](https://docs.riscv.org/reference/isa/v20260120/unpriv/rv64.html)와
+[상속하는 RV32I 2.1의 FENCE/HINT](https://docs.riscv.org/reference/isa/v20260120/unpriv/rv32.html)다.
+`scripts/run_rv64i_hint_contract.py`는 31개 기본 연산군과 특수 표식의 선택 사례
+1,132개를 같은 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 실행한다.
+RV64I의 큰 HINT 공간 전체를 열거한 결과로 간주하지 않는다.
+
+| 분류 | 선택한 실행 범위 |
+|---|---|
+| LUI/AUIPC rd=x0 | U immediate의 20개 bit 위치와 0·부호·최댓값 경계 |
+| I/ADDIW rd=x0 | rs1=x0/x1/x8/x15/x31, immediate=-2048/-1/0/1/2047. SLTI/SLTIU custom HINT도 현재 inert 정책으로 검사 |
+| R/RW rd=x0 | 각 연산의 rs1/rs2 필드가 모든 레지스터를 포함하도록 선택한 쌍과 zero/self 쌍. ADD의 NTL 네 코드 포인트 포함 |
+| Shift-immediate rd=x0 | RV64 shift 0~63 및 W shift 0~31 각각에 선택 rs1. standalone semihost entry/exit 표식 추가 |
+| Null-set FENCE | fm=0이고 pred 또는 succ가 0인 31개 mask 조합과 (rd,rs1)=(0,0)/(0,31)/(31,0). PAUSE 포함 |
+
+기존 압축 HINT의 snapshot scaffold는 수정하지 않고 재사용한다. 새 생성기는
+라벨이 붙은 probe directive만 32비트로 바꾸고, 실제 trace에서는 원래 인코딩과
+PC+4, 64개 snapshot store 및 load의 인코딩·값을 별도로 검사한다.
+GPR/FPR snapshot 72,448개, FCSR과 인접 SRAM guard의 보존을 확인했고,
+Sail/RTL 이벤트 168,849건이 일치했다. 분류별 snapshot 값을 바꾼 trace 대조군
+44개를 독립 검사기가 거부했다. 이는 변경 RTL 실행이 아니다.
+
+`out/rva23/rv64i_hint_contract/report.json` 및 `--check`가 현재 RTL/model,
+Sail·ELF·assembly·trace·로그와 immutable scaffold의 해시를 연결한다.
+이 검사는 M mode·FS Dirty의 선택 상태에 관한 것이다. semihost 서비스 ABI,
+모든 CSR/권한, HINT 지연과 전역 순서를 검증하지 않는다. 실제 버스 ordering은
+별도 `run_fence_order.py`의 backpressure/응답/retire 계측과 함께 검토한다.
+[I/M 절별 검토표](RVA23_INTEGER_CLAUSE_REVIEW.md)는 공유 조항과 남은 범위를 연결한다.
+
 ### RV64C HINT의 상태 보존과 영 인코딩 예외
 
 기준은 [C 2.0의 HINT 표와 불법 영 인코딩](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
