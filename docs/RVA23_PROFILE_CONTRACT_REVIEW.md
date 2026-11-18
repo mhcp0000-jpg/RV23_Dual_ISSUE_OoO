@@ -32,6 +32,34 @@
 
 ## 추가한 경계 사례
 
+### F/D와 정수 사이의 변환·반올림
+
+기준은 [F 2.2의 변환·반올림](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)과
+[D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)다.
+`rv_fp_decode_pkg`는 W/WU/L/LU selector와 rounding 필드를 선택한다.
+`rv_fpu_rva23`이 동적 `frm`을 고르고 `rv_fp_format`의 HardFloat 정수 변환
+경로로 전달한다. W/WU 정수 결과는 모두 64비트로 부호 확장한다.
+
+`python scripts/run_fp_integer_contract.py`는 두 포맷에서 각각 같은 ELF를
+Sail과 전체 H/V SoC에 실행한다. 16형식의 probe 2,760개(S 1,400개·D
+1,360개)를 기존 `fp_reference.BinaryFP`의 정확한 유리수 계산으로 검사한다.
+호스트 float 계산은 사용하지 않는다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| 정적·동적 반올림 | RNE/RTZ/RDN/RUP/RMM 각각을 직접 지정하거나 `rm=7`과 `frm`으로 지정. 정적 경로에서는 `frm`을 다른 값으로 설정 |
+| 정수 입력 폭 | W/WU의 상위 32비트 무시, 부호·비부호 입력과 L/LU의 64비트 경계. 2²⁴·2⁵³ 주변의 inexact/tie 입력 |
+| 정수 결과 폭 | W/WU의 RV64 부호 확장, L/LU의 64비트 결과 |
+| 변환 범위·예외 | ±0, half-integer ties, 정수 경계와 직전 표현값, NaN·무한대·잘못된 S boxing. 포화 결과와 NV/NX 및 기존 flags 누적을 확인 |
+
+형식별 결과·NX·NV를 바꾼 trace 대조군 48개를 독립 검사기가 거부했다.
+포맷별 같은 ELF의 Sail/RTL 이벤트는 S 18,284건·D 18,290건이 일치했다.
+각 포맷의 ELF·trace·로그·RTL/model·Sail·생성기와 oracle/helper 해시는
+`out/rva23/fp_integer_contract/`의 개별 보고서와 상위 `report.json`에
+연결한다. `--check`는 ELF 재빌드 없이 이를 재검사하며 통합 감사에 포함된다.
+느린 호스트의 재실행은 `RV23_HOST_TIMEOUT_SCALE=2`로 관찰 시간을 늘릴 수 있다.
+S/D/H 포맷 간 변환, 예약 rounding mode, FS 권한과 pipeline 경합은 별도 범위다.
+
 ### F/D의 비교·min/max와 NV 누적
 
 기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)와

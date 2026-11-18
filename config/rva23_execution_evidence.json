@@ -1,6 +1,11 @@
 [
   {
     "requirements": ["F", "D"],
+    "report": "out/rva23/fp_integer_contract/report.json",
+    "behavior": "2760 native H/V probes across 16 W/WU/L/LU to/from S/D conversion forms, with identical Sail ELF per format and exact rational results/flags; five static and dynamic rounding modes, deliberately different frm for static encoding, clipping, NaN/infinity, ties, W sign extension and upper-word inputs. Format conversion, reserved rm and FS/pipeline races separate."
+  },
+  {
+    "requirements": ["F", "D"],
     "report": "out/rva23/fp_compare_contract/report.json",
     "behavior": "1215 native H/V and identical Sail ELF probes of FEQ/FLT/FLE/FMIN/FMAX in S/D; independent bit ordering, signed zero, infinity/subnormal, qNaN/sNaN and malformed S boxing, with NV accrual from fflags 0/5/31; 30 rejected result/NV mutations. Arithmetic rounding, FS permissions and pipeline races separate."
   },
