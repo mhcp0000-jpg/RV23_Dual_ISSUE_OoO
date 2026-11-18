@@ -273,6 +273,21 @@ Sail·RTL 실행 이벤트 16,908개가 일치했다.
 
 ## 스칼라와 벡터의 공유 SRAM 접근
 
+`python scripts/audit_scalar_vector_order.py`는 아래 공유 메모리·재시작,
+Svpbmt 별칭, PLIC 인터럽트 및 FENCE/CBO의 다섯 실행 보고서를 함께
+재검사한다. 현재 모델 입력·실행 파일·ELF·드라이버·trace·로그의 해시를
+확인하고, Sail 대조와 버스/retire 순서 검사를 다시 실행한다. 결과는
+`out/rva23/scalar_vector_order_audit.json`에 기록되며 통합 요구사항 감사에도
+포함된다. 완료 전 벡터 retire, 누락된 벡터 claim, 누락된 zero-stride IO
+읽기 및 누락된 concurrent debug 쓰기로 기록을 변형한 네 대조군을
+거부한다. 이 대조군은 감사기의 검사력을 확인하며 RTL 변형 실행은 아니다.
+
+현재 벡터 decode는 모든 벡터 명령을 serializing으로 표시한다.
+ROB head의 벡터는 `lsu_memory_idle` 및 스칼라 피연산자 준비를 기다린다.
+serial barrier가 retire될 때까지 뒤의 dispatch를 막으므로 벡터와 뒤따르는
+스칼라 실행의 중첩을 허용하지 않는다. 이 근거는 해당 직렬화 구현의
+지향성 검증이며, 스칼라·벡터 동시 실행이나 전체 RVWMO 증명을 뜻하지 않는다.
+
 `run_scalar_vector_memory.py`는 다른 64비트 뱅크 및 64바이트 라인
 경계를 포함한 네 위치를 Bare와 Sv39에서 실행했다. Sv39에서는
 스칼라와 벡터가 서로 다른 가상 주소로 같은 물리 SRAM에 접근했다.

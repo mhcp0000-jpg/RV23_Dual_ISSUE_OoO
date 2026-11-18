@@ -176,6 +176,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('audit_rv64_ooo_integration.py', [], 'out/rva23/rv64_ooo/audit.json'),
         ('audit_profile_contracts.py', [], 'out/rva23/contract_evidence.json'),
         ('run_fence_order.py', ['--check'], 'out/rva23/fence_order/report.json'),
+        ('audit_scalar_vector_order.py', [], 'out/rva23/scalar_vector_order_audit.json'),
         ('audit_ptw_debug_coherence.py', ['--with-negative'], 'out/rva23/ptw_debug_coherence/audit.json'),
         ('audit_sail_event_comparison.py', [], 'out/rva23/sail_privileged_events/audit.json'),
         ('audit_vector_agnostic_differential.py', [], 'out/rva23/vector_agnostic_differential/audit.json'),
