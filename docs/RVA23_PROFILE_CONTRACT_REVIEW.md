@@ -32,6 +32,33 @@
 
 ## 추가한 경계 사례
 
+### RV64C 분기·점프의 부호 경계와 소스/링크 중첩
+
+기준은 [C 2.0의 제어 이전](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
+`scripts/run_rv64c_control_contract.py`는 5형식의 probe 3,042개를 16개 ELF로
+나눠 같은 전체 H/V SoC와 Sail에 사용한다. 원래 16비트 필드와 실행 전
+레지스터를 읽고 실제 다음 PC 및 링크를 독립 계산한다.
+
+| 형식 | 실행 조건 |
+|---|---|
+| C.J | -2048/2046 양 끝과 부호·비트 위치·짧은 거리를 포함한 25개 offset, 명령 PC mod 4=0/2 |
+| C.BEQZ/BNEZ | -256/254 양 끝 등을 포함한 20개 offset, rs1′=x8~x15, 0·1·전부 1·bit 63만 켠 입력. offset=0은 not-taken만 실행 |
+| C.JR/JALR | rs1=x1~x31 각각에 주소 bit 0=0/1, 명령 및 목적지의 PC mod 4=0/2 조합 |
+| C.JALR x1 | 기존 x1의 목적지로 이전한 뒤 x1에 PC+2 저장. 위 정렬·홀수 포인터 조합 8개 |
+
+목적지에는 2바이트 반환 trampoline을 두어 offset=-2도 겹치는 인코딩 없이
+실행하고, 분기 미실행 경로는 PC+2에서 별도 trampoline을 실행한다. 각 probe는
+한 번만 retire해야 하며 trap을 허용하지 않는다. C.JR/JALR의 홀수 입력
+248건은 bit 0이 제거된 주소로 이전했다. 다음 PC가 4바이트 경계에서 2바이트
+떨어진 사례 1,521건을 포함해 Sail/RTL 이벤트 45,146건이 일치했다.
+
+각 배치의 형식별 다음 PC와 JALR 링크를 바꾼 trace 대조군 23개를 거부했다.
+이는 변경 RTL 실행이 아니다. `out/rva23/rv64c_control_contract/report.json`과
+`--check`가 생성 assembly·현재 RTL/model·Sail·ELF·trace·로그·helper를
+해시로 묶고 동일 검사를 다시 수행한다. 이 경계 검사는 모든 오프셋이나
+taken zero-offset 무한 루프의 인터럽트 탈출, 변환 fault 및 전체 스케줄을
+검증했다고 간주하지 않는다.
+
 ### RV64C 산술의 즉시값·시프트·레지스터 필드 범위
 
 기준은 [C 2.0의 정수 계산 명령](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.

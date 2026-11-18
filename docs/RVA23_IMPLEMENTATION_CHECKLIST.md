@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] C.J/BEQZ/BNEZ/JR/JALR의 probe 3,042개를 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 검증했다. 부호 경계·비트별 오프셋과 분기 prime 레지스터 8개, 간접 소스 x1~x31, 명령/목적지의 두 halfword phase를 확인했다. 홀수 포인터 248개에서 bit 0 제거, JALR x1 중첩 8개에서 기존 x1으로 점프하면서 PC+2 링크를 쓰는 동작을 확인했다. 이벤트 45,146개가 일치하고 다음 PC/링크 변조 23개를 거부했다. `scripts/run_rv64c_control_contract.py --check`를 통합 감사에 연결했다. taken 0-offset 무한 루프, 전 오프셋·fault·interrupt·스케줄 조합은 별도 범위다.
+
 - [x] 압축 산술 18형식의 probe 7,226개를 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 검증했다. 6비트 즉시값, shift 0~63, ADDI16SP·ADDI4SPN의 모든 유효 즉시값, MV/ADD의 비영 31×31 및 CA 산술의 8×8 레지스터 쌍을 선택 데이터와 함께 실행했다. 독립 수치 기대값과 16비트 필드 계산을 함께 적용해 이벤트 62,776개가 일치하고 결과/다음 PC 변조 60개를 거부했다. `scripts/run_rv64c_compute_contract.py --check`를 통합 감사에 연결했다. 모든 피연산자 직교 조합·메모리·제어 이전·예약 인코딩·권한·전체 스케줄은 별도 범위다.
 
 - [x] 기존 전체 H/V `rv64uc/rvc`의 같은 ELF에서 Sail/RTL 이벤트 305개를 재대조하고, 16비트 인코딩 직접 계산으로 산술·제어 24형식의 retire 122건을 검사했다. BEQZ/BNEZ의 taken/not-taken, JALR의 PC+2 링크와 다음 PC, word 결과 부호 확장을 확인했다. ELF 바이트 모델로 정수 압축 메모리 8형식과 후속 load의 store 관찰도 검사하고 변조 대조군 33개를 거부했다. `scripts/audit_rv64c_contract.py`를 통합 감사에 연결했다. C.EBREAK·FP 메모리·예약/HINT 인코딩과 모든 즉시값/피연산자/스케줄 조합의 검증을 뜻하지 않는다.

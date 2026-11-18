@@ -1,6 +1,11 @@
 [
   {
     "requirements": ["C", "I"],
+    "report": "out/rva23/rv64c_control_contract/report.json",
+    "behavior": "3042 native H/V probes of C.J/BEQZ/BNEZ/JR/JALR with identical Sail ELF per batch. Signed boundary and bit offsets, all compact conditional registers with zero/nonzero patterns, all nonzero indirect source registers, instruction/target halfword phases, 248 odd indirect pointers and eight JALR x1 source/destination aliases. Exact next PC and PC+2 links; 23 rejecting trace controls. Taken zero-offset loops, every offset, faults, interrupts and all schedules separate."
+  },
+  {
+    "requirements": ["C", "I"],
     "report": "out/rva23/rv64c_compute_contract/report.json",
     "behavior": "7226 native H/V probes of 18 RV64C compute forms, identical Sail ELF per batch; full six-bit immediate and shift domains, all legal ADDI16SP/ADDI4SPN immediates, all MV/ADD nonzero register pairs and compact CA register pairs with selected values. Independent numeric operation and direct 16-bit field expectations, exact PC+2/writeback, 60 rejecting result/PC trace controls. Not all operand Cartesian products, memory, control transfers, illegal encodings, permissions or schedules."
   },
