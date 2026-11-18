@@ -32,6 +32,32 @@
 
 ## 추가한 경계 사례
 
+### F/D의 분류·부호·레지스터 이동
+
+기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)와
+[D 2.2의 NaN boxing](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)이다.
+`rv_fpu_rva23`은 S 연산 입력의 boxing을 검사하고 raw move는 그 검사를
+우회한다. `rv_fp_format`의 분류·부호·이동 결과는 일반 FP result/WB 경로로
+전달된다. S 결과의 FP 목적지는 상위 32비트를 모두 1로 채운다.
+
+`python scripts/run_fp_bit_contract.py`는 같은 ELF를 Sail과 전체 H/V SoC에서
+실행하고 다음 12형식의 probe 1,110개를 독립 정수·비트 계산으로 검사한다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| FCLASS.S/D | 양·음의 정상/비정규 수·0·무한대와 signaling/quiet NaN의 분류 10종 |
+| FSGNJ/N/X.S/D | 두 입력의 부호 조합, NaN payload 보존, 정상 boxing과 malformed S 입력의 canonical NaN 처리 |
+| FMV.W.X / FMV.X.W | 하위 32비트 이동, FP 목적지 boxing, 정수 목적지 부호 확장. 잘못된 boxing도 raw move에서는 원본 하위 비트를 보존 |
+| FMV.D.X / FMV.X.D | NaN payload를 포함한 64비트 원본 보존 |
+| 부동소수점 예외 상태 | 각 probe 전 `fflags=0/5/31`을 쓰고 이후 값이 동일한지 확인. 새로운 NV 설정과 기존 flag 소실 모두 검사 |
+
+잘못된 결과 12개와 flag 설정·삭제 2개의 trace 대조군을 독립 검사기가
+거부했다. 이 대조군은 변경 RTL 실행이 아니다. 실행·ELF·trace·현재 RTL 및
+Sail·생성기 해시를 `out/rva23/fp_bit_contract/report.json`에 묶는다.
+`--check`는 저장된 같은 ELF와 기록을 재검사하며 통합 요구사항 감사에도
+포함한다. 산술 결과·반올림·FS 권한·flush와 FP owner 경합은 이 검사의
+완료 범위로 확대하지 않는다.
+
 ### RV64 A의 값과 메모리 갱신 검토
 
 기준은 [A 2.1의 AMO와 LR/SC 조항](https://docs.riscv.org/reference/isa/v20260120/unpriv/a-st-ext.html)이다.

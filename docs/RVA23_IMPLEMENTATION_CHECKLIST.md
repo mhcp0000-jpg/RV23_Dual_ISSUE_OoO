@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] F/D의 FCLASS·FSGNJ/N/X·정수/FP 이동 12형식을 전체 H/V SoC의 같은 ELF로 Sail과 비교했다. 1,110개 probe에서 두 포맷의 분류 10종, 잘못된 S boxing의 canonical NaN 처리와 raw FMV의 비트 보존, RV64 W형의 부호 확장 및 입력 `fflags=0/5/31` 보존을 검사했다. 독립 비트 계산과 잘못된 결과·플래그 대조군 14개를 통과했다. `scripts/run_fp_bit_contract.py --check`를 통합 감사에 포함했다. FP 산술·반올림·FS 권한·pipeline 경합은 별도 범위다.
+
 - [x] A 확장의 AMO W/D 18형식을 RTL atomic head/engine에 연결했다. 같은 Sail/RTL ELF 19개에서 AMO 42회의 이전 값과 계산 후 바이트를 검사했고, 갱신 42회 모두 후속 load로 전 바이트를 관찰했다. LR.W 1,025회와 SC.W 1,028회도 검사했다. SC 성공 1,025회는 일치하는 예약을 요구하고 실패 3회는 관찰된 결과로 소비한다. 결과 변경 대조군 38개를 거부했다. `scripts/audit_rv64a_contract.py`를 통합 감사에 포함했다. 순서·동시성·fault·LR/SC.D·진행성은 별도 근거다.
 
 - [x] B의 Zba/Zbb/Zbs와 Zicond 42개 형식을 RTL decoder·ALU와 연결했다. 기존 전체 H/V 실행의 retire 1,810건 중 x0 목적지 31건을 제외한 결과 1,779개를 Python 정수·비트열 계산으로 검사하고 잘못된 결과 42개를 거부했다. 기존 H/V replay의 246개 결과를 별도 검사해 word count의 상위 입력 무시 사례를 보완했다. 두 조건부 zero 형식은 조건이 0/비0인 실행 모두를 확인했다. `scripts/audit_rv64b_contract.py`를 통합 감사에 포함했다. 전 피연산자·예약 인코딩·pipeline 검증을 뜻하지 않는다.

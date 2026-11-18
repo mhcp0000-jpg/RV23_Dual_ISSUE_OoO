@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["F", "D"],
+    "report": "out/rva23/fp_bit_contract/report.json",
+    "behavior": "1110 native H/V and identical Sail ELF probes of 12 F/D classification, sign-injection and register-move forms; all ten classes, valid/malformed S NaN boxing, raw move payloads and fflags preservation from 0/5/31. Arithmetic, rounding, FS permissions and pipeline races remain separate."
+  },
+  {
     "requirements": ["A", "Ziccamoa"],
     "report": "out/rva23/rv64a_contract_audit.json",
     "behavior": "19 identical Sail/RTL ELFs: 18 AMO W/D forms with independently calculated old values and all 42 updates observed by later loads; 1025 LR.W and 1028 SC.W retirements, including success eligibility and observed failure outcomes; 38 rejected result mutations. Ordering, faults, LR/SC.D and progress remain separate evidence."
