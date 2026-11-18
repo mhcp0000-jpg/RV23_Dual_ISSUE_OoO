@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["F", "D", "H", "Ss1p13"],
+    "report": "out/rva23/fp_permission_matrix/report.json",
+    "behavior": "880 native H/V probes: 11 FP arithmetic/FMA/memory/move/CSR classes times host/guest FS values 0..3 in M/HS/VS/U/VU, with identical Sail ELF per mode. Exact FS-Off illegal traps, no denied-state changes, and required host/guest Dirty propagation for actual FP state changes; imprecise Dirty on non-writers allowed. Delegation, paging faults and scheduling combinations separate."
+  },
+  {
     "requirements": ["F", "D", "Ss1p13"],
     "report": "out/rva23/fp_state_contract_audit.json",
     "behavior": "Current full-H/V M-mode replay: five FS/SD readbacks under the core's precise dirty policy, five FS-Off and two reserved-rm precise illegal traps, flags and 19 rejected trace mutations. Imprecise Dirty is ISA-permitted; guest FS/privilege combinations separate."

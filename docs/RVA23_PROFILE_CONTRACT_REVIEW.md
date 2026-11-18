@@ -32,6 +32,37 @@
 
 ## 추가한 경계 사례
 
+### 다섯 모드의 FP 상태 접근과 host/guest Dirty
+
+기준은 [H 1.0의 `vsstatus`](https://docs.riscv.org/reference/isa/v20260120/priv/hypervisor.html)와
+[특권 1.13의 FS](https://docs.riscv.org/reference/isa/priv/machine.html)다. V=1에서는
+host와 guest FS가 함께 적용되고 어느 한쪽이 Off이면 illegal instruction이다.
+FP 상태를 변경하면 두 FS가 Dirty가 된다. V=0에서는 guest FS가 일반 FP 접근의
+허용 여부에 영향을 주지 않는다.
+
+`python scripts/run_fp_permission_matrix.py`는 host FS 0~3 × guest FS 0~3 ×
+11종의 명령을 M/HS/VS/U/VU에서 실행한다. 모드별 같은 ELF를 Sail과 전체
+H/V SoC에 사용하며 총 880개 probe의 허용 결과와 정확한 trap을 확인한다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| FP 진입 경로 | FADD.D, FMADD.D, FLD/FSD, FMV.D.X/FMV.X.D, FCSR/FRM/FFLAGS read, FCSR/FFLAGS write |
+| FS-Off | 거부 시 cause 2·정확한 PC·원본 instruction tval과 writeback 없음. cause 22로 바꾸는 오류를 거부 |
+| 허용 결과와 상태 보존 | M trap 뒤 FPR 목적지·정수 목적지·FCSR·SRAM 값을 확인. 거부된 명령은 초기 데이터를 보존 |
+| 실제 상태 변경의 Dirty | FPR을 다른 값으로 덮어쓰거나 FCSR을 실제로 바꾼 허용 사례에 한해 host FS=3·SD=1을 재활성화 전에 확인. V=1이면 guest FS=3·guest SD=1도 확인 |
+| 읽기 전용 명령의 Dirty | imprecise Dirty가 허용되므로 읽기 전용 명령이 Clean을 유지해야 한다고 가정하지 않음 |
+| trap 복귀 | 각 probe 뒤 모드에 맞는 ECALL을 확인하고 MRET으로 실패 지점 이후에 복귀. FS-Off 접근·ECALL은 모두 M으로 직접 전달하도록 구성 |
+
+880개 중 허용 594개·FS-Off 거부 286개와 ECALL을 포함한 정확한 trap
+1,166개를 통과했고, 모드별 같은 ELF의 Sail/RTL 이벤트 합계 80,525건이
+일치했다. host Dirty readback 324개·guest Dirty readback 108개를 확인했다.
+cause/tval 및 Dirty 상태를 바꾼 trace 대조군 117개를 독립 검사기가 거부했다.
+이 대조군은 변경 RTL 실행이 아니다. 예상 case table, ELF·trace·로그·현재 RTL/model·Sail·생성기와 helper 해시를
+`out/rva23/fp_permission_matrix/`의 개별 보고서와 상위 `report.json`에 연결한다.
+`--check`는 ELF를 재빌드하지 않고 이 근거를 재검사한다. 이 유한 Bare
+matrix는 delegation, 페이지/PMP fault와 FP 상태 권한의 동시 조합 및 모든
+스케줄을 대신하지 않는다.
+
 ### FP 상태·정확한 예외와 분기 취소
 
 기준은 [특권 1.13의 extension context 상태](https://docs.riscv.org/reference/isa/priv/machine.html)다.
