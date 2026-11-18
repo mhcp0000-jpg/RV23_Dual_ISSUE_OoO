@@ -1,6 +1,11 @@
 [
   {
     "requirements": ["C", "I"],
+    "report": "out/rva23/rv64c_compute_contract/report.json",
+    "behavior": "7226 native H/V probes of 18 RV64C compute forms, identical Sail ELF per batch; full six-bit immediate and shift domains, all legal ADDI16SP/ADDI4SPN immediates, all MV/ADD nonzero register pairs and compact CA register pairs with selected values. Independent numeric operation and direct 16-bit field expectations, exact PC+2/writeback, 60 rejecting result/PC trace controls. Not all operand Cartesian products, memory, control transfers, illegal encodings, permissions or schedules."
+  },
+  {
+    "requirements": ["C", "I"],
     "report": "out/rva23/rv64c_contract_audit.json",
     "behavior": "Existing native H/V rv64uc/rvc ELF: all 305 Sail/RTL events identical; direct 16-bit field oracle checks 122 compute/control retirements across 24 forms including NOP, conditional taken/not-taken paths and PC+2 JALR link. ELF byte oracle checks eight integer compressed memory forms with observed stores. 33 altered result, PC, link and memory controls rejected. FP memory, illegal/hint encodings and all operands/immediates/schedules separate."
   },

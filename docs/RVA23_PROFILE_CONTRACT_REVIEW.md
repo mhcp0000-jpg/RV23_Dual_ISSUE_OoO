@@ -32,6 +32,34 @@
 
 ## 추가한 경계 사례
 
+### RV64C 산술의 즉시값·시프트·레지스터 필드 범위
+
+기준은 [C 2.0의 정수 계산 명령](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
+`scripts/run_rv64c_compute_contract.py`는 다음 18형식의 새 probe 7,226개를
+13개 ELF로 나눠 전체 H/V SoC와 Sail에서 실행한다. 각 배치는 같은 ELF를
+사용한다. 명령의 수치 의미와 16비트 필드 해석을 별도로 계산해 operand 초기값,
+목적지 writeback 및 다음 PC+2를 모두 검사한다.
+
+| 형식 | 실행한 필드 범위와 데이터 |
+|---|---|
+| ADDI/ADDIW/ANDI | 즉시값 -32~31 각각에 선택 64비트 입력 8개. ADDI의 imm=0 HINT 포함 |
+| LI/LUI | rd=x1/x8/x31, LI의 -32~31 및 LUI의 0을 제외한 63개 즉시값. 목적지를 기대값의 비트 보수로 초기화 |
+| SLLI/SRLI/SRAI | shift 0~63 각각에 선택 입력 8개와 변하는 rd. shift=0 HINT 포함 |
+| ADDI16SP | -512~496의 16배수 중 0 제외 63개에 입력 3개 |
+| ADDI4SPN | 4~1020의 4배수 255개에 입력 2개, rd′를 변경 |
+| SUB/XOR/OR/AND/SUBW/ADDW | rd′/rs2′의 8×8 쌍 각각에 선택 입력 패턴 3개 |
+| MV/ADD | rd/rs2의 비영 31×31 쌍 전체. 목적지와 입력의 alias 포함 |
+
+입력 패턴은 0, 전부 1, 1, 64비트 최상위 비트, 32비트 부호 경계와 상위
+32비트가 0이 아닌 값을 포함한다. word 연산은 low 32-bit 결과를 부호 확장한다.
+전체 7,226개 probe에서 Sail/RTL 이벤트 62,776건이 일치했다. 형식별 결과나
+다음 PC를 바꾼 trace 대조군을 배치별로 적용해 총 60개를 거부했다.
+
+보고서는 `out/rva23/rv64c_compute_contract/report.json`이다. `--check`는
+생성된 assembly와 현재 RTL/model·ELF·Sail·trace·로그·helper의 해시를 확인하고
+독립 검사를 다시 수행한다. 이 필드 범위 검사는 모든 피연산자의 직교 조합,
+다른 압축 명령의 메모리·제어 이전·예외, 권한 또는 전체 스케줄을 대신하지 않는다.
+
 ### RV64C의 직접 인코딩 계산과 다음 PC
 
 기준은 [C 2.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)이다.
