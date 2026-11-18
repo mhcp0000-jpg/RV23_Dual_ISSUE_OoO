@@ -2,7 +2,7 @@
 
 이 문서는 `config/rva23_clause_review_index.json`에서 생성한 검토 작업 목록이다.
 RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그룹과
-54개 미완료 검토 주제를 연결한다. 이는 결함 54개라는 뜻이 아니다.
+52개 미완료 검토 주제를 연결한다. 이는 결함 52개라는 뜻이 아니다.
 또한 완전한 규격 조항 목록이나 구현·검증 완료 판정표가 아니다.
 
 각 주제를 닫을 때는 규격 조항, 실제 RTL 경로, 실행·예외·상태·순서의 근거와
@@ -25,7 +25,7 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 | csr_counters | Zicsr, Zicntr, Zihpm | 2 | [RVA23_ZICSR_CLAUSE_REVIEW.md](RVA23_ZICSR_CLAUSE_REVIEW.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | ifetch | Ziccif | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | misaligned | Zicclsm | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md), [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_FP_CLAUSE_REVIEW.md](RVA23_FP_CLAUSE_REVIEW.md) |
-| hints | Zihintpause, Zihintntl, Zicbop | 2 | [RVA23_CMO_CLAUSE_REVIEW.md](RVA23_CMO_CLAUSE_REVIEW.md), [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md) |
+| hints | Zihintpause, Zihintntl, Zicbop | 0 | [RVA23_CMO_CLAUSE_REVIEW.md](RVA23_CMO_CLAUSE_REVIEW.md), [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_HINT_CLAUSE_REVIEW.md](RVA23_HINT_CLAUSE_REVIEW.md) |
 | cmo | Zic64b, Zicbom, Zicboz | 3 | [RVA23_CMO_CLAUSE_REVIEW.md](RVA23_CMO_CLAUSE_REVIEW.md) |
 | scalar_timing | Zkt | 2 | [TIMING_CONTRACT.md](TIMING_CONTRACT.md) |
 | vector | V, Zvfhmin, Zvbb, Zvkt | 4 | [RVA23_VECTOR_CLAUSE_REVIEW.md](RVA23_VECTOR_CLAUSE_REVIEW.md), [TIMING_CONTRACT.md](TIMING_CONTRACT.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
@@ -88,8 +88,20 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 ## hints: PAUSE/NTL/prefetch hints
 
-- [ ] `hints.1` — Close the hint decode and no-memory-request argument in the current target.
-- [ ] `hints.2` — Separate architectural hint behavior from optional microarchitectural actions and timing.
+이 작업 목록에 남은 검토 주제 없음. 연결 문서의 실제 근거와 한계를 확인한다.
+
+- [x] `hints.1` — Close the hint decode and no-memory-request argument in the current target.
+
+검토 결론: Ignored NTL/prefetch use rd=x0 integer paths without LSU, CSR or CBO classification; PAUSE uses the existing FENCE drain path. Current-target decode, extension overrides and head classification reviewed with the cited snapshot/Sail evidence.
+
+근거: [RVA23_HINT_CLAUSE_REVIEW.md](RVA23_HINT_CLAUSE_REVIEW.md)
+
+- [x] `hints.2` — Separate architectural hint behavior from optional microarchitectural actions and timing.
+
+검토 결론: The specifications permit ignoring NTL/prefetch and permit PAUSE to wait for outstanding memory completion. Optional cache allocation, power and performance effects are separated from architectural state and the independent Zkt/Zvkt timing evidence.
+
+근거: [RVA23_HINT_CLAUSE_REVIEW.md](RVA23_HINT_CLAUSE_REVIEW.md)
+
 
 ## cmo: Cache block operations
 

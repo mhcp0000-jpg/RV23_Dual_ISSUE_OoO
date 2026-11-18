@@ -226,19 +226,59 @@
         "Zihintntl",
         "Zicbop"
       ],
-      "review_status": "partial",
+      "review_status": "reviewed",
       "reviews": [
         "docs/RVA23_CMO_CLAUSE_REVIEW.md",
-        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md"
+        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md",
+        "docs/RVA23_HINT_CLAUSE_REVIEW.md"
       ],
-      "open_items": [
+      "open_items": [],
+      "resolved_items": [
         {
           "id": "hints.1",
-          "topic": "Close the hint decode and no-memory-request argument in the current target."
+          "topic": "Close the hint decode and no-memory-request argument in the current target.",
+          "disposition": "Ignored NTL/prefetch use rd=x0 integer paths without LSU, CSR or CBO classification; PAUSE uses the existing FENCE drain path. Current-target decode, extension overrides and head classification reviewed with the cited snapshot/Sail evidence.",
+          "review_document": "docs/RVA23_HINT_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/backend/rv_decode2.sv",
+            "rtl/backend/rv_backend.sv",
+            "rtl/backend/rv_int_alu.sv",
+            "rtl/backend/rv_fence_controller.sv",
+            "rtl/frontend/rv_c_expander.sv"
+          ],
+          "checks": [
+            "run_rv64i_hint_contract.py",
+            "run_rvc_hint_contract.py",
+            "run_prefetch_hint_contract.py"
+          ],
+          "reports": [
+            "out/rva23/rv64i_hint_contract/report.json",
+            "out/rva23/rvc_hint_contract/report.json",
+            "out/rva23/prefetch_hint_contract/report.json"
+          ]
         },
         {
           "id": "hints.2",
-          "topic": "Separate architectural hint behavior from optional microarchitectural actions and timing."
+          "topic": "Separate architectural hint behavior from optional microarchitectural actions and timing.",
+          "disposition": "The specifications permit ignoring NTL/prefetch and permit PAUSE to wait for outstanding memory completion. Optional cache allocation, power and performance effects are separated from architectural state and the independent Zkt/Zvkt timing evidence.",
+          "review_document": "docs/RVA23_HINT_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/backend/rv_decode2.sv",
+            "rtl/backend/rv_backend.sv",
+            "rtl/backend/rv_int_alu.sv",
+            "rtl/backend/rv_fence_controller.sv",
+            "rtl/frontend/rv_c_expander.sv"
+          ],
+          "checks": [
+            "run_rv64i_hint_contract.py",
+            "run_rvc_hint_contract.py",
+            "run_prefetch_hint_contract.py"
+          ],
+          "reports": [
+            "out/rva23/rv64i_hint_contract/report.json",
+            "out/rva23/rvc_hint_contract/report.json",
+            "out/rva23/prefetch_hint_contract/report.json"
+          ]
         }
       ]
     },

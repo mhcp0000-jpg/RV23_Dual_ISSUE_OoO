@@ -24,6 +24,7 @@ def validate(index, inventory, implementation):
     required = required_names(inventory)
     assert len(required) == 59
     groups, seen, ids, item_ids, documents = index['groups'], set(), set(), set(), set()
+    resolved_ids, closure_inputs = set(), set()
     expected_groups = {frozenset(['I']), *(frozenset(group['requirements']) for group in implementation['groups'])}
     assert len(groups) == len(expected_groups) == 22
     actual_groups = set()
@@ -46,9 +47,34 @@ def validate(index, inventory, implementation):
             assert item['id'].startswith(group['id'] + '.') and item['id'] not in item_ids
             assert len(item['topic']) > 30
             item_ids.add(item['id'])
+        resolved = group.get('resolved_items', [])
+        assert group['open_items'] or resolved, 'Reviewed group needs a disposition record'
+        for item in resolved:
+            assert item['id'].startswith(group['id'] + '.') and item['id'] not in resolved_ids
+            assert item['id'] not in item_ids and len(item['topic']) > 30 and len(item['disposition']) > 60
+            assert item['review_document'] in group['reviews']
+            assert item['checks'] and item['reports'] and item['source_paths']
+            assert all(PurePosixPath(name).name == name for name in item['checks'])
+            drivers = [ROOT / 'scripts' / name for name in item['checks']]
+            assert all(path.is_file() and path.suffix == '.py' for path in drivers)
+            for name in item['source_paths']:
+                path = PurePosixPath(name)
+                assert path.parts[0] in ('rtl', 'scripts', 'docs') and '..' not in path.parts
+                assert (ROOT / name).is_file()
+                closure_inputs.add(name)
+            for name in item['reports']:
+                path = PurePosixPath(name)
+                assert path.parts[0] == 'out' and '..' not in path.parts and path.suffix == '.json'
+                report = json.loads((ROOT / name).read_bytes())
+                assert report['passed'] and report['generator_sha256'] in {sha(driver) for driver in drivers}
+                closure_inputs.add(name)
+            closure_inputs.update('scripts/' + name for name in item['checks'])
+            resolved_ids.add(item['id'])
     assert seen == required and actual_groups == expected_groups, sorted(required - seen)
+    assert not resolved_ids.intersection(item_ids)
     return dict(requirements=len(seen), groups=len(groups), partial_groups=sum(bool(g['open_items']) for g in groups),
-        reviewed_groups=sum(not g['open_items'] for g in groups), open_items=len(item_ids), documents=sorted(documents))
+        reviewed_groups=sum(not g['open_items'] for g in groups), open_items=len(item_ids), resolved_items=len(resolved_ids),
+        documents=sorted(documents), closure_inputs=sorted(closure_inputs))
 
 
 def render(index):
@@ -74,8 +100,13 @@ def render(index):
         lines += ['', f"## {group['id']}: {group['title']}", '']
         if not group['open_items']:
             lines.append('이 작업 목록에 남은 검토 주제 없음. 연결 문서의 실제 근거와 한계를 확인한다.')
+            lines.append('')
         for item in group['open_items']:
             lines.append(f"- [ ] `{item['id']}` — {item['topic']}")
+        for item in group.get('resolved_items', []):
+            name = PurePosixPath(item['review_document']).name
+            lines += [f"- [x] `{item['id']}` — {item['topic']}", '',
+                f"검토 결론: {item['disposition']}", '', f'근거: [{name}]({name})', '']
     lines += ['', '## 갱신·재검사', '', '```text',
         'python scripts/audit_clause_review_index.py --write',
         'python scripts/audit_clause_review_index.py',
@@ -97,7 +128,10 @@ def main():
         (ROOT / GUIDE).write_text(guide, encoding='utf-8')
     assert (ROOT / GUIDE).read_text(encoding='utf-8') == guide, 'Review guide is stale; regenerate with --write'
     controls = []
-    for name in ('missing_requirement', 'missing_group', 'duplicate_requirement', 'false_reviewed', 'missing_document'):
+    mutations = ['missing_requirement', 'missing_group', 'duplicate_requirement', 'false_reviewed', 'missing_document', 'unjustified_reviewed']
+    if any(group.get('resolved_items') for group in index['groups']):
+        mutations += ['missing_closure_evidence', 'wrong_closure_driver']
+    for name in mutations:
         broken = copy.deepcopy(index)
         if name == 'missing_requirement':
             broken['groups'][1]['requirements'].pop()
@@ -107,15 +141,24 @@ def main():
             broken['groups'][1]['requirements'].append('I')
         elif name == 'false_reviewed':
             broken['groups'][0]['review_status'] = 'reviewed'
-        else:
+        elif name == 'missing_document':
             broken['groups'][0]['reviews'] = ['docs/missing_clause_review.md']
+        elif name == 'unjustified_reviewed':
+            broken['groups'][0].update(open_items=[], review_status='reviewed', resolved_items=[])
+        else:
+            closed = next(group for group in broken['groups'] if group.get('resolved_items'))['resolved_items'][0]
+            if name == 'missing_closure_evidence':
+                closed['reports'] = []
+            else:
+                closed['checks'] = ['audit_clause_review_index.py']
         try:
             validate(broken, inventory, implementation)
         except (AssertionError, FileNotFoundError):
             controls.append(name)
         else:
             raise AssertionError(f'Invalid review queue accepted: {name}')
-    inputs = source_inputs([INDEX, INVENTORY, MAP, GUIDE, 'scripts/audit_clause_review_index.py', 'scripts/sim_runner.py', *result['documents']])
+    inputs = source_inputs([INDEX, INVENTORY, MAP, GUIDE, 'scripts/audit_clause_review_index.py', 'scripts/sim_runner.py',
+        *result['documents'], *result['closure_inputs']])
     dump(ROOT / 'out/rva23/clause_review_index_audit.json', dict(passed=True, complete_profile_validation=False,
         scope='Review queue integrity and current document hashes only; not exhaustive clause inventory, functional execution or architectural proof',
         **result, inputs=inputs, rejected_mutations=controls, audit_sha256=sha(__file__),

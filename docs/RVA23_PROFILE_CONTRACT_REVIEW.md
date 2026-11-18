@@ -48,6 +48,11 @@ Sail/RTL 이벤트 53,712건이 일치했다. 독립 정수/바이트 모델로 
 
 ### Zicbop의 ignored-hint 정책과 CMO 연결
 
+PAUSE·NTL·PREFETCH의 현재 구현 선택과 decode/head 경로 검토는
+[HINT 검토 결론](RVA23_HINT_CLAUSE_REVIEW.md)에 기록했다. 해당 작업 주제
+`hints.1`·`hints.2`를 종료 기록과 연결했으며, 이는 일반 ordering/timing이나
+전체 프로파일 검토 완료를 뜻하지 않는다.
+
 `scripts/run_prefetch_hint_contract.py`는 PREFETCH.I/R/W 각각의 signed offset
 128개를 선택 base에서 실행하고, 모든 base를 최소·0·최대 offset에서 실행한다.
 중복 제외 1,413개 사례이며 기존 immutable RV64I snapshot 검사기로 원본 명령,
