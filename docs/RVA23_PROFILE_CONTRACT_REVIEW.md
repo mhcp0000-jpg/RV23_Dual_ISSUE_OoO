@@ -56,6 +56,32 @@ RTL 결과 296개를 계산해 비교하며, 같은 trace의 Sail 대조도 재�
 ELF·trace·로그·현재 RTL/model 및 참조 실행 파일 해시를 검사하고
 `out/rva23/rv64m_contract_audit.json`에 근거를 남긴다. 통합 요구사항 감사에도 포함된다.
 
+### RV64I 정수 계산·제어 흐름 검토
+
+기준은 [기본 정수 명령 조항](https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/chapters/rv32.html)과
+[RV64I의 차이](https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/chapters/rv64.html)다.
+`python scripts/audit_rv64i_compute_control.py`는 현재 H/V SoC의 기존
+`rv64ui` ELF 38개에서 정수 피연산자를 복원하고 독립 정수·PC 계산을 적용한다.
+초기화를 포함해 계산·제어 명령 6,252개를 검사했다. 목적지가 x0이 아닌
+연산은 writeback과 목적지 번호를, 뒤의 trace 행이 있는 각 명령은 다음 PC를
+확인했다. 각 ELF의 대상 명령을 합치면 1,475개이며 전체 검사 수에 포함된다.
+같은 ELF의 Sail trace도 대조했고 결과·다음 PC의 잘못된 변경 38개를 거부했다.
+
+| 조항 | RTL 근거 | 실행 검사 |
+|---|---|---|
+| ADD/SUB, 논리 연산, signed/unsigned 비교 및 immediate 부호 확장 | decoder의 OP/OP-IMM과 int ALU의 정수 결과 | Python의 전체 정수 계산 뒤 64비트 절단 및 signed/unsigned 비교 |
+| W형의 하위 32비트 결과와 부호 확장 | OP-32/OP-IMM-32 및 ALU word 결과 선택 | ADDW/SUBW/ADDIW와 여섯 W shift의 결과 |
+| 레지스터 shift의 하위 5/6비트 및 arithmetic shift | int ALU의 full/word shift | 전체·W형의 register/immediate shift 결과 |
+| LUI/AUIPC의 32비트 즉시값 부호 확장과 PC 합성 | decoder의 U-immediate 및 ALU | 결과 레지스터와 다음 PC |
+| 조건 분기, JAL/JALR의 대상과 link | branch unit의 비교·대상·link 경로 | BEQ/BNE/BLT/BGE/BLTU/BGEU 각각 양쪽 조건, jump 대상 및 x0 이외 link writeback |
+
+이 검토는 적법한 정수 계산·제어 명령의 유한 실행 범위다. load/store,
+FENCE, ECALL/EBREAK, 예약 인코딩, 비정렬 trap 및 모든 pipeline 스케줄의
+검증은 각각의 별도 근거를 사용한다. JALR 대상의 bit 0 제거는 RTL과
+oracle에서 확인하지만 이 표만으로 모든 주소 경계 입력을 실행했다고
+주장하지 않는다. 감사 결과는 `out/rva23/rv64i_compute_control_audit.json`이며
+현재 소스·실행 파일·ELF·로그·trace 해시에 묶여 통합 감사에 포함된다.
+
 `run_profile_csr_geometry.py --compare-before out/rva23/hgatp_warl_before`는
 보관한 ELF를 수정 전후의 SoC에서 그대로 재실행한다. 두 모델의 RTL
 입력 해시에서 `rv_hypervisor_csrs.sv`만 다른 것을 확인한 뒤 비교한다.

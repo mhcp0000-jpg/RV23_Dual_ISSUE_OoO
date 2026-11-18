@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] RV64I 정수 계산·제어 명령 38종의 RTL 경로를 검토했다. 현재 H/V 실행의 피연산자를 복원해 초기화 포함 6,252개 명령의 결과·다음 PC를 독립 계산으로 검사하고 38개 잘못된 결과/PC 대조군을 거부했다. 여섯 조건 분기의 taken/not-taken 모두를 확인했다. `scripts/audit_rv64i_compute_control.py`가 실행 근거를 감사하며 load/store·trap·예약 인코딩·FENCE는 별도 범위다.
+
 - [x] RV64M의 하위·상위 곱, 부호 조합, W형의 하위 입력과 부호 확장, 0 나누기 및 signed overflow 조항을 RTL과 연결했다. 기존 전체 H/V 실행에서 13개 명령의 피연산자를 복원해 결과 296개를 Python 정수 계산으로 확인하고, 잘못된 결과 13개를 거부했다. `scripts/audit_rv64m_contract.py`를 통합 감사에 포함했다. 전 피연산자·pipeline 스케줄 증명은 아니며 다른 스칼라 확장의 검토를 대신하지 않는다.
 
 - [x] 지연된 스칼라 DIV 의존 분기의 잘못된 경로에 여섯 종류의 벡터 명령을 배치했다. 실제 speculative dispatch와 flush를 관찰하고 벡터 실행·retire/trap이 발생하지 않음을 검사했다. 올바른 경로의 메모리·벡터·설정·스칼라 상태가 보존됐고 동일 ELF의 Sail과 두 RTL 실행에서 이벤트 291개가 일치했다. `scripts/run_vector_branch_order.py --check`와 통합 순서 감사에서 재검사한다.
