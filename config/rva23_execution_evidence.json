@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zicsr"],
+    "report": "out/rva23/zicsr_rmw_contract/report.json",
+    "behavior": "378 native H/V six-form CSR RMW cases on mscratch/minstret/mhartid with identical Sail ELF. Encoded nonzero rs1 containing zero, zero-register/immediate suppression, rd/rs1 alias, return-old/readback and 114 exact read-only traps. Independent per-retirement instret oracle checks explicit-write priority and adjacent write/read values 0x1234/0x1235; five rejecting controls. Other CSR banks/WARL, all privilege modes, custom read/field side effects and inter-agent ordering separate."
+  },
+  {
     "requirements": ["I", "Zihintpause", "Zihintntl"],
     "report": "out/rva23/rv64i_hint_contract/report.json",
     "behavior": "1132 native H/V samples covering 31 RV64I HINT mnemonics and 36 tagged families: selected immediate/register fields, full shift domains with selected rs1, NTL, PAUSE, null-set fences with ignored rd/rs1 fields and standalone semihost markers. Same Sail ELF per batch, exact PC+4, checked snapshot stores/loads and 72448 GPR/FPR values plus FCSR/guards; 44 rejecting controls. Not exhaustive HINT code points, all CSRs/privileges, semihost service ABI, timing or global memory-order proof."

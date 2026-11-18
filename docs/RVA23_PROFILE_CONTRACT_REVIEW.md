@@ -32,6 +32,37 @@
 
 ## 추가한 경계 사례
 
+### Zicsr의 encoded-zero와 명시적 counter 쓰기
+
+기준은 [Zicsr 2.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zicsr.html)이다.
+`scripts/run_zicsr_rmw_contract.py`는 6개 CSR 명령을 mscratch·minstret·mhartid에
+적용한 378개 사례를 같은 전체 H/V SoC와 Sail에서 같은 ELF로 실행한다.
+읽기 전용 CSR에 대해 RS/RC가 쓰기를 시도하는지는 operand 값 0이 아니라
+인코딩의 rs1=x0 여부로 결정된다. immediate RS/RC는 uimm=0이면 쓰지 않는다.
+
+| 조건 | 실제 검사 |
+|---|---|
+| 6개 RMW 형식 | register형 rd=x0/x5/x31, rs1=x0/x5/x31와 선택 64비트 값. immediate형은 uimm=0/1/15/16/31 |
+| encoded rs1≠x0, 값 0 | RS/RC 36건. writable CSR 및 read-only 쓰기 의도를 구분 |
+| rd=rs1 | 72건. 기존 source를 CSR에 적용하면서 기존 CSR 값을 rd에 반환 |
+| 읽기 전용 접근 | mhartid 쓰기 의도 114건은 cause 2·정확한 PC·원본 instruction tval·writeback 없음. 억제된 RS/RC 쓰기는 trap 없이 읽음 |
+| 자기 갱신 counter | 실제 retire마다 독립 64비트 minstret 모델을 갱신한다. 명시적 CSR 쓰기는 해당 명령의 자동 증가를 덮어쓰며 trap은 retire 증가에 포함하지 않음 |
+| 인접 counter 읽기 | 실제 ELF에서 write/read/read가 연속한 32비트 명령임을 확인. 0x1234를 쓰고 다음 두 읽기에서 0x1234, 0x1235를 확인 |
+
+총 minstret 읽기 212건·명시적 쓰기 242건의 값과 같은 ELF의 Sail/RTL 이벤트
+9,182건이 일치했다. 기존 counter permission matrix의 `write_zero`는 주로
+CSRRW x0를 사용하므로 이번 encoded-zero 및 RMW 조합과 구분한다.
+CSR 이전 값·readback·counter read·trap cause/tval을 바꾼 trace 대조군 5개를
+독립 검사기가 거부했다. 이는 변경 RTL 실행이 아니다.
+
+`out/rva23/zicsr_rmw_contract/report.json`과 `--check`는 현재 RTL/model,
+Sail·ELF·assembly·trace·로그·독립 검사 helper를 해시로 연결한다.
+이 M-mode 검사는 세 CSR의 명령 의미를 다룬다. 전체 CSR bank의 WARL,
+다른 권한 모드, custom read/field-write side effect나 외부 agent 순서의
+검증은 아니다. 표준 CSR에 read side effect가 없으므로 CSRRW rd=x0의
+내부 read strobe 억제를 직접 관찰했다고 하지 않는다.
+[Zicsr 절별 검토표](RVA23_ZICSR_CLAUSE_REVIEW.md)에 공유 범위를 연결한다.
+
 ### RV64I HINT의 형식별 상태 보존
 
 기준은 [RV64I 2.1 HINT 표](https://docs.riscv.org/reference/isa/v20260120/unpriv/rv64.html)와
