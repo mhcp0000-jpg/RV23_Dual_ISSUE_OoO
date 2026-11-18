@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["F", "D", "Zfhmin", "C", "Zicclsm"],
+    "report": "out/rva23/fp_memory_contract/report.json",
+    "behavior": "688 native H/V probes of 12 H/S/D memory, compressed D memory and raw H move forms with identical Sail ELF per width; independent ELF-backed byte model, NaN payload/boxing, complemented load destination, misaligned and line/page crossings, full observation of 320 FP stores and surrounding guards. Bus atomicity/order, faults, nonzero compressed offsets and FS/pipeline races separate."
+  },
+  {
     "requirements": ["F", "D"],
     "report": "out/rva23/fp_arithmetic_contract/report.json",
     "behavior": "2700 native H/V probes of 18 F/D ADD/SUB/MUL/DIV/SQRT and four FMA forms, identical Sail ELF per batch, exact rational/integer-square-root results and flags; five static/dynamic rounding modes, signed zero, NaNs, overflow/underflow/divide-by-zero and fused-rounding witnesses. Reserved rm, FS permissions and pipeline races separate."

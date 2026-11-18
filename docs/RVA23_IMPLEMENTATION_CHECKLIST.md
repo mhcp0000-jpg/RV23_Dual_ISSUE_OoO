@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] FLH/FLW/FLD·FSH/FSW/FSD, 압축 D load/store 네 형식과 half raw 이동 두 형식의 probe 688개를 전체 H/V SoC와 Sail에서 폭별 같은 ELF로 검증했다. 독립 ELF 바이트 모델로 NaN payload·boxing·부분 쓰기·주변 32바이트 보존과 비정렬/라인/페이지 경계를 확인했다. load 목적지는 읽을 값의 보수로 미리 채웠고, FP store 320개 모두 후속 load에서 전 바이트를 관찰했다. `scripts/run_fp_memory_contract.py --check`를 통합 감사에 연결했다. bus 원자성·동시성·fault·nonzero C offset·FS 권한은 별도 범위다.
+
 - [x] F/D의 ADD/SUB/MUL/DIV/SQRT와 네 FMA, 총 18형식의 probe 2,700개를 정확한 유리수·정수 제곱근 oracle로 검사했다. 전체 H/V SoC와 Sail에 배치별 같은 ELF를 사용했다. 다섯 정적/동적 반올림 모드, ±0·NaN·무한대·비정규 수·OF/UF/DZ/NV/NX 및 FMA 단일 반올림 사례를 포함한다. `scripts/run_fp_arithmetic_contract.py --check`를 통합 감사에 연결했다. 전 입력·예약 rm·FS 권한·pipeline 경합 증명은 별도 범위다.
 
 - [x] S↔D・H↔S・H↔D의 여섯 포맷 변환을 전체 H/V SoC와 Sail에서 목적지별 같은 ELF로 검증했다. probe 1,600개에서 정확한 유리수 oracle로 다섯 정적/동적 반올림 모드, tiny/overflow/tie 경계, NaN과 잘못된 S/H boxing, 결과 boxing 및 flags를 검사했다. D→S→H의 이중 반올림과 직접 D→H가 달라지는 사례도 확인했다. `scripts/run_fp_format_contract.py --check`를 통합 감사에 연결했다. half 메모리/이동·산술·예약 rm·FS 권한·pipeline 경합은 별도 범위다.

@@ -83,6 +83,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | FP·정수 변환 | W/WU/L/LU↔S/D 16형식의 probe 2,760개, 포맷별 동일 ELF의 Sail/RTL 이벤트 합계 36,574건 일치. 5개 정적·동적 반올림 모드와 대조군 48개 포함 |
 | FP 포맷 변환 | S↔D·H↔S·H↔D 6형식의 probe 1,600개, 목적지별 동일 ELF의 Sail/RTL 이벤트 합계 23,178건 일치. 직접 D→H 반올림과 대조군 31개 포함 |
 | FP 산술·FMA | S/D 18형식의 probe 2,700개, 배치별 동일 ELF의 Sail/RTL 이벤트 합계 54,330건 일치. 5개 정적·동적 반올림 모드, FMA 단일 반올림과 대조군 110개 포함 |
+| FP 메모리·half 이동 | 압축 D 메모리 포함 12형식의 probe 688개, 폭별 동일 ELF의 Sail/RTL 이벤트 합계 44,936건 일치. 비정렬/라인/페이지 경계, store 320개 전 바이트 관찰과 대조군 24개 포함 |
 | 코어 및 메모리 통합 | dual issue·execute·retire와 독립 명령의 비순차 실행, I/D 뱅크 동시 접근, AXI64 리필, 스칼라·벡터 메모리와 예외·재시작 검사 통과 |
 | 기본 1 MiB SRAM | OpenSBI에서 S 모드로 인계, DTB 및 SBI BASE/TIME, 타이머 인터럽트 확인 |
 | Linux 6.12 | 32 MiB RTL 시뮬레이션에서 OpenSBI 인계, 사용자 모드 `/init`과 벡터 명령 retire, 정상 종료 확인 |

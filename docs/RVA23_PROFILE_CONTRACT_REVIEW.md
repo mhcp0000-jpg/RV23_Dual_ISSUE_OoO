@@ -32,6 +32,39 @@
 
 ## 추가한 경계 사례
 
+### F/D/Zfhmin 메모리와 half raw 이동
+
+기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html),
+[D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html),
+[Zfhmin 1.0](https://docs.riscv.org/reference/isa/unpriv/zfh.html) 및
+[C 2.0](https://docs.riscv.org/reference/isa/unpriv/c-st-ext.html)이다.
+FP 메모리는 decode·FP PRF·LSU/assist·cache 경로로 연결되고, 압축 D 메모리는
+`rv_c_expander`에서 일반 D 메모리 명령으로 확장된다. half raw 이동은
+`rv_fpu_rva23`의 bit-preserving 경로를 사용한다.
+
+`python scripts/run_fp_memory_contract.py`는 12형식의 probe 688개를 폭별
+같은 ELF로 Sail과 전체 H/V SoC에 실행한다. ELF의 file-backed 바이트와
+실제 retire 순서의 정수/FP store로 독립 메모리를 구성한다. 초기화되지 않은
+NOBITS를 0으로 가정하지 않는다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| FLH/FLW/FLD | NaN payload를 포함한 비트 보존과 H/S boxing. 목적지를 읽을 값의 보수로 미리 채워 실제 덮어쓰기를 확인 |
+| FSH/FSW/FSD | 상위 입력 비트·잘못된 boxing을 무시하고 하위 16/32/64비트만 저장. FP source도 그대로 보존 |
+| 압축 D 메모리 | C.FLD/C.FSD/C.FLDSP/C.FSDSP의 zero-offset 형식에서 base/SP를 바꿔 같은 접근을 검사. nonzero offset은 이 fixture 범위가 아님 |
+| 비정렬·경계 | 정상 SRAM에서 8개 주소 배치로 비정렬 접근과 64B 라인·4KiB 페이지 경계를 포함. 페이지 변환은 사용하지 않음 |
+| store 관찰 | 각 FP store 뒤 주변 32바이트를 정수 LD 네 번으로 확인. 320개 쓰기의 모든 바이트와 인접 guard를 검사 |
+| FMV.H.X / FMV.X.H | NaN payload 보존, FP 목적지 boxing과 정수 목적지 부호 확장. 잘못된 boxing도 raw 이동에서는 그대로 사용 |
+| flag 상태 | 초기 `fflags=0/5/31`에서 보존을 확인 |
+
+H 176개·S 128개·D 384개가 통과했고 같은 ELF의 Sail/RTL 이벤트 합계
+44,936건이 일치했다. 비정렬 432회·라인 경계 208회·페이지 경계 80회를
+확인했다. 결과/후속 load 및 flag를 바꾼 trace 대조군 24개를 독립 검사기가
+거부했다. 대조군은 변경 RTL 실행이 아니다. ELF·trace·로그·현재 RTL/model·Sail·
+생성기와 helper 해시는 `out/rva23/fp_memory_contract/`의 개별 보고서와
+상위 `report.json`에 연결하며 `--check`로 재검사한다. bus 원자성·순서·
+외부 writer 동시성, 변환/권한 fault와 FS/pipeline 경합은 별도 검사 범위다.
+
 ### F/D 산술과 FMA의 단일 반올림
 
 기준은 [F 2.2의 산술](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)과
