@@ -1,6 +1,11 @@
 [
   {
     "requirements": ["F", "D"],
+    "report": "out/rva23/fp_compare_contract/report.json",
+    "behavior": "1215 native H/V and identical Sail ELF probes of FEQ/FLT/FLE/FMIN/FMAX in S/D; independent bit ordering, signed zero, infinity/subnormal, qNaN/sNaN and malformed S boxing, with NV accrual from fflags 0/5/31; 30 rejected result/NV mutations. Arithmetic rounding, FS permissions and pipeline races separate."
+  },
+  {
+    "requirements": ["F", "D"],
     "report": "out/rva23/fp_bit_contract/report.json",
     "behavior": "1110 native H/V and identical Sail ELF probes of 12 F/D classification, sign-injection and register-move forms; all ten classes, valid/malformed S NaN boxing, raw move payloads and fflags preservation from 0/5/31. Arithmetic, rounding, FS permissions and pipeline races remain separate."
   },

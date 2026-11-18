@@ -32,6 +32,30 @@
 
 ## 추가한 경계 사례
 
+### F/D의 비교·min/max와 NV 누적
+
+기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)와
+[D 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/d-st-ext.html)다.
+`rv_fpu_rva23`의 S 입력 unbox 이후 `rv_fp_format`은 HardFloat 비교 결과와
+직접적인 min/max 선택을 사용한다. 결과 flag는 ROB를 거쳐 기존 `fflags`에
+누적된다. `python scripts/run_fp_compare_contract.py`는 같은 ELF를 Sail과
+전체 H/V SoC에서 실행하고 10형식의 probe 1,215개를 검사한다.
+
+| 조건 | 실행 검사 |
+|---|---|
+| FEQ.S/D | ±0은 같으며 NaN이면 false. signaling NaN만 NV를 추가 |
+| FLT/FLE.S/D | NaN이면 false이며 quiet/signaling NaN 모두 NV를 추가 |
+| FMIN/FMAX.S/D | 한 NaN이면 비NaN 입력, 두 NaN이면 canonical NaN. signaling NaN은 NV를 추가 |
+| ±0 및 수의 순서 | min은 −0, max는 +0. 부호·지수·가수의 비트 표현으로 정수 순서를 계산하고 호스트 float 계산을 사용하지 않음 |
+| boxing 및 flag 상태 | 잘못된 S boxing 75개 probe와 초기 `fflags=0/5/31`을 포함. 기존 flag 보존 및 필요한 NV 누적을 각 probe 후 확인 |
+
+잘못된 결과 10개, NV의 불필요한 추가 10개와 누락 10개의 trace 대조군을
+독립 검사기가 거부했다. 이 대조군은 변경 RTL 실행이 아니다.
+ELF·로그·trace·현재 RTL/model·Sail·생성기 및 helper 해시는
+`out/rva23/fp_compare_contract/report.json`에 연결한다. `--check`는 저장된
+근거를 재검사하며 통합 요구사항 감사에도 포함한다. 반올림 산술·FS 권한과
+pipeline 경합 검증을 대신하지 않는다.
+
 ### F/D의 분류·부호·레지스터 이동
 
 기준은 [F 2.2](https://docs.riscv.org/reference/isa/v20260120/unpriv/f-st-ext.html)와

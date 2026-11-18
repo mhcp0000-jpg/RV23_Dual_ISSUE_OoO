@@ -79,6 +79,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | 후속 ACT4 생성 벡터 | 2,301/2,301 RTL 실행 통과. Sail 기대값·ELF·로그·현재 RTL 모델의 전체 생성/실행 감사 통과 |
 | 스칼라 참조 비교 | 동일 ELF의 Sail/RTL 실행 168개, 사용자 모드 ELF 152개의 retire 기록 61,754건 일치 |
 | FP 비트 동작 | F/D 분류·부호·이동 12형식의 probe 1,110개, 동일 ELF의 Sail/RTL 이벤트 18,532건 일치. 잘못된 S boxing·raw 이동과 `fflags` 보존 포함 |
+| FP 비교·min/max | F/D 10형식의 probe 1,215개, 동일 ELF의 Sail/RTL 이벤트 19,099건 일치. NaN·±0 및 NV 누적과 잘못된 결과/flag 대조군 30개 포함 |
 | 코어 및 메모리 통합 | dual issue·execute·retire와 독립 명령의 비순차 실행, I/D 뱅크 동시 접근, AXI64 리필, 스칼라·벡터 메모리와 예외·재시작 검사 통과 |
 | 기본 1 MiB SRAM | OpenSBI에서 S 모드로 인계, DTB 및 SBI BASE/TIME, 타이머 인터럽트 확인 |
 | Linux 6.12 | 32 MiB RTL 시뮬레이션에서 OpenSBI 인계, 사용자 모드 `/init`과 벡터 명령 retire, 정상 종료 확인 |
