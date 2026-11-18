@@ -9,6 +9,7 @@ import re
 
 import run_fence_order as fence
 import run_svpbmt_alias_order as pbmt
+import run_vector_branch_order as branch
 from sim_runner import ROOT, dump, sha, source_inputs
 
 
@@ -95,12 +96,16 @@ def main():
     reject('missing_concurrent_debug_write', lambda: fence.verify(broken), controls)
     outcomes['fence_order'] = record['coverage']
     reports[report.relative_to(ROOT).as_posix()] = sha(report)
+    outcomes['vector_branch_order'] = branch.check()
+    report = branch.FOLDER / 'report.json'
+    reports[report.relative_to(ROOT).as_posix()] = sha(report)
+    controls.append('missing_speculative_vector_dispatch')
     dump(ROOT / 'out/rva23/scalar_vector_order_audit.json', dict(
         passed=True, complete_profile_validation=False,
-        scope='Existing directed RTL executions: shared memory, precise restart, PBMT IO, interrupts and FENCE/CBO; no exhaustive RVWMO proof',
+        scope='Existing directed RTL executions: shared memory, precise restart, PBMT IO, interrupts, FENCE/CBO and speculative vector squash; no exhaustive RVWMO proof',
         reports=reports, outcomes=outcomes, witness_negative_controls=controls,
         audit_sha256=sha(__file__)))
-    print('PASS current-source scalar/vector ordering: five execution reports, four rejected witness mutations')
+    print('PASS current-source scalar/vector ordering: six execution reports, five rejected witness mutations')
 
 
 if __name__ == '__main__':

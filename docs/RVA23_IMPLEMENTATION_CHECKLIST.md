@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] 지연된 스칼라 DIV 의존 분기의 잘못된 경로에 여섯 종류의 벡터 명령을 배치했다. 실제 speculative dispatch와 flush를 관찰하고 벡터 실행·retire/trap이 발생하지 않음을 검사했다. 올바른 경로의 메모리·벡터·설정·스칼라 상태가 보존됐고 동일 ELF의 Sail과 두 RTL 실행에서 이벤트 291개가 일치했다. `scripts/run_vector_branch_order.py --check`와 통합 순서 감사에서 재검사한다.
+
 - [x] 실제 분기 오예측 복구 사이클에 MMIO 응답을 넣었다. 수정 전 RTL은 응답을 소비해 실패했고 수정 후는 쓰기 1회와 정상 retire를 통과했다. 기존 DECERR 정확한 예외 검사도 통과했다.
 - [x] Sstc의 M 권한 두 비트 조합과 VS/VU의 직접·별칭 CSR 접근을 24개 추가했다. 수정 전 RTL의 잘못된 cause 22를 검출했고 수정 후 전체 CSR 케이스 102개를 통과했다.
 - [x] `run_privileged_instruction_matrix.py --group sstc`로 같은 전체 SoC에서 M/HS/VS/U/VU의 직접·별칭 CSR 접근 160개와 정확한 trap 279개를 통과했다. 동일 ELF를 수정 전 모델에서 실행하면 66번 케이스에서 실패한다.

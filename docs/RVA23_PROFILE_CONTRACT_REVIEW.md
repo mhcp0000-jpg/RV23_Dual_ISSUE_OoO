@@ -274,12 +274,12 @@ Sail·RTL 실행 이벤트 16,908개가 일치했다.
 ## 스칼라와 벡터의 공유 SRAM 접근
 
 `python scripts/audit_scalar_vector_order.py`는 아래 공유 메모리·재시작,
-Svpbmt 별칭, PLIC 인터럽트 및 FENCE/CBO의 다섯 실행 보고서를 함께
+Svpbmt 별칭, PLIC 인터럽트, FENCE/CBO 및 분기 복구의 여섯 실행 보고서를 함께
 재검사한다. 현재 모델 입력·실행 파일·ELF·드라이버·trace·로그의 해시를
 확인하고, Sail 대조와 버스/retire 순서 검사를 다시 실행한다. 결과는
 `out/rva23/scalar_vector_order_audit.json`에 기록되며 통합 요구사항 감사에도
 포함된다. 완료 전 벡터 retire, 누락된 벡터 claim, 누락된 zero-stride IO
-읽기 및 누락된 concurrent debug 쓰기로 기록을 변형한 네 대조군을
+읽기, 누락된 concurrent debug 쓰기 및 누락된 speculative dispatch로 기록을 변형한 다섯 대조군을
 거부한다. 이 대조군은 감사기의 검사력을 확인하며 RTL 변형 실행은 아니다.
 
 현재 벡터 decode는 모든 벡터 명령을 serializing으로 표시한다.
@@ -287,6 +287,16 @@ ROB head의 벡터는 `lsu_memory_idle` 및 스칼라 피연산자 준비를 기
 serial barrier가 retire될 때까지 뒤의 dispatch를 막으므로 벡터와 뒤따르는
 스칼라 실행의 중첩을 허용하지 않는다. 이 근거는 해당 직렬화 구현의
 지향성 검증이며, 스칼라·벡터 동시 실행이나 전체 RVWMO 증명을 뜻하지 않는다.
+
+`python scripts/run_vector_branch_order.py`는 긴 스칼라 DIV 결과를 기다리는
+분기 뒤의 잘못된 경로에 벡터 store, 정수 벡터 쓰기, 설정 변경,
+FP→벡터 이동, 잘못된 주소의 벡터 load 및 벡터→스칼라 이동을 배치한다.
+관찰용 전체 SoC 테스트벤치에서 여섯 벡터 모두 speculative dispatch된 후
+flush됐으며, 벡터 실행 시작과 retire/trap은 발생하지 않았다.
+올바른 경로는 메모리, v8의 두 워드, VL=2, vstart=0 및 스칼라 목적지의
+보존을 확인한다. 같은 ELF를 Sail, 일반 H/V 모델 및 관찰용 모델에서
+실행했고 두 RTL trace 각각이 Sail 이벤트 291개와 일치했다.
+`--check`는 저장된 실행 근거를 재검사하며 누락된 dispatch witness를 거부한다.
 
 `run_scalar_vector_memory.py`는 다른 64비트 뱅크 및 64바이트 라인
 경계를 포함한 네 위치를 Bare와 Sv39에서 실행했다. Sv39에서는
