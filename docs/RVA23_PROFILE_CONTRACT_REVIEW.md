@@ -360,6 +360,19 @@ ELF·trace·로그·생성기·참조 모델 해시를 확인하고 독립 검�
 RV32 전용 transfer 형식을 요구하지 않는다. 예약 rm의 trap과 모든 FS 권한,
 분기/인터럽트 조합의 증거를 이 검사로 대신하지 않는다.
 
+### 스칼라·벡터 FP의 공유 frm/fflags
+
+`scripts/run_scalar_vector_fp_state.py`는 scalar FADD→vector VFADD/VFDIV→scalar
+FDIV를 SEW32/64·LMUL2·다섯 frm·여덟 mask/vstart/vl 상태에서 실행한다.
+160개 사례와 같은 ELF의 Sail/RTL 이벤트 13,507건이 일치했다. 정확한 유리수
+모델로 scalar/CSR/memory 관찰 1,600개를 확인했으며, vector snapshot word는
+640개다. 실제 활성 원소 240개와 비활성/tail byte를 구분해 검사한다.
+
+공유 flags 누적, frm 및 vcsr=5 보존, vstart=0을 확인했다. 변조 대조군 14개를
+거부했다. FS/VS-enabled M-mode 실행이며 모든 FP instruction family와 권한·
+fault·interrupt·speculation 조합의 증명은 아니다. `--check`를 필수 감사에
+추가했고 [V 상태·실행 검토](RVA23_VECTOR_CLAUSE_REVIEW.md)에 범위를 연결한다.
+
 ### FP CSR의 여섯 명령과 alias 마스크
 
 `scripts/run_fcsr_alias_contract.py`는 FFLAGS/FRM/FCSR와 여섯 CSR 명령,

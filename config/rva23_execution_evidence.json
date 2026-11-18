@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["V", "F", "D"],
+    "report": "out/rva23/scalar_vector_fp_state/report.json",
+    "behavior": "160 native M-mode scalar FADD/vector VFADD or VFDIV/scalar FDIV sequences: SEW32/64 LMUL2, five frm modes and eight active/mask/vstart/vl selections. Identical Sail ELF per width matches 13507 events; 1600 scalar/CSR/memory observations include 640 destination words, 240 active elements, shared flag accrual, preserved frm/vcsr and cleared vstart. Exact-rational oracle and 14 rejecting trace controls. FS/VS enabled only; all instruction families, privilege/fault/interrupt and speculative schedules separate."
+  },
+  {
     "requirements": ["F", "D", "Zicsr"],
     "report": "out/rva23/fcsr_alias_contract/report.json",
     "behavior": "1664 native M-mode FS-enabled probes cover six CSR forms across fflags/frm/fcsr, selected upper-bit masks and every FCSR low-byte value. Identical Sail ELF per batch matches 24109 events; 6656 previous-value/alias results checked and 96 corrupt-result controls rejected. Reserved frm values stored/read without executing arithmetic. Arithmetic flag accrual, FS/guest permissions, all CSR side effects and pipeline ordering are separate suites."

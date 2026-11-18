@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] 스칼라 FADD→벡터 VFADD/VFDIV→스칼라 FDIV의 공유 FP 상태를 SEW32/64·LMUL2·다섯 frm·여덟 mask/vstart/vl 상태의 160개 사례로 검사했다. 같은 ELF의 Sail/RTL 이벤트 13,507건과 scalar/CSR/memory 값 1,600개가 일치했다. snapshot word 640개에서 비활성·tail 보존, flags 누적, frm/vcsr 보존 및 vstart 초기화를 확인했고 대조군 14개를 거부했다. `scripts/run_scalar_vector_fp_state.py --check`를 필수 감사에 추가했다. [V 상태·실행 검토](RVA23_VECTOR_CLAUSE_REVIEW.md)에 기존 근거와 FS/VS 권한 등 남은 범위를 구분했다.
+
 - [x] FCSR/FRM/FFLAGS의 여섯 CSR 명령과 FCSR의 모든 8비트 값, 선택 상위 비트 쓰기를 1,664개 사례로 실행했다. 이전 값·세 alias 결과 6,656개와 배치별 같은 ELF의 Sail/RTL 이벤트 24,109건이 일치했다. 변조 대조군 96개를 거부했으며 `scripts/run_fcsr_alias_contract.py --check`를 필수 감사에 추가했다. [FP 절별 검토](RVA23_FP_CLAUSE_REVIEW.md)에 산술·NaN boxing·반올림·flag·메모리·FS/guest 권한 및 branch recovery의 기존 근거와 한계를 연결했다. 예약 frm 값은 저장/readback만 하며 해당 상태에서 산술을 실행하지 않는다.
 
 - [x] AMO W/D 18형식의 네 aq/rl 인코딩, 대표 레지스터 중첩 여섯 패턴과 선택 데이터 네 쌍의 1,728개 사례를 실행했다. 배치별 동일 ELF의 Sail/RTL 이벤트 67,538건이 일치했다. 비영 목적지 결과 1,440개와 rd=x0 288건을 포함한 메모리 갱신 1,728건의 모든 바이트를 독립 계산/관찰했고, 변조 대조군 44개를 거부했다. `scripts/run_amo_field_contract.py --check`를 필수 감사에 추가했다. [A 절별 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)에 기존 LR/SC.W/D 진행성·간섭 및 별도 순서/주소 보호 근거와 한계를 연결했다.
