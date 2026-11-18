@@ -164,6 +164,7 @@ def recheck_integration(linux_variant, require_linux_supm):
     if require_linux_supm:
         linux_options.append('--require-supm')
     audits = [
+        ('audit_clause_review_index.py', [], 'out/rva23/clause_review_index_audit.json'),
         ('audit_act4_results.py', ['--current'], 'out/act4/current_execution_audit.json'),
         ('run_act4_upstream_h.py', ['--check'], 'out/act4/upstream_h_extended/audit.json'),
         ('run_act4_current_h.py', ['--extended', '--check'], 'out/act4/current_h_extended/audit.json'),

@@ -1,5 +1,13 @@
 # RVA23S64 normative audit
 
+The remaining review queue is [RVA23_REMAINING_REVIEW](RVA23_REMAINING_REVIEW.md),
+generated from `config/rva23_clause_review_index.json`. It links RV64I and all
+58 mandatory names to 22 groups and 54 open review topics. These are review
+tasks, not 54 known defects or an exhaustive clause inventory. The required
+`audit_clause_review_index.py` gate checks omissions, duplicates, document
+links, status consistency and content hashes; it does not judge architectural
+sufficiency or establish profile completion.
+
 The required-name inventory is `config/rva23_required_extensions.json`, checked
 against the official RVA23 Profiles 1.0 page and its recorded HTML SHA-256.
 There are 58 unique mandatory extension names when the eight Sha components

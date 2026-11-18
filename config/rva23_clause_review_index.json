@@ -1,0 +1,555 @@
+{
+  "profile": "RVA23S64",
+  "scope": "Finite review work queue for all mandatory named requirements and RV64I; not an exhaustive normative clause inventory or architectural proof",
+  "complete_profile_validation": false,
+  "groups": [
+    {
+      "id": "base",
+      "title": "RV64I base execution and EEI",
+      "requirements": [
+        "I"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md",
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "base.1",
+          "topic": "Map ECALL/EBREAK and defined illegal instruction metadata to the base clauses."
+        },
+        {
+          "id": "base.2",
+          "topic": "Review instruction/data access atomicity and RVWMO rules against the actual platform paths."
+        }
+      ]
+    },
+    {
+      "id": "muldiv",
+      "title": "RV64 M",
+      "requirements": [
+        "M"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "muldiv.1",
+          "topic": "Complete current-target reserved encoding and zero-destination disposition."
+        },
+        {
+          "id": "muldiv.2",
+          "topic": "Connect multiply/divide issue, recovery and retirement ownership to the instruction contracts."
+        }
+      ]
+    },
+    {
+      "id": "atomics",
+      "title": "A and reservation contracts",
+      "requirements": [
+        "A",
+        "Za64rs",
+        "Ziccrse",
+        "Ziccamoa"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_ATOMIC_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "atomics.1",
+          "topic": "Review the exclusive read-modify-write retry path against interfering accepted writes."
+        },
+        {
+          "id": "atomics.2",
+          "topic": "Map access-fault, misalignment and permission priority for LR, SC and AMO."
+        },
+        {
+          "id": "atomics.3",
+          "topic": "Document the constrained-loop progress argument under the platform arbitration assumptions."
+        }
+      ]
+    },
+    {
+      "id": "scalar_fp",
+      "title": "F/D/Zfhmin/Zfa",
+      "requirements": [
+        "F",
+        "D",
+        "Zfhmin",
+        "Zfa"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_FP_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "scalar_fp.1",
+          "topic": "Map current-target legal/reserved format and rounding encodings to decode and trap paths."
+        },
+        {
+          "id": "scalar_fp.2",
+          "topic": "Review naturally aligned FP transfer atomicity and memory-fault metadata."
+        },
+        {
+          "id": "scalar_fp.3",
+          "topic": "Connect precise commit and cancellation of FPR/flags to trap and interrupt ownership."
+        }
+      ]
+    },
+    {
+      "id": "bitmanip",
+      "title": "B/Zicond",
+      "requirements": [
+        "B",
+        "Zicond"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_BITMANIP_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "bitmanip.1",
+          "topic": "Map defined/reserved RV64 bitmanip encodings in the enabled target configuration."
+        },
+        {
+          "id": "bitmanip.2",
+          "topic": "Review the two-source syntactic dependency path for Zicond separately from value and timing tests."
+        }
+      ]
+    },
+    {
+      "id": "compressed",
+      "title": "C/Zcb/MOP",
+      "requirements": [
+        "C",
+        "Zimop",
+        "Zcmop",
+        "Zcb"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_C_CLAUSE_REVIEW.md",
+        "docs/RVA23_ZCB_CLAUSE_REVIEW.md",
+        "docs/RVA23_MOP_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "compressed.1",
+          "topic": "Consolidate the current-target compressed legal/HINT/reserved encoding partition."
+        },
+        {
+          "id": "compressed.2",
+          "topic": "Map original compressed instruction and PC length preservation through fetch/data traps."
+        }
+      ]
+    },
+    {
+      "id": "csr_counters",
+      "title": "CSR and base counters",
+      "requirements": [
+        "Zicsr",
+        "Zicntr",
+        "Zihpm"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_ZICSR_CLAUSE_REVIEW.md",
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "csr_counters.1",
+          "topic": "Enumerate CSR bank privilege, alias and WARL dispositions for the current target."
+        },
+        {
+          "id": "csr_counters.2",
+          "topic": "Review cycle/time/instret update and counter-enable behavior against all mandatory counter clauses."
+        }
+      ]
+    },
+    {
+      "id": "ifetch",
+      "title": "Instruction fetch atomicity",
+      "requirements": [
+        "Ziccif"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "ifetch.1",
+          "topic": "Review the aligned parcel argument for resident hits and every refill beat placement."
+        },
+        {
+          "id": "ifetch.2",
+          "topic": "Connect accepted-store snoops, refill ownership and frontend invalidation to instruction visibility."
+        }
+      ]
+    },
+    {
+      "id": "misaligned",
+      "title": "Main-memory misaligned accesses",
+      "requirements": [
+        "Zicclsm"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md",
+        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md",
+        "docs/RVA23_FP_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "misaligned.1",
+          "topic": "Map split translation and protection prechecks for all enabled ordinary transfer widths."
+        },
+        {
+          "id": "misaligned.2",
+          "topic": "Review partial-store prevention, fault address and non-idempotent memory restrictions."
+        }
+      ]
+    },
+    {
+      "id": "hints",
+      "title": "PAUSE/NTL/prefetch hints",
+      "requirements": [
+        "Zihintpause",
+        "Zihintntl",
+        "Zicbop"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_CMO_CLAUSE_REVIEW.md",
+        "docs/RVA23_INTEGER_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "hints.1",
+          "topic": "Close the hint decode and no-memory-request argument in the current target."
+        },
+        {
+          "id": "hints.2",
+          "topic": "Separate architectural hint behavior from optional microarchitectural actions and timing."
+        }
+      ]
+    },
+    {
+      "id": "cmo",
+      "title": "Cache block operations",
+      "requirements": [
+        "Zic64b",
+        "Zicbom",
+        "Zicboz"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_CMO_CLAUSE_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "cmo.1",
+          "topic": "Review management operation authority over all coherent cache copies."
+        },
+        {
+          "id": "cmo.2",
+          "topic": "Map translation/PMP/PMA and permission-fault priority for each CBO."
+        },
+        {
+          "id": "cmo.3",
+          "topic": "Connect write-response, invalidation and concurrent accepted-write ownership to the CMO ordering clauses."
+        }
+      ]
+    },
+    {
+      "id": "scalar_timing",
+      "title": "Zkt timing",
+      "requirements": [
+        "Zkt"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/TIMING_CONTRACT.md"
+      ],
+      "open_items": [
+        {
+          "id": "scalar_timing.1",
+          "topic": "Confirm the mandated scalar timing instruction inventory against enabled dependencies."
+        },
+        {
+          "id": "scalar_timing.2",
+          "topic": "Review that data values cannot select a different completion path for each required instruction family."
+        }
+      ]
+    },
+    {
+      "id": "vector",
+      "title": "V/Zvfhmin/Zvbb/Zvkt",
+      "requirements": [
+        "V",
+        "Zvfhmin",
+        "Zvbb",
+        "Zvkt"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_VECTOR_CLAUSE_REVIEW.md",
+        "docs/TIMING_CONTRACT.md",
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "vector.1",
+          "topic": "Complete the required integer/FP/reduction/mask/permutation instruction and reserved-encoding clause map."
+        },
+        {
+          "id": "vector.2",
+          "topic": "Review EEW/EMUL, overlap, segment partial completion and restart restrictions by memory family."
+        },
+        {
+          "id": "vector.3",
+          "topic": "Map vector CSR WARL and context transitions to the state clauses."
+        },
+        {
+          "id": "vector.4",
+          "topic": "Complete the timing source-path argument for the mandated Zvkt families."
+        }
+      ]
+    },
+    {
+      "id": "wrs",
+      "title": "Wait on reservation",
+      "requirements": [
+        "Zawrs"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "wrs.1",
+          "topic": "Review timeout, trap interception, interrupt and debug wake conditions by privilege context."
+        },
+        {
+          "id": "wrs.2",
+          "topic": "Map reservation-set loss and subsequent SC behavior to both WRS forms."
+        }
+      ]
+    },
+    {
+      "id": "pointer_mask",
+      "title": "User/supervisor pointer masking",
+      "requirements": [
+        "Supm",
+        "Ssnpm"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "pointer_mask.1",
+          "topic": "Review effective privilege and HUPMM/MPRV/MPV selection for each affected access path."
+        },
+        {
+          "id": "pointer_mask.2",
+          "topic": "Map masking exclusions, transformed trap addresses and PMM WARL behavior to the pointer-masking clauses."
+        }
+      ]
+    },
+    {
+      "id": "fencei",
+      "title": "Instruction-fetch synchronization",
+      "requirements": [
+        "Zifencei"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "fencei.1",
+          "topic": "Review FENCE.I ordering from older accepted stores to future instruction fetch."
+        },
+        {
+          "id": "fencei.2",
+          "topic": "Connect resident/refilling I-cache and frontend invalidation completion to retirement."
+        }
+      ]
+    },
+    {
+      "id": "supervisor",
+      "title": "Ss1p13/Bare/Sv39/Svade/PTE coherence",
+      "requirements": [
+        "Ss1p13",
+        "Svbare",
+        "Sv39",
+        "Svade",
+        "Ssccptr"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "supervisor.1",
+          "topic": "Inventory mandatory S and supporting M CSRs, WARL fields and privilege access rules."
+        },
+        {
+          "id": "supervisor.2",
+          "topic": "Map trap/delegation/return and status transitions to the supervisor clauses."
+        },
+        {
+          "id": "supervisor.3",
+          "topic": "Review Sv39 page walk, A/D faults, implicit PTE permissions and coherent PTE visibility."
+        }
+      ]
+    },
+    {
+      "id": "supervisor_profile",
+      "title": "Supervisor profile contracts",
+      "requirements": [
+        "Sstvecd",
+        "Sstvala",
+        "Sscounterenw",
+        "Ssu64xl"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "supervisor_profile.1",
+          "topic": "Review all required direct trap-vector bases and precise trap-value dispositions."
+        },
+        {
+          "id": "supervisor_profile.2",
+          "topic": "Map implemented counter-enable writability and fixed UXL64 to the profile conditions."
+        }
+      ]
+    },
+    {
+      "id": "page_extensions",
+      "title": "PBMT/NAPOT/invalidation",
+      "requirements": [
+        "Svpbmt",
+        "Svinval",
+        "Svnapot"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "page_extensions.1",
+          "topic": "Review PBMT attribute composition and ordering for host and two-stage guest accesses."
+        },
+        {
+          "id": "page_extensions.2",
+          "topic": "Map NAPOT legal/reserved leaf encodings and implicit read restrictions."
+        },
+        {
+          "id": "page_extensions.3",
+          "topic": "Review Svinval permission, address/ASID scope and ordering of the conservative invalidation implementation."
+        }
+      ]
+    },
+    {
+      "id": "timer",
+      "title": "Sstc",
+      "requirements": [
+        "Sstc"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "timer.1",
+          "topic": "Review compare update, pending recomputation, timer wrap and htimedelta arithmetic."
+        },
+        {
+          "id": "timer.2",
+          "topic": "Map direct/alias CSR gating and timer interrupt routing for S/VS/U/VU contexts."
+        }
+      ]
+    },
+    {
+      "id": "hpm",
+      "title": "Sscofpmf",
+      "requirements": [
+        "Sscofpmf"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "hpm.1",
+          "topic": "Review counter increment filters, overflow state and interrupt pending ownership."
+        },
+        {
+          "id": "hpm.2",
+          "topic": "Map scountovf visibility and implemented HPM event/WARL behavior."
+        }
+      ]
+    },
+    {
+      "id": "hypervisor",
+      "title": "Sha/H/Ssstateen and guest profile contracts",
+      "requirements": [
+        "Sha",
+        "H",
+        "Ssstateen",
+        "Shcounterenw",
+        "Shvstvala",
+        "Shtvala",
+        "Shvstvecd",
+        "Shvsatpa",
+        "Shgatpa"
+      ],
+      "review_status": "partial",
+      "reviews": [
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+      ],
+      "open_items": [
+        {
+          "id": "hypervisor.1",
+          "topic": "Inventory H/VS CSR aliases, WARL and state-enable hierarchy."
+        },
+        {
+          "id": "hypervisor.2",
+          "topic": "Review virtual trap entry/return, delegation and interrupt priority rules."
+        },
+        {
+          "id": "hypervisor.3",
+          "topic": "Map HLV/HSV/HLVX privilege, execute permission and access-fault metadata."
+        },
+        {
+          "id": "hypervisor.4",
+          "topic": "Review VS/G-stage walk and implicit fault metadata including hgatp/vsatp mode contracts."
+        },
+        {
+          "id": "hypervisor.5",
+          "topic": "Map HFENCE/HINVAL ordering and guest trap-vector/value/counter profile conditions."
+        }
+      ]
+    }
+  ]
+}

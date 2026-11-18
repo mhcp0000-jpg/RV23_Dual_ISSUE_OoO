@@ -134,6 +134,8 @@
 
 ## 4. 남은 완료 감사
 
+- [x] RV64I와 필수 확장 58개의 검토 연결을 [별도 작업 목록](RVA23_REMAINING_REVIEW.md)에 정리했다. 22개 그룹·54개 열린 검토 주제이며 기능 결함 54개를 뜻하지 않는다. 인덱스는 `config/rva23_clause_review_index.json`, 검사는 `scripts/audit_clause_review_index.py`다. 문서 내용의 충분성은 별도로 검토하며 구조 검사의 통과를 프로파일 완료로 간주하지 않는다.
+
 Svpbmt RTL 수정 이전의 ACT4와 Linux 결과는 이전 RTL의 실행 근거다. 수정된 RTL의 재검증 결과가 나오면 현재 소스 기준의 통합 감사에 반영한다.
 
 - [x] Svpbmt 수정 후 production RV64 H/V 모델의 2-issue OoO 테스트를 다시 실행했다. dual issue·execute·retire 각 4회와 younger bypass 6회, 64비트 결과 10개를 현재 모델과 trace에서 재검증했다.

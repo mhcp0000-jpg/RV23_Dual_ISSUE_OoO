@@ -1122,4 +1122,10 @@ PMA 속성의 벡터 원소 읽기 4건을 확인했다. 동일 ELF의 Sail·RTL
 
 ## 남아 있는 전체 감사 범위
 
+구체적인 다음 검토 주제는 [남은 규격 검토 작업 목록](RVA23_REMAINING_REVIEW.md)에
+정리한다. 요구사항 59개·구현 그룹 22개와 열린 검토 주제 54개를 연결하며,
+기능 결함 수 또는 전체 규격 조항 수를 뜻하지 않는다. 인덱스·생성 문서의
+일치와 요구사항 누락/중복은 필수 감사가 확인한다. 실제 조항 충족 여부는
+각 연결 문서의 소스·실행·예외·상태·순서 근거를 검토해 판정해야 한다.
+
 이 검토로 기본 확장 RV64I/M/A/F/D/C/B/V와 Ss1p13/H의 모든 조항 검토가 끝난 것은 아니다. 명령의 legal/illegal encoding, vector configuration/state/restart, S/VS/HS 상태 전이와 PMA/ordering의 기존 지향성·ACT 근거를 세부 조항에 연결하는 작업은 `RVA23_IMPLEMENTATION_CHECKLIST.md`에서 계속 추적한다. 어떤 행도 전체 프로파일 인증 또는 합성 타이밍 sign-off로 사용하지 않는다.
