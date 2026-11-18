@@ -32,6 +32,30 @@
 
 ## 추가한 경계 사례
 
+### RV64M 곱셈·나눗셈 의미 검토
+
+기준은 [M 2.0의 곱셈·나눗셈 조항](https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/chapters/m-st-ext.html)이다.
+`python scripts/audit_rv64m_contract.py`는 현재 H/V SoC에서 실행한
+`rv64um` ELF 13개의 retire trace를 읽고 앞선 정수 writeback으로
+각 명령의 실제 입력을 복원한다. Python의 정수 곱셈·절댓값 나눗셈으로
+RTL 결과 296개를 계산해 비교하며, 같은 trace의 Sail 대조도 재실행한다.
+각 명령 종류에서 결과 한 비트를 바꾼 13개 대조군을 모두 거부한다.
+
+| 조항 | RTL 경로 | 확인한 실행 근거 |
+|---|---|---|
+| MUL의 하위 XLEN 비트 | multiplier의 `MUL_LOW` 선택 | `mul` 47회 |
+| MULH/MULHSU/MULHU의 부호별 상위 곱 | multiplier의 부호 보정과 상위 64비트 선택 | 각각 43/43/45회 |
+| MULW의 하위 32비트 곱과 부호 확장 | multiplier의 `word_operation` 선택 | 43회, 상위 입력 비트가 0이 아닌 사례 포함 |
+| DIV/REM의 0 방향 몫 및 피제수와 같은 나머지 부호 | divider의 절댓값 반복과 결과 부호 적용 | DIV/DIVU 10/9회, REM/REMU 9/9회 |
+| 0으로 나눌 때 전부 1인 몫과 원래 피제수인 나머지 | divider의 `divide_by_zero` 경로 | W형을 포함한 나눗셈·나머지 8종 모두에서 확인 |
+| signed 최솟값÷−1의 몫과 0인 나머지 | divider의 `signed_overflow` 경로 | DIV/REM/DIVW/REMW 모두에서 확인 |
+| W형 입력의 하위 32비트 사용과 항상 부호 확장되는 결과 | divider의 effective operand 및 최종 word 선택 | DIVW/DIVUW 10/9회, REMW/REMUW 10/9회; 상위 입력 비트가 0이 아닌 사례 및 0 나누기 포함 |
+
+이 표는 M의 해당 산술 조항을 구현과 실행에 연결한다. 전 피연산자 공간,
+모든 pipeline stall/flush 조합 또는 전체 프로파일의 증명은 아니다.
+ELF·trace·로그·현재 RTL/model 및 참조 실행 파일 해시를 검사하고
+`out/rva23/rv64m_contract_audit.json`에 근거를 남긴다. 통합 요구사항 감사에도 포함된다.
+
 `run_profile_csr_geometry.py --compare-before out/rva23/hgatp_warl_before`는
 보관한 ELF를 수정 전후의 SoC에서 그대로 재실행한다. 두 모델의 RTL
 입력 해시에서 `rv_hypervisor_csrs.sv`만 다른 것을 확인한 뒤 비교한다.
