@@ -1,0 +1,964 @@
+{
+  "passed": true,
+  "certified_score": false,
+  "complete_benchmark_plan": false,
+  "scope": "Short, CRC-checked RTL performance estimates; no measured silicon clock or certified CoreMark result",
+  "source_report_sha256": "f68fe99386de9dba70f33007ca9cd85ed6317d7a8076bd1328fd6742ebb7132f",
+  "upstream_commit": "1f483d5b8316753a742cbf5590caf5bd0a4e4777",
+  "execution_driver_sha256": "8368a65e65f4e36ee4be3809e2e71ec8e6c21f1db48aadb5a4897c157bd4bd08",
+  "resumed_driver_sha256": "493bf5007f58d00a7b13cdeb4e245f0223269afafb18a3b76a28f23634e306d6",
+  "model_binary_sha256": "030f9e4c993986635a1f0d5b4c3fc56af4357d08f76fb71f1a987ed49db91238",
+  "rtl_inputs": {
+    "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
+    "rtl/soc/rv23_pkg.sv": "e7b3249c0f8d82e733221a9d648f104d360e8d089ca07e320c431a3e98adfaab",
+    "rtl/rv_ooo_pkg.sv": "f868401984e660dfc212ed79a0d756fc4658aa83ccdc29b314f19c528092cdad",
+    "rtl/backend/rv_fp_decode_pkg.sv": "eec4b10524451781860c2263fd2043081e24ae2201b204ac8530d5060edae7e2",
+    "rtl/backend/rv_vector_decode_pkg.sv": "a2398838ca3f86c45669827016bdbb6002549edcf1b668bd4a402298f005da10",
+    "rtl/backend/rv_hypervisor_decode_pkg.sv": "f82a8d402241e34dbd50e7da60c6616be8089f2fe4a354906e6a2582f1d269e6",
+    "rtl/backend/rv_hypervisor_stateen.sv": "fe602e7b500124caf6ef5fc0f68962c2e188d65e4d6714b23a77d6e44c5d95c3",
+    "rtl/backend/rv_hypervisor_csrs.sv": "84a007d4c5580c83685f94b6e7e0b5a87a40b6be74f55d85e599eae3fc70c090",
+    "rtl/backend/rv_vector_estimate_tables_pkg.sv": "bb4c69bdd2707da0126bf3f4081b36dc9c0b6cc668367131b16e4cf3c477a1c1",
+    "rtl/backend/rv_vector_integer_alu.sv": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
+    "rtl/backend/rv_vector_config.sv": "18f6afb9f88a43a8e43031aa3dda08ada489e88a45586afaffe6d804b41a5193",
+    "rtl/backend/rv_vector_register_file.sv": "3f00463aeea016222a34d180ca96a5fbf24edb3c21e0389bc4a8c600e4766165",
+    "rtl/backend/rv_vector_fp_integer.sv": "91359f3cbfb7d3859c75926ad3cd65dd18b57e45f9152e0630947a956fae3215",
+    "rtl/backend/rv_vector_fp_estimate.sv": "e15a44d6c341b77464aa59a7f27a72d31c8828fff30d88ccdc8ac05045633d37",
+    "rtl/backend/rv_vector_fp_lane.sv": "097d78c9195e6f1cacde0742096f7b7ec4dd49c09aaae854153d0c8b0c0f219a",
+    "rtl/backend/rv_vector_engine.sv": "29f292e340e79298c1c7b837e21222c9d36fc29f7f1fc3a1987761115b64b906",
+    "rtl/soc/rv_axi4_if.sv": "fb2652142ee9d3e1da09d1f62aa6b2a7330b2f02b1e215538802b4701b5b41ef",
+    "rtl/soc/rv_local_mem_if.sv": "1280bc837b4544a2b97a6eefe098a183c46995cdec7748fd66fd1f4931e538b9",
+    "rtl/frontend/rv_c_expander.sv": "5d5115bcd10cc3bf3ac825d4bd14c3381feb06bf4afe9de1ec78a86e9ca37798",
+    "rtl/frontend/rv_fetch_queue.sv": "46ce941fae1b72460fecb4f8ff071b8404b0ff30406cc718dd73c0aa485c8c58",
+    "rtl/frontend/rv_fetch_target_buffer.sv": "8cfabf28bfb56503b7d84d897e607b90b827e96378e1d713aa007ba84a3ad2fd",
+    "rtl/frontend/rv_branch_predictor.sv": "81d4959eedc2962340c9a87d30524fb20f8dad081179e6a0f6d2299c1388964d",
+    "rtl/backend/rv_decode2.sv": "9c35b317040a1ecf2256f8730e0b50855640a310d6b353825daf25d28050fd81",
+    "rtl/backend/rv_lsq_order_check.sv": "ab5e38b6148e7a0a9c59388b3e01c3ae9cbcb51fdd09dbb2ec76b1caab1f6a5c",
+    "rtl/backend/rv_lsu_pipe.sv": "473204fa56227124332f1c87c37bfb71fe070c3986a3c38fb0fd2316efcc7030",
+    "rtl/backend/rv_lsq.sv": "041a21e3feb44e6034f6894d6a7fa83cc6813081bed1f2927b1dd6b2834e0cf4",
+    "rtl/backend/rv_store_buffer.sv": "1971d99fd36650cbe1e8774bb74493816524ea5fc7bd87e851167c4cb966f8f3",
+    "rtl/backend/rv_lsu_cluster.sv": "777402f2dec6267de6e286b4b89e385eede9b7d1576f2a923cd215d6bf712990",
+    "rtl/backend/rv_rename2.sv": "52a269b564241624363adae055e73facf5fb156d44fe07850b90cdce43e2d4de",
+    "rtl/backend/rv_phys_regfile.sv": "d27ccf25dd91ed79d335fa4ef8ed9f933dec77011ceaf56dc00798042354d92c",
+    "rtl/backend/rv_issue_queue.sv": "69ad96f00556e8dcfc433627210570df9688e41dd4795f5557e18042887a9f3e",
+    "rtl/backend/rv_issue_arbiter.sv": "f9b07b0d8d8a062f747eb66037d89c805b10cdcdfc7f9422ac7d951884ab12ce",
+    "rtl/backend/rv_int_alu.sv": "09ebecb12346c45a1107ec2af9ce0def92a94952414d27068a75a6a911f91cb6",
+    "rtl/backend/rv_branch_unit.sv": "18daabb162e55d3c34ef1773dc93f7f83e377e35d5e2ad7c27cb916254e18256",
+    "rtl/backend/rv_multiplier.sv": "09dddca2679b727900a28cd24c56d493b52502522fb4dc031e5e17b62e0cd275",
+    "rtl/backend/rv_divider.sv": "37b63bf7ed884ed1820c347dcc02d00594f24151e6014d02c010f968f0f0c5d5",
+    "rtl/backend/rv_fpu.sv": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
+    "rtl/backend/rv_writeback_arbiter.sv": "affc915b78ee65b78371165aa7f1974feec67ef330cce41056fa9c96eb597e64",
+    "rtl/backend/rv_branch_recovery.sv": "6875b6709cba8ae1954d42b22c2bf345874372100f79fb2d8f89e828f0ca17f2",
+    "rtl/backend/rv_exec_result_buffer.sv": "72c076533bfad23794b450fa13b56fbdc74208deb450f0ceb1e92eb076171c45",
+    "rtl/backend/rv_hpm_counters.sv": "d71f344f6655f684b810c624dc84a4788b0bdfe0c16c009603281f3b79c1c3ed",
+    "rtl/backend/rv_csr_file.sv": "16947f18b101abedd3c785f04982632d15db20c5b0ea1333bb7b69b9ba5688ca",
+    "rtl/backend/rv_pmp.sv": "34c68e7be2f0c57e64ea2c2be7a10a96622905790ce845bd7b47dc64b1b53040",
+    "rtl/backend/rv_trap_controller.sv": "958e10a2434c41ace43941348b4b22d0ee4f7174f6511f37cfb8f8523b1f2cb3",
+    "rtl/backend/rv_fence_controller.sv": "d79f1783009ff7a5df6b2ad569fc4547a10a3e63c0c04ce94722b846af50504f",
+    "rtl/backend/rv_rob.sv": "8ac355a520d763faba499d03c9b75d10175149138166559b4d0680bdeefce6c2",
+    "rtl/frontend/rv_frontend.sv": "79286479bd535a85d4ed420b16601cff86a9a51606604b1b6a057ad899f7d390",
+    "rtl/backend/rv_backend.sv": "e6dbacd949d03b1b742d0b532403d7739fad133162874e023f3b304569b75c71",
+    "rtl/rv_ooo_core.sv": "257d1e245c5a52b6188e24029db93096d375ddb6766efb90a78e6f7930cac8a8",
+    "rtl/soc/rv_local_to_axi_bridge.sv": "5932d0c590fc2bd46c7e1e2af6edc02b249a39cc47928b6103e35d79f3bf28c0",
+    "rtl/soc/rv_axi_to_local_bridge.sv": "ec382a3e925d2b033606a50482daf1fb7401af1be1e16a89400110b185423133",
+    "rtl/soc/rv_axi_error_slave.sv": "c97907ba3e4a15ccfa71e057b8df1cf0b5f77c6d7cc72be04fe2b3c15ef5010b",
+    "rtl/soc/rv_axi_xbar.sv": "ca6bd6f2cfce6c9d9ebf0624d797b280a7d503ecb57e9d917c8bc92392880cae",
+    "rtl/soc/rv_soc_addr_decode.sv": "ba429266f7e45ae69429043fded476d02dd28cbb00e3a6ef641cfd8feeb00176",
+    "rtl/soc/rv_sram_1r1w.sv": "424005d980bade9f953a275c47cb69d339cb34e6f84a3a9b42122cb5637c14f7",
+    "rtl/soc/rv_clint.sv": "a6da038d049466c32882ad1468048fa460808570e52e281fa5b7f5b00b2d5b33",
+    "rtl/soc/rv_bootrom.sv": "7b3abef365043ad4ef89dd1faf4f4fc7a635a97b2ffb3ef0fe15301fdb5e173e",
+    "rtl/soc/rv_hostif.sv": "2d37827499452a756ee1914fb880751405be1f5666d274c684004961706c18e6",
+    "rtl/soc/rv_plic.sv": "1ff739b8e4b88216fb6011dfa12ed2472a8d19455fbbd70c48fb17981c047d22",
+    "rtl/soc/rv23_cache.sv": "b119cb4ed291cd6ba886394c4e90f2d0913a7f30266cae49d90ee5c8756f62d1",
+    "rtl/soc/rv23_lsu_arbiter.sv": "35b152bcb04245148d55a6d309896cf9f9141c3cf8a8ff38d60357778c53276f",
+    "rtl/soc/rv23_if_adapter.sv": "e8f848fb0e8b018b746b50763000870604cff91a0e0abf8b63f9145043100441",
+    "rtl/soc/rv23_sram.sv": "9513f87fcbef0763e575c5f2f6d8f29390edcbe4f8bbbd6f8480db68d308582d",
+    "rtl/soc/rv23_system_bus.sv": "6a46632bfd3b468da6e7ede644a9923026422a8900fa34f2f02fbf1b0e859afd",
+    "rtl/soc/rv23_soc_top.sv": "0256739239f11568c7155575d7da5bbfa6b6b6a45fd48367db3cfa1544928f80",
+    "rtl/soc/rv23_page_walker.sv": "3953c9b9489875ede4b260240adf6c797ba2d1625ac0fbcbd3f82c24e6bf4da5",
+    "rtl/soc/rv23_mmu.sv": "079d28c3db07b74e0bf8a42d46769146bc57c005f6aa23fe7bd7c796130f8bba",
+    "rtl/soc/rv23_translation_port.sv": "0de01c790ecbd748acd59bb3e4216c63bb3e26e92e14cd95018141f181eacd3a",
+    "rtl/soc/rv23_data_translate.sv": "0350ee0bdef64467d232effa0e033129908ff174ebad9f33dc83d2312bedee7a",
+    "rtl/soc/rv23_if_translate.sv": "03dfac3e81370178ea165aedcffda1b7db7a19a8a02d0eed09416a588f146f0d",
+    "rtl/soc/rv23_ptw_arbiter.sv": "ab1781e7941452af86c86b883762e774919fb8b0263f2e9dbfc0ed618dd6952c",
+    "rtl/soc/rv23_atomic_engine.sv": "5b2cb3b4e66588f389cc62217fbf3e1c123383f557eaf32d93fd7ef34d2fa72d",
+    "rtl/soc/rv23_axi_mux.sv": "c74b9b731a90975db63cf4cc877419af3c76938af7c4f65a09678765fedab76b",
+    "rtl/backend/rv23_atomic_head.sv": "d95a58047fb1264f903d6b06f188f08192b9e183bb187dc91fdce7c2cabd31de",
+    "rtl/backend/rv23_wait_reservation.sv": "94ef045f3afd67adbe01a68889621902baf0c9f9024d684a9764904f64aa5002",
+    "rtl/soc/rv23_pointer_mask.sv": "ad426d73d4f7980f978adc5de9b6e85882d9f3c6e6009655d50df59c055cf1eb",
+    "rtl/backend/rv23_cbo_head.sv": "008bf0f351140461ce17ed3bbd049c0ab5bbc2e274ae7a47a888e2fa3b870a0e",
+    "rtl/vendor/hardfloat/isSigNaNRecFN.v": "77e37250ec9c18c4484c23eda48bfcf7df8dec1a3d3b2c1a1e5804386a25de8b",
+    "rtl/vendor/hardfloat/HardFloat_rawFN.v": "5238e706b116fc4d80b929b36bc899e4cb7b0846e97fe81cba0424a76035a8a3",
+    "rtl/vendor/hardfloat/recFNToFN.v": "cc3b9e9fc2b40972ffd4ea211a479895d078f72350ed29abbc06c970c1d7f2b5",
+    "rtl/vendor/hardfloat/recFNToRecFN.v": "c4e96b454c985bbd3726ec32fb16d750253af47e91ee27d64b1bc225cb5d1458",
+    "rtl/vendor/hardfloat/mulRecFN.v": "27a5481e75d1199fc8c60920141e98618407ea7174bffbad1c2790c899867bc3",
+    "rtl/vendor/hardfloat/iNToRecFN.v": "cbe8d5f6103606b336ad522c2db014cfb41190b28196dfa3155cb2c2c49830a5",
+    "rtl/vendor/hardfloat/HardFloat_specialize.v": "de4442606d2c51bf30c0476d289fa7f955273c8bb58c1484f0e745b76bc8d316",
+    "rtl/vendor/hardfloat/compareRecFN.v": "b88d572db1cea8d5275aeb1db7dcdfabad74281fdc29378940fd4b20f7326d69",
+    "rtl/vendor/hardfloat/divSqrtRecFN_small.v": "8bbaf708f1b5f9b253d6fe7e86db57662309c3c2f587445404d5874dfe904e9d",
+    "rtl/vendor/hardfloat/mulAddRecFN.v": "60bdd19fabb4a06abc10494a7a254e7c0b139161f2a385422bdb7988004e2577",
+    "rtl/vendor/hardfloat/addRecFN.v": "a25e010a51613ecca7a795f49aa957fe643bdcad50e92e49ec965c7a4dbb09dd",
+    "rtl/vendor/hardfloat/HardFloat_primitives.v": "5a1d0823a066395eda8191b3a556c414e6120b8085ff43ce383980d84af47f9f",
+    "rtl/vendor/hardfloat/recFNToIN.v": "00f67f23bfe59480a6134d3b0d528ed360b5a2735e7f9dc510cd2e9b2c319e86",
+    "rtl/vendor/hardfloat/fNToRecFN.v": "549dfb5645b9f35fa597eb2d28f8efa79c834860245ecee4108f4db33339439e",
+    "rtl/backend/rv_fp_format.sv": "2e88f424b1aa95113fd201605a003b45456b59025c97968a2514a4a13ec52c2f",
+    "rtl/backend/rv_fp_convert.sv": "c500edbf1afca043a2666e9b453ac464762c6ff28b1310e7ad384d510dc8d1ef",
+    "rtl/backend/rv_fp_round_to_int.sv": "94490b0dc355fd95542ded4e86409fed638ab599c16e51f29193297f05a0857a",
+    "rtl/backend/rv_fp_immediate.sv": "49face6bcff1965372052e6151cfc3b3f6c5a7a7d3a4c387f53ac0812c387655",
+    "rtl/backend/rv_fp_cvtmod.sv": "00c37a8de7de5c5f7fb49df7981d29cdda959962564551c1b02bd12d24b9c98d",
+    "rtl/backend/rv_fpu_rva23.sv": "1ecadea9b1a6902ef4200ab42f349430c8a3495f7294731327ae9f94e8856348",
+    "rtl/backend/rv23_misaligned_head.sv": "7524555dfaf9e0e7be9004ebafbb9b497338766d87ba1434940d7c8451b581f5",
+    "rtl/backend/rv23_memory_head.sv": "f2a0060516ebe37adc098cac3d5bb354d1fd27be58637afa18110b8540f60110",
+    "rtl/backend/rv23_hypervisor_memory_head.sv": "617e67bad436f6e57c398ee07cfeadeb4355c5185a0d2226adca566e9cf12568",
+    "tb/e2e/dpi/rv_host_dpi.sv": "82603bbfec6864b79c9c0e2aa7cb0f03236a872ce0fb1f6e15c1d83b96e616d7",
+    "tb/e2e/dpi/rv_commit_trace_logger.sv": "7e02d241845ec5a621a10cc0e21a38ba298c5bbb69777eeb8720bde883e5dc0a",
+    "tb/rv32_program_tb.sv": "251faad8df45a314d3b9e49e783f10cf136a7ff9fd6127f07fed9f83abaadf27",
+    "tb/e2e/dpi/elf_loader.cpp": "fb9a5e20e6437e75240d5a975aa8ae861e6faf29791cc94c9d8a481f1f0fe238",
+    "rtl/vendor/hardfloat/HardFloat_consts.vi": "53d4c22ee61b9b81bc763330959327914d8e1952e15f3f66361d1a4e34e2802f",
+    "rtl/vendor/hardfloat/HardFloat_specialize.vi": "c252f7e1638f63838f66e6f469bf86fdec0e4396f6b0be69172623a26519307c",
+    "rtl/vendor/hardfloat/HardFloat_localFuncs.vi": "e6e8d53f362dc2c9fe14c9b0edbc73bc6367d8899276b3384e947a17029b5d50"
+  },
+  "software_inputs": {
+    "sw/benchmarks/coremark/rv64_start.S": "c4629627c1736cfdae17b7c65bbd32fa0523976ff09fa4622126a871eec2c81f",
+    "sw/benchmarks/coremark/port64/core_portme.c": "067fa36441ee4c9bfff9b86dd1d20a95f81ca67769dbd34d5429644bd49c6499",
+    "sw/benchmarks/coremark/upstream/core_list_join.c": "cb85efa5ca7e8537ce90fdce8c13fc01de0457a162fc44ceba5e300e97306418",
+    "sw/benchmarks/coremark/upstream/core_main.c": "c240afdd1bda84af55643ca812fcbb0dd52063a7bae2ebf12f5fc12e487328ff",
+    "sw/benchmarks/coremark/upstream/core_matrix.c": "247761a5bfd88868e4fba4b56646512f03a74ba6d35011b9bf902854f078e98b",
+    "sw/benchmarks/coremark/upstream/core_state.c": "b3e36c4dee73824c36261dd2f405bbd4e49f9eb94dd5bc2dfbd0e17ab3b3c028",
+    "sw/benchmarks/coremark/upstream/core_util.c": "166e9bf09afd290adffe2c6681d913c18373f77e457fae258499fbaad10b04fc",
+    "sw/benchmarks/coremark/port64/core_portme.h": "ac68163b53c0b129e099942d9ddd35a007707466347edc02b93d0aef416f63f2",
+    "sw/benchmarks/coremark/upstream/coremark.h": "0c6655620a7fb984a0f9a69b90e6fb0626694535971abfb3ca0eb88422cbeab0",
+    "sw/benchmarks/coremark/rv32_tim.ld": "95a34fd6345b7cf757a5ba7219977a40a3f51fd136095e1b2d852dcff0b63dff",
+    "tb/fixtures/bootrom/bootrom_host_jump64.hex": "e6160f654d53079262b3c2e74e9a477820ec3b5041326396296291fe394bf673"
+  },
+  "compiler_sha256": "9fd3aecdd6ae127a5545709f44f8f154b4a39898b021fe87d2991947b0a235c5",
+  "compiler_version": "riscv-none-elf-gcc.exe (xPack GNU RISC-V Embedded GCC x86_64) 15.2.0",
+  "reporting_driver_sha256": "110e607b61f53e927a37219d068398424f68252053008e1fa83cc048166e7c70",
+  "cases": [
+    {
+      "variant": "o2_scalar",
+      "iterations": 2,
+      "cycles": 983907,
+      "instructions": 599574,
+      "ipc": 0.609380764645439,
+      "coremark_per_mhz_estimate": 2.032712441318133,
+      "elf_sha256": "a96d74c553fdaa8ef0b2f9f015a45822fdef50d6d20354be3e72eff4afdab505",
+      "flags": [
+        "-march=rv64gcv_zba_zbb_zbs_zicond",
+        "-mabi=lp64d",
+        "-mcmodel=medany",
+        "-msmall-data-limit=0",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fno-common",
+        "-fno-asynchronous-unwind-tables",
+        "-fno-unwind-tables",
+        "-nostdlib",
+        "-nostartfiles",
+        "-fno-tree-loop-distribute-patterns",
+        "-Wl,--build-id=none",
+        "-Wl,--no-relax",
+        "-Isw/benchmarks/coremark/port64",
+        "-Isw/benchmarks/coremark/upstream",
+        "-DPERFORMANCE_RUN=1",
+        "-DITERATIONS=2",
+        "-DTOTAL_DATA_SIZE=2000",
+        "-DMAIN_HAS_NOARGC=1",
+        "-DMEM_METHOD=MEM_STATIC",
+        "-DMULTITHREAD=1",
+        "-O2",
+        "-fno-tree-vectorize",
+        "-fopt-info-vec-all=.\\out\\performance\\rv64_coremark\\o2_scalar_2\\vectorization.txt",
+        "-T",
+        "sw/benchmarks/coremark/rv32_tim.ld",
+        "sw/benchmarks/coremark/rv64_start.S",
+        "sw/benchmarks/coremark/port64/core_portme.c",
+        "sw/benchmarks/coremark/upstream/core_list_join.c",
+        "sw/benchmarks/coremark/upstream/core_main.c",
+        "sw/benchmarks/coremark/upstream/core_matrix.c",
+        "sw/benchmarks/coremark/upstream/core_state.c",
+        "sw/benchmarks/coremark/upstream/core_util.c"
+      ],
+      "packet": [
+        1129119745,
+        2,
+        983907,
+        0,
+        599574,
+        0,
+        59893,
+        59156,
+        8151,
+        36410,
+        29374,
+        9
+      ],
+      "static_vector_instructions": 0,
+      "whole_program_counters": {
+        "CACHE_PERF": {
+          "i_hit": 510942,
+          "i_miss": 138,
+          "d_hit": 109550,
+          "d_miss": 75,
+          "snoops": 31931,
+          "full_i_discard": 0,
+          "full_d_discard": 0
+        },
+        "PATH_PERF": {
+          "i_engine": 8327,
+          "d_write_engine": 192001,
+          "d_read_engine": 4449,
+          "dual_d_hit": 42,
+          "if_backpressure": 0
+        }
+      },
+      "execution_driver_sha256": "493bf5007f58d00a7b13cdeb4e245f0223269afafb18a3b76a28f23634e306d6",
+      "profile": {
+        "scope": "start_time entry to stop_time entry; differs from CSR timed interval; gaps attributed to next retirement, not causal stalls",
+        "cycles": 983924,
+        "retirements": 599575,
+        "no_retirement_cycles": 554879,
+        "dual_retirement_cycles": 170530,
+        "vector_instructions": 0,
+        "largest_gap_attribution": [
+          [
+            "core_state_transition",
+            155358
+          ],
+          [
+            "core_bench_list",
+            130074
+          ],
+          [
+            "matrix_mul_matrix_bitextract",
+            65949
+          ],
+          [
+            "matrix_mul_matrix",
+            60936
+          ],
+          [
+            "matrix_test",
+            42915
+          ],
+          [
+            "core_bench_state",
+            29186
+          ],
+          [
+            "core_list_mergesort",
+            25254
+          ],
+          [
+            "crcu32",
+            11622
+          ]
+        ],
+        "instruction_mix": [
+          [
+            "ld",
+            44842
+          ],
+          [
+            "mv",
+            43071
+          ],
+          [
+            "addiw",
+            39152
+          ],
+          [
+            "lh",
+            33888
+          ],
+          [
+            "addw",
+            33284
+          ],
+          [
+            "li",
+            30774
+          ],
+          [
+            "bne",
+            28954
+          ],
+          [
+            "sh1add.uw",
+            25928
+          ],
+          [
+            "beqz",
+            25804
+          ],
+          [
+            "mulw",
+            18792
+          ],
+          [
+            "lbu",
+            18456
+          ],
+          [
+            "beq",
+            18262
+          ],
+          [
+            "addi",
+            17522
+          ],
+          [
+            "sd",
+            16849
+          ],
+          [
+            "bnez",
+            16801
+          ],
+          [
+            "slli",
+            15224
+          ]
+        ],
+        "scalar_div_rem_instructions": 0,
+        "vector_div_rem_instructions": 0,
+        "vector_breakdown": {},
+        "largest_gap_pcs": [
+          {
+            "pc": "00000000800007c2",
+            "mnemonic": "ld",
+            "gap_cycles": 49770,
+            "events": 12240
+          },
+          {
+            "pc": "000000008000140e",
+            "mnemonic": "lh",
+            "gap_cycles": 22032,
+            "events": 5832
+          },
+          {
+            "pc": "00000000800013b0",
+            "mnemonic": "lh",
+            "gap_cycles": 22016,
+            "events": 5828
+          },
+          {
+            "pc": "00000000800013a8",
+            "mnemonic": "sh1add.uw",
+            "gap_cycles": 20772,
+            "events": 5180
+          },
+          {
+            "pc": "0000000080001406",
+            "mnemonic": "sh1add.uw",
+            "gap_cycles": 20745,
+            "events": 5184
+          },
+          {
+            "pc": "00000000800018dc",
+            "mnemonic": "beq",
+            "gap_cycles": 14867,
+            "events": 2592
+          },
+          {
+            "pc": "000000008000187a",
+            "mnemonic": "ld",
+            "gap_cycles": 13040,
+            "events": 1815
+          },
+          {
+            "pc": "00000000800019c8",
+            "mnemonic": "addiw",
+            "gap_cycles": 12183,
+            "events": 2476
+          },
+          {
+            "pc": "00000000800007b4",
+            "mnemonic": "lh",
+            "gap_cycles": 11652,
+            "events": 5780
+          },
+          {
+            "pc": "00000000800007ae",
+            "mnemonic": "ld",
+            "gap_cycles": 11581,
+            "events": 5760
+          }
+        ]
+      }
+    },
+    {
+      "variant": "o3_scalar",
+      "iterations": 2,
+      "cycles": 985200,
+      "instructions": 607308,
+      "ipc": 0.6164311814859927,
+      "coremark_per_mhz_estimate": 2.0300446609825418,
+      "elf_sha256": "c215d233f7d84206d8a3702ffc48081608b54751803832301560525d66a7703c",
+      "flags": [
+        "-march=rv64gcv_zba_zbb_zbs_zicond",
+        "-mabi=lp64d",
+        "-mcmodel=medany",
+        "-msmall-data-limit=0",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fno-common",
+        "-fno-asynchronous-unwind-tables",
+        "-fno-unwind-tables",
+        "-nostdlib",
+        "-nostartfiles",
+        "-fno-tree-loop-distribute-patterns",
+        "-Wl,--build-id=none",
+        "-Wl,--no-relax",
+        "-Isw/benchmarks/coremark/port64",
+        "-Isw/benchmarks/coremark/upstream",
+        "-DPERFORMANCE_RUN=1",
+        "-DITERATIONS=2",
+        "-DTOTAL_DATA_SIZE=2000",
+        "-DMAIN_HAS_NOARGC=1",
+        "-DMEM_METHOD=MEM_STATIC",
+        "-DMULTITHREAD=1",
+        "-O3",
+        "-fno-tree-vectorize",
+        "-fopt-info-vec-all=.\\out\\performance\\rv64_coremark\\o3_scalar_2\\vectorization.txt",
+        "-T",
+        "sw/benchmarks/coremark/rv32_tim.ld",
+        "sw/benchmarks/coremark/rv64_start.S",
+        "sw/benchmarks/coremark/port64/core_portme.c",
+        "sw/benchmarks/coremark/upstream/core_list_join.c",
+        "sw/benchmarks/coremark/upstream/core_main.c",
+        "sw/benchmarks/coremark/upstream/core_matrix.c",
+        "sw/benchmarks/coremark/upstream/core_state.c",
+        "sw/benchmarks/coremark/upstream/core_util.c"
+      ],
+      "packet": [
+        1129119745,
+        2,
+        985200,
+        0,
+        607308,
+        0,
+        59893,
+        59156,
+        8151,
+        36410,
+        29374,
+        9
+      ],
+      "static_vector_instructions": 0,
+      "whole_program_counters": {
+        "CACHE_PERF": {
+          "i_hit": 508375,
+          "i_miss": 153,
+          "d_hit": 109018,
+          "d_miss": 71,
+          "snoops": 31457,
+          "full_i_discard": 0,
+          "full_d_discard": 0
+        },
+        "PATH_PERF": {
+          "i_engine": 9227,
+          "d_write_engine": 189193,
+          "d_read_engine": 4233,
+          "dual_d_hit": 174,
+          "if_backpressure": 0
+        }
+      },
+      "execution_driver_sha256": "493bf5007f58d00a7b13cdeb4e245f0223269afafb18a3b76a28f23634e306d6",
+      "profile": {
+        "scope": "start_time entry to stop_time entry; differs from CSR timed interval; gaps attributed to next retirement, not causal stalls",
+        "cycles": 985217,
+        "retirements": 607309,
+        "no_retirement_cycles": 543148,
+        "dual_retirement_cycles": 165240,
+        "vector_instructions": 0,
+        "largest_gap_attribution": [
+          [
+            "core_bench_list",
+            176193
+          ],
+          [
+            "matrix_test",
+            157952
+          ],
+          [
+            "core_state_transition",
+            149470
+          ],
+          [
+            "core_bench_state",
+            26765
+          ],
+          [
+            "crcu32",
+            11740
+          ],
+          [
+            "crc16",
+            10261
+          ],
+          [
+            "cmp_complex",
+            7209
+          ],
+          [
+            "crcu16",
+            3084
+          ]
+        ],
+        "instruction_mix": [
+          [
+            "addw",
+            46708
+          ],
+          [
+            "ld",
+            44424
+          ],
+          [
+            "mv",
+            41841
+          ],
+          [
+            "addiw",
+            39175
+          ],
+          [
+            "lh",
+            33888
+          ],
+          [
+            "li",
+            32164
+          ],
+          [
+            "sh1add.uw",
+            25928
+          ],
+          [
+            "bnez",
+            22571
+          ],
+          [
+            "beq",
+            22343
+          ],
+          [
+            "beqz",
+            19585
+          ],
+          [
+            "mulw",
+            18792
+          ],
+          [
+            "lbu",
+            18456
+          ],
+          [
+            "bltu",
+            18104
+          ],
+          [
+            "sd",
+            16511
+          ],
+          [
+            "slli",
+            15224
+          ],
+          [
+            "addi",
+            15144
+          ]
+        ],
+        "scalar_div_rem_instructions": 0,
+        "vector_div_rem_instructions": 0,
+        "vector_breakdown": {},
+        "largest_gap_pcs": [
+          {
+            "pc": "00000000800007e2",
+            "mnemonic": "ld",
+            "gap_cycles": 49715,
+            "events": 12240
+          },
+          {
+            "pc": "000000008000193e",
+            "mnemonic": "addw",
+            "gap_cycles": 31808,
+            "events": 5828
+          },
+          {
+            "pc": "00000000800019e0",
+            "mnemonic": "addw",
+            "gap_cycles": 26553,
+            "events": 5760
+          },
+          {
+            "pc": "0000000080000858",
+            "mnemonic": "ld",
+            "gap_cycles": 22680,
+            "events": 5540
+          },
+          {
+            "pc": "0000000080001f0c",
+            "mnemonic": "beq",
+            "gap_cycles": 14815,
+            "events": 2582
+          },
+          {
+            "pc": "0000000080001eaa",
+            "mnemonic": "ld",
+            "gap_cycles": 12621,
+            "events": 1788
+          },
+          {
+            "pc": "0000000080001ff8",
+            "mnemonic": "addiw",
+            "gap_cycles": 12507,
+            "events": 2476
+          },
+          {
+            "pc": "00000000800007d4",
+            "mnemonic": "lh",
+            "gap_cycles": 11651,
+            "events": 5790
+          },
+          {
+            "pc": "00000000800007ce",
+            "mnemonic": "ld",
+            "gap_cycles": 11572,
+            "events": 5750
+          },
+          {
+            "pc": "00000000800007d0",
+            "mnemonic": "beqz",
+            "gap_cycles": 11510,
+            "events": 5760
+          }
+        ]
+      }
+    },
+    {
+      "variant": "o3_rvv",
+      "iterations": 2,
+      "cycles": 2284058,
+      "instructions": 552447,
+      "ipc": 0.24187082814884736,
+      "coremark_per_mhz_estimate": 0.8756345066543845,
+      "elf_sha256": "ac07f4ffa2b4e087b79893bf43427a53ad9a398fb15b47610c4b00caa0cd1597",
+      "flags": [
+        "-march=rv64gcv_zba_zbb_zbs_zicond",
+        "-mabi=lp64d",
+        "-mcmodel=medany",
+        "-msmall-data-limit=0",
+        "-ffreestanding",
+        "-fno-builtin",
+        "-fno-common",
+        "-fno-asynchronous-unwind-tables",
+        "-fno-unwind-tables",
+        "-nostdlib",
+        "-nostartfiles",
+        "-fno-tree-loop-distribute-patterns",
+        "-Wl,--build-id=none",
+        "-Wl,--no-relax",
+        "-Isw/benchmarks/coremark/port64",
+        "-Isw/benchmarks/coremark/upstream",
+        "-DPERFORMANCE_RUN=1",
+        "-DITERATIONS=2",
+        "-DTOTAL_DATA_SIZE=2000",
+        "-DMAIN_HAS_NOARGC=1",
+        "-DMEM_METHOD=MEM_STATIC",
+        "-DMULTITHREAD=1",
+        "-O3",
+        "-ftree-vectorize",
+        "-fvect-cost-model=dynamic",
+        "-mrvv-vector-bits=zvl",
+        "-fopt-info-vec-all=.\\out\\performance\\rv64_coremark\\o3_rvv_2\\vectorization.txt",
+        "-T",
+        "sw/benchmarks/coremark/rv32_tim.ld",
+        "sw/benchmarks/coremark/rv64_start.S",
+        "sw/benchmarks/coremark/port64/core_portme.c",
+        "sw/benchmarks/coremark/upstream/core_list_join.c",
+        "sw/benchmarks/coremark/upstream/core_main.c",
+        "sw/benchmarks/coremark/upstream/core_matrix.c",
+        "sw/benchmarks/coremark/upstream/core_state.c",
+        "sw/benchmarks/coremark/upstream/core_util.c"
+      ],
+      "packet": [
+        1129119745,
+        2,
+        2284058,
+        0,
+        552447,
+        0,
+        59893,
+        59156,
+        8151,
+        36410,
+        29374,
+        9
+      ],
+      "static_vector_instructions": 316,
+      "whole_program_counters": {
+        "CACHE_PERF": {
+          "i_hit": 473458,
+          "i_miss": 165,
+          "d_hit": 83274,
+          "d_miss": 69,
+          "snoops": 32085,
+          "full_i_discard": 0,
+          "full_d_discard": 0
+        },
+        "PATH_PERF": {
+          "i_engine": 9870,
+          "d_write_engine": 182457,
+          "d_read_engine": 4157,
+          "dual_d_hit": 164,
+          "if_backpressure": 0
+        }
+      },
+      "execution_driver_sha256": "8368a65e65f4e36ee4be3809e2e71ec8e6c21f1db48aadb5a4897c157bd4bd08",
+      "profile": {
+        "scope": "start_time entry to stop_time entry; differs from CSR timed interval; gaps attributed to next retirement, not causal stalls",
+        "cycles": 2284075,
+        "retirements": 552448,
+        "no_retirement_cycles": 1855348,
+        "dual_retirement_cycles": 123721,
+        "vector_instructions": 94507,
+        "largest_gap_attribution": [
+          [
+            "matrix_test",
+            1480982
+          ],
+          [
+            "core_bench_list",
+            156510
+          ],
+          [
+            "core_state_transition",
+            149714
+          ],
+          [
+            "core_bench_state",
+            34999
+          ],
+          [
+            "crcu32",
+            11608
+          ],
+          [
+            "crc16",
+            10219
+          ],
+          [
+            "cmp_complex",
+            7679
+          ],
+          [
+            "crcu16",
+            3120
+          ]
+        ],
+        "instruction_mix": [
+          [
+            "ld",
+            44432
+          ],
+          [
+            "mv",
+            41898
+          ],
+          [
+            "li",
+            29508
+          ],
+          [
+            "bnez",
+            26891
+          ],
+          [
+            "addiw",
+            26215
+          ],
+          [
+            "beq",
+            21687
+          ],
+          [
+            "beqz",
+            19585
+          ],
+          [
+            "lbu",
+            18464
+          ],
+          [
+            "sd",
+            16454
+          ],
+          [
+            "vsetvli",
+            15552
+          ],
+          [
+            "addi",
+            14512
+          ],
+          [
+            "or",
+            14458
+          ],
+          [
+            "and",
+            14016
+          ],
+          [
+            "srliw",
+            12910
+          ],
+          [
+            "andi",
+            12490
+          ],
+          [
+            "slliw",
+            11764
+          ]
+        ],
+        "scalar_div_rem_instructions": 0,
+        "vector_div_rem_instructions": 0,
+        "vector_breakdown": {
+          "configuration": 25665,
+          "arithmetic": 60153,
+          "stores": 257,
+          "loads": 8432
+        },
+        "largest_gap_pcs": [
+          {
+            "pc": "0000000080001d46",
+            "mnemonic": "vluxei64.v",
+            "gap_cycles": 110800,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001c4c",
+            "mnemonic": "vluxei64.v",
+            "gap_cycles": 110151,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001c48",
+            "mnemonic": "vluxei64.v",
+            "gap_cycles": 109522,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001d42",
+            "mnemonic": "vluxei64.v",
+            "gap_cycles": 108874,
+            "events": 1944
+          },
+          {
+            "pc": "00000000800009c4",
+            "mnemonic": "ld",
+            "gap_cycles": 49690,
+            "events": 12239
+          },
+          {
+            "pc": "0000000080001d1e",
+            "mnemonic": "vmv.v.x",
+            "gap_cycles": 25264,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001c24",
+            "mnemonic": "vmv.v.x",
+            "gap_cycles": 24615,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001c10",
+            "mnemonic": "vmv1r.v",
+            "gap_cycles": 23985,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001c40",
+            "mnemonic": "vadd.vv",
+            "gap_cycles": 23985,
+            "events": 1944
+          },
+          {
+            "pc": "0000000080001d0a",
+            "mnemonic": "vmv1r.v",
+            "gap_cycles": 23336,
+            "events": 1944
+          }
+        ]
+      }
+    }
+  ],
+  "latency_probes": [
+    {
+      "name": "alu_chain",
+      "operations": 128,
+      "cycles": 148,
+      "cycles_per_operation": 1.15625
+    },
+    {
+      "name": "independent_alu",
+      "operations": 256,
+      "cycles": 328,
+      "cycles_per_operation": 1.28125
+    },
+    {
+      "name": "independent_alu_zero_source",
+      "operations": 256,
+      "cycles": 276,
+      "cycles_per_operation": 1.078125
+    },
+    {
+      "name": "dependent_ld",
+      "operations": 128,
+      "cycles": 454,
+      "cycles_per_operation": 3.546875
+    },
+    {
+      "name": "dual_ld_different_banks",
+      "operations": 256,
+      "cycles": 282,
+      "cycles_per_operation": 1.1015625
+    },
+    {
+      "name": "dual_ld_same_bank",
+      "operations": 256,
+      "cycles": 281,
+      "cycles_per_operation": 1.09765625
+    },
+    {
+      "name": "store_stream",
+      "operations": 128,
+      "cycles": 920,
+      "cycles_per_operation": 7.1875
+    }
+  ],
+  "artifacts": {
+    "out/performance/rv64_coremark/o2_scalar_2/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/performance/rv64_coremark/o2_scalar_2/simulation.log": "03deb8bd37513db364a718dfc1de1900fdd8ea2ff8efbbbd8fbcc1e6de5f78c2",
+    "out/performance/rv64_coremark/o2_scalar_2/disassembly.txt": "80e94ad418cbba158078a7beea1bde0031ca2a927b0dd768eac47cce0ccabb8a",
+    "out/performance/rv64_coremark/o2_scalar_2/commit.csv": "1be3f6812639daf2b5cf8241803c73c2715922f58f47043f8d3458cfd317a254",
+    "out/performance/rv64_coremark/o3_scalar_2/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/performance/rv64_coremark/o3_scalar_2/simulation.log": "a07c194e43041130abfcbfd7b83b6557244209af392aca82c24ee264aa4fbf69",
+    "out/performance/rv64_coremark/o3_scalar_2/disassembly.txt": "9940123ce85519b3498217d686131b14456521acfc08b756b3d2f9a98f139c76",
+    "out/performance/rv64_coremark/o3_scalar_2/commit.csv": "eaedbd717507a18064777d6a156367ce00bb5149cbb4ffc536769e32e377b542",
+    "out/performance/rv64_coremark/o3_rvv_2/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/performance/rv64_coremark/o3_rvv_2/simulation.log": "7df474c9791884468dcb6f42539457c26aa07b10eed3b48e16fb60c313bdbd0e",
+    "out/performance/rv64_coremark/o3_rvv_2/disassembly.txt": "d1181bd0d8c0d47053d69882d53190a685a7363f6613c478210cd11db240f08f",
+    "out/performance/rv64_coremark/o3_rvv_2/commit.csv": "c0b4f252e656d0d552ff5481d35bad82104c12bf784e9d2ba6e23f7f1067e088",
+    "out/performance/rv64_latency/repeat_same_elf.log": "03b3a75f736a99e57ed43f1b21df3f25f9944ed7595bf1a6f021e09b5020a572",
+    "out/performance/rv64_latency/compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "out/performance/rv64_latency/simulation.log": "e6ae1c22757fc941e5cf20f79f878d9658be7afaaed2666a3de2cee089b9d846",
+    "out/performance/rv64_latency/report.json": "03c3b3d26c345f6ea61e22525d7b1fadd03d28627d4d4c09b2588dd69cfcabb0",
+    "out/performance/rv64_coremark/report_short_snapshot.json": "f68fe99386de9dba70f33007ca9cd85ed6317d7a8076bd1328fd6742ebb7132f"
+  }
+}

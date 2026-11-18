@@ -16,6 +16,60 @@
 
 뱅크가 다른 접근은 캐시 내부에서 두 64비트 뱅크를 함께 사용할 수 있다. SRAM 리필은 AXI64를 사용한다. [SoC 구성, 주소 맵, 부팅 및 디버그](docs/ARCHITECTURE.md)
 
+전체 시스템 합성 TOP은 [`rv23_soc_top`](rtl/soc/rv23_soc_top.sv)이며,
+저장소 루트를 작업 디렉터리로 [rtl/filelist.f](rtl/filelist.f)를 읽는다.
+SystemVerilog와 `SYNTHESIS` 정의를 사용한다. 기본 XLEN=64에서 V/H/D/S/MMU가 켜진다.
+클록은 `clk_i`이며 별도 SDC/XDC 등의 제약이 필요하다. `CLOCK_HZ` 파라미터는 타이밍 제약이 아니다.
+1 MiB SRAM과 캐시의 SRAM/BRAM 매핑을 확인한다. TOP의 `debug_axi_s`는 SV interface이므로
+툴이 TOP interface 포트를 지원하지 않으면 일반 신호 포트로 펼친 wrapper가 필요하다.
+코어만 합성할 때는 [`rv_ooo_core`](rtl/rv_ooo_core.sv)를 사용한다.
+
+### 파이프라인과 연산기
+
+전체 코어는 큐와 가변 지연 연산기를 가진 OoO 구조여서 단일 고정 N단으로 표시하지 않는다.
+정수 ALU 대표 흐름을 아래 **9개 논리 구간**으로 구분했다. frontend의 요청·큐와
+backend의 등록 경계를 설명한 것이며, 물리적인 9단 또는 모든 명령의 9사이클 완료를 검증했다는 뜻은 아니다.
+
+```text
+① IF/L1 → ② Fetch queue → ③ Decode/UQ → ④ Rename·Dispatch/IQ
+→ ⑤ Issue tag/operand → ⑥ Execute/result buffer → ⑦ WB/ROB completion register
+→ ⑧ ROB complete 상태 반영 → ⑨ In-order retire
+```
+
+| 연산기 | 현재 파이프라인/구조 | 지연과 처리량 |
+|---|---|---|
+| ADD/SUB·논리·shift, 2개 ALU | ALU 자체는 조합 회로. 코어 경로에 issue tag/operand 등록과 결과 FIFO 등록의 2개 경계 | 연산 뒤 WB·ROB 중재/대기 추가. 실행 결과 preview로 의존 명령을 먼저 깨울 수 있음 |
+| 정수 MUL/MULH/MULHSU/MULHU/MULW | 입력 operand 등록 → product/result 등록, 2단 | 모듈 요청 수락→결과 전달 2 cycles, stall 없을 때 매 cycle 새 요청 가능 |
+| 정수 DIV/REM, W형 포함 | 단일 iterative divider. 64비트 64회·W형 32회 반복, 별도 DIV tag 등록 1단 | 모듈 일반 연산 65/33 cycles. 0 나누기·signed overflow는 1 cycle. tag 대기와 WB/ROB는 별도 |
+| FP FADD/FSUB/FMUL/FMA, F/D·변환 등 | 현재 RVA23 FP: 입력 등록 → 조합 HardFloat/보조 연산 → 결과 등록. 단일 owner 상태 머신 | fast 경로 모듈 지연 2 cycles, backpressure 없을 때 최소 요청 간격 3 cycles. 다단 arithmetic pipeline과 구분 |
+| FP FDIV.S / FDIV.D | iterative HardFloat, FP owner 공유 | 가변. `1/3` 실측 28/57 cycles, D의 0 나누기 3 cycles |
+| FP FSQRT.S / FSQRT.D | iterative HardFloat, FP owner 공유 | 가변. `sqrt(2)` 실측 26/55 cycles, D의 `sqrt(0)` 3 cycles |
+| 벡터 | VLEN128/ELEN64, ROB head의 원소 단위 상태 머신 | VL·SEW·마스크·메모리·예외에 따라 가변. 현재 scalar/vector 경계 직렬화 |
+
+지연의 기준은 **모듈 입력 handshake edge부터 결과 handoff edge까지**, 출력 ready=1,
+flush 없음이다. issue→retire 지연은 IQ 대기·결과 중재·선행 명령과 메모리 응답에 따라 달라진다.
+FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
+`CORE_CFG_FPU_LATENCY=6`은 `HAS_D=0` legacy `rv_fpu` 경로의 설정이며,
+현재 `HAS_D=1` RVA23의 `rv_fpu_rva23`를 6단 FP로 표시하면 안 된다.
+[연산기 지연 실측 근거](docs/evidence/pipeline_latency.json)
+· [측정 재현 스크립트](scripts/run_pipeline_latency.py)
+
+### CoreMark 성능
+
+RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **2회 RTL 실행 추정치**다.
+세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수가 아니며 10회 확장 측정은 진행 중이다.
+
+| 빌드 | Cycles | IPC | CoreMark/MHz 추정 |
+|---|---:|---:|---:|
+| O2 scalar | 983,907 | 0.609381 | 2.032712 |
+| O3 scalar | 985,200 | 0.616431 | 2.030045 |
+| O3 auto-RVV | 2,284,058 | 0.241871 | 0.875635 |
+
+이번 auto-RVV는 실제 벡터 명령을 실행했지만 scalar보다 느렸다. 벡터의 원소 처리·
+메모리 경로와 명령 직렬화가 개선 후보이며, IPC만으로 유용 작업량을 비교하지 않는다.
+예전에 언급한 IPC 1.123518은 별도의 고정 RV32 ELF 결과다.
+[컴파일 옵션·CRC·실측 근거·개선 후보](docs/COREMARK_PERFORMANCE.md)
+
 ## 검증 현황
 
 | 검사 | 확인한 결과 |

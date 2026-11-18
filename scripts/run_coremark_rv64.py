@@ -56,6 +56,7 @@ def analyze_trace(trace, elf):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--iterations', type=int, nargs='+', default=[2, 10])
+    parser.add_argument('--resume', action='store_true', help='Reuse only content-matching completed runs')
     args = parser.parse_args()
     assert all(n >= 2 for n in args.iterations)
     FOLDER.mkdir(parents=True, exist_ok=True)
@@ -72,6 +73,17 @@ def main():
     result = dict(passed=False, certified_score=False, model=model, inputs=inputs,
         driver_sha256=sha(__file__), compiler_sha256=sha(GCC / 'riscv-none-elf-gcc.exe'),
         upstream_commit=provenance['commit'], cases=[])
+    previous = {}
+    report_path = FOLDER / 'report.json'
+    if args.resume and report_path.exists():
+        old = json.loads(report_path.read_bytes())
+        assert old['model'] == model and old['inputs'] == inputs
+        assert old['compiler_sha256'] == result['compiler_sha256']
+        result['resumed_report_sha256'] = sha(report_path)
+        result['resumed_driver_sha256'] = old['driver_sha256']
+        for row in old['cases']:
+            row.setdefault('driver_sha256', old['driver_sha256'])
+            previous[row['variant'], row['iterations']] = row
     with Simulator() as sim:
         for iterations in args.iterations:
             for variant, options in VARIANTS.items():
@@ -87,6 +99,19 @@ def main():
                     '-DMAIN_HAS_NOARGC=1', '-DMEM_METHOD=MEM_STATIC', '-DMULTITHREAD=1',
                     *options, '-fopt-info-vec-all=' + str(folder / 'vectorization.txt'),
                     '-T', BENCH + 'rv32_tim.ld', *sources]
+                cached = previous.get((variant, iterations))
+                if cached:
+                    assert cached['flags'] == flags and sha(elf) == cached['elf_sha256']
+                    for step in ('compile', 'run'):
+                        record = cached[step]
+                        assert record['passed'] and record['exit_code'] == 0
+                        assert sha(ROOT / record['log']) == record['log_sha256']
+                    if 'profile' in cached:
+                        assert sha(folder / 'commit.csv') == cached['trace_sha256']
+                    result['cases'].append(cached)
+                    dump(report_path, result)
+                    print('REUSED', variant, iterations, cached['cycles'], flush=True)
+                    continue
                 build, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', *flags, '-o', elf], folder / 'compile.log', 120)
                 digest = sha(elf)
                 text = subprocess.check_output([str(GCC / 'riscv-none-elf-objdump.exe'), '-d', elf.relative_to(ROOT).as_posix()], text=True)
@@ -94,8 +119,8 @@ def main():
                 static_vector = re.findall(r'^\s*[\da-f]+:\s+[\da-f]+\s+(v\S+)', text, re.M)
                 trace = folder / 'commit.csv' if iterations == min(args.iterations) else None
                 run, log = sim.run([ROOT / model['binary'], f'+elf={elf.relative_to(ROOT).as_posix()}',
-                    '+trace_file=' + (trace.relative_to(ROOT).as_posix() if trace else 'NUL'), '+quiet_commit',
-                    f'+timeout_cycles={iterations * 2000000}', '+expected_exit_code=0'], folder / 'simulation.log', max(1200, iterations * 120))
+                    *(['+trace_file=' + trace.relative_to(ROOT).as_posix()] if trace else []), '+quiet_commit',
+                    f'+timeout_cycles={iterations * 10000000}', '+expected_exit_code=0'], folder / 'simulation.log', max(1800, iterations * 500))
                 assert 'PASS rv32_program_tb' in log and 'ELF AXI readback PASS' in log
                 values = [int(value, 16) for value in re.findall(r'\[host-event kind=0 data=0x([\da-fA-F]{8})\]', log)]
                 start = values.index(0x434d0001)
@@ -103,7 +128,7 @@ def main():
                 assert len(packet) == 12 and packet[1] == iterations
                 assert packet[6:10] == [0xe9f5, 0xe714, 0x1fd7, 0x8e3a] and packet[11] & 0x17 == 1, packet
                 cycles, instructions = packet[2] + (packet[3] << 32), packet[4] + (packet[5] << 32)
-                row = dict(variant=variant, iterations=iterations, cycles=cycles, instructions=instructions,
+                row = dict(variant=variant, iterations=iterations, driver_sha256=result['driver_sha256'], cycles=cycles, instructions=instructions,
                     ipc=instructions / cycles, coremark_per_mhz_estimate=iterations * 1000000 / cycles,
                     packet=packet, elf_sha256=digest, flags=flags, compile=build, run=run,
                     static_vector_instructions=len(static_vector), vector_mnemonics=sorted(set(static_vector)),
