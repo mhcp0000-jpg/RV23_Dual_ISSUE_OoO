@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] C 규격의 제한된 LR/SC 반복문 조항을 보강했다. 기존 `run_lrsc_progress.py`는 압축을 끈 32비트 명령만 사용했으므로, 새 `scripts/run_compressed_lrsc_contract.py`에서 4/16명령·12/36바이트의 실제 압축 반복문을 실행했다. W/D의 64B 내 모든 정렬 데이터 위치와 명령 라인 offset 0/32/62의 144개 배치에서 갱신 2,304회를 완료했다. 각 배치에 LR 없는 SC 사전 검사 1회를 넣어 실패 144회와 압축 재시도 backedge도 실행했다. 이는 제한된 반복문의 진행성 성공 횟수와 분리한다. 같은 ELF의 Sail/RTL 이벤트 29,804개와 독립 바이트·명령 layout·결과 검사가 일치하고 대조군 6개를 거부했다. `--check`를 통합 감사에 연결했다. 유한 실행이며 보편적 liveness·외부 master 공정성 증명을 뜻하지 않는다.
+
 - [x] 정수 W/D 및 FP D의 압축 메모리 12형식의 probe 2,448개를 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 검증했다. 형식별 모든 오프셋과 선택 데이터/레지스터 조합, compact base/data 8×8 조합, 유효한 SP 데이터 레지스터를 실행했다. 독립 ELF 바이트 모델로 store 1,224건 전 바이트 및 주변 guard 보존, 정수 base/data 중첩 242건, 비정렬 136건·라인 경계 64건·Bare 물리 페이지 경계 24건과 flags 보존을 확인했다. 이벤트 195,651개가 일치하고 load/guard read 값 변조 대조군 24개를 거부했다. `scripts/run_rv64c_memory_contract.py --check`를 통합 감사에 연결했다. 전체 직교 피연산자 조합·변환 fault·권한·MMIO 원자성·전체 스케줄은 별도 범위다.
 
 - [x] C.J/BEQZ/BNEZ/JR/JALR의 probe 3,042개를 전체 H/V SoC와 Sail에서 배치별 같은 ELF로 검증했다. 부호 경계·비트별 오프셋과 분기 prime 레지스터 8개, 간접 소스 x1~x31, 명령/목적지의 두 halfword phase를 확인했다. 홀수 포인터 248개에서 bit 0 제거, JALR x1 중첩 8개에서 기존 x1으로 점프하면서 PC+2 링크를 쓰는 동작을 확인했다. 이벤트 45,146개가 일치하고 다음 PC/링크 변조 23개를 거부했다. `scripts/run_rv64c_control_contract.py --check`를 통합 감사에 연결했다. taken 0-offset 무한 루프, 전 오프셋·fault·interrupt·스케줄 조합은 별도 범위다.

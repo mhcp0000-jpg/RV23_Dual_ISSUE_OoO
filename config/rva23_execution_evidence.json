@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["A", "C", "Ziccrse"],
+    "report": "out/rva23/compressed_lrsc_contract/report.json",
+    "behavior": "144 native H/V W/D placements with actual 4- and 16-instruction compressed constrained LR/SC loops. All aligned data positions in a 64-byte granule and instruction offsets 0/32/62; 2304 successful updates, plus 144 deliberate no-LR failed SC preconditions executing the compressed retry edge. Same ELF Sail/RTL events and independent byte/result/layout oracle, six rejecting controls. Finite progress, not universal liveness or cross-agent fairness proof; spurious failure remains ISA-permitted."
+  },
+  {
     "requirements": ["C", "I", "F", "D", "Zicclsm"],
     "report": "out/rva23/rv64c_memory_contract/report.json",
     "behavior": "2448 native H/V probes of all 12 RV64C integer W/D and FP D memory forms, identical Sail ELF per batch. All offset values with selected data/register combinations, all compact base/data pairs and legal SP data registers, integer alias and FP f0 cases. Independent ELF byte model fully observes 1224 stores and guards; 136 misaligned, 64 line and 24 bare physical page crossings, preserved flags and 24 rejecting load/guard trace controls. Full Cartesian operands, paging faults, permissions, MMIO atomicity and all schedules separate."

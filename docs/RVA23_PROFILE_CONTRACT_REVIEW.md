@@ -32,6 +32,38 @@
 
 ## 추가한 경계 사례
 
+### C 명령을 포함한 제한된 LR/SC 반복문
+
+기준은 [C 2.0의 LR/SC 사용 조항](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)과
+[A 2.1의 eventual success](https://docs.riscv.org/reference/isa/unpriv/a-st-ext.html)다.
+기존 `run_lrsc_progress.py`는 `.option norvc`의 LR/ADDI/SC/BNEZ만 실행했으므로
+압축 명령을 포함하는 조항의 직접 실행 근거와 구분한다.
+
+`scripts/run_compressed_lrsc_contract.py`는 W/D 데이터의 64B 내 모든 정렬
+위치와 명령 라인 offset 0/32/62, 두 반복문 크기를 조합한 144개 배치를 실행한다.
+각 배치는 성공 16회 뒤 최종 값을 다시 load한다. 전체 H/V SoC와 Sail은 같은 ELF를 쓴다.
+
+| 구조 | 실제 ELF에서 확인한 제한 |
+|---|---|
+| 최소 반복문 | LR.aq, C.ADDI, SC.rl, C.BNEZ: 4명령·12바이트 |
+| 최대 명령 수 반복문 | LR.aq와 SC.rl 사이의 C.MV/ADDI/XOR/OR/AND/SUB/ADD/ANDI 13명령 및 C.BNEZ: 16명령·36바이트 |
+| 재시도 경로 | C.BNEZ a1의 nonzero 경로가 LR로 돌아가는지 ELF 필드 및 실제 trace에서 확인 |
+| 라인 경계 | LR의 line offset 62 및 최대 반복문에서 SC의 line offset 62를 포함. 32비트 원자 명령이 64B IF 라인을 가로지름 |
+| 사전 실패 검사 | 각 배치는 처음에 LR 없이 SC 위치로 진입한다. 반드시 실패하고 압축 backedge를 거친 뒤 정상 LR/SC 실행. 이 첫 시도는 제한된 LR/SC 진행성 성공에 포함하지 않음 |
+
+독립 검사기는 ELF의 실제 명령 개수·바이트 수·retry 목적지, LR의 메모리 값,
+압축 산술 결과와 분기 목적지, SC 주소/폭/입력 및 성공 시의 바이트 갱신과 최종
+load를 검사한다. 총 LR 2,304회·SC 2,448회, 성공 갱신 2,304회 및 의도한 사전
+실패 144회가 관찰됐다. 이 실행에서 추가 spurious SC 실패는 없었고, 같은 ELF의
+Sail/RTL 이벤트 29,804건이 일치했다. ISA는 spurious 실패를 허용하며 exact
+trace 비교는 현재 실행의 더 강한 회귀 근거이지 모든 합법 구현에 대한 제약은 아니다.
+
+LR/SC/압축 결과·최종 load·retry PC·retry layout을 바꾼 대조군 6개를 독립
+검사기가 거부했다. 이는 trace/ELF byte 모델 변조이며 변경 RTL 실행은 아니다.
+`out/rva23/compressed_lrsc_contract/report.json`과 `--check`가 현재 RTL/model,
+같은 ELF·Sail·assembly·trace·로그·helper의 해시를 확인한다. 이 유한 진행성
+검사는 보편적 liveness, 다른 master의 지속적인 간섭이나 공정성을 증명하지 않는다.
+
 ### RV64C 메모리의 오프셋 필드와 바이트 관찰
 
 기준은 [C 2.0의 load/store](https://docs.riscv.org/reference/isa/v20260120/unpriv/c-st-ext.html)다.
