@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zfa", "F", "D"],
+    "report": "out/rva23/zfa_contract/report.json",
+    "behavior": "1447 native H/V probes of 15 RV64 S/D Zfa forms with identical Sail ELF per format and independent bit/rational expectations. All 32 FLI constants, NaN and signed zero, static/dynamic rounding, FCVTMOD modular data and ordinary FCVT.W.D RTZ flags, accumulated flags and 45 rejecting trace controls. Optional H/Q/RV32 forms, reserved rm and all scheduling/permission combinations separate."
+  },
+  {
     "requirements": ["F", "D", "H", "Ss1p13"],
     "report": "out/rva23/fp_permission_matrix/report.json",
     "behavior": "880 native H/V probes: 11 FP arithmetic/FMA/memory/move/CSR classes times host/guest FS values 0..3 in M/HS/VS/U/VU, with identical Sail ELF per mode. Exact FS-Off illegal traps, no denied-state changes, and required host/guest Dirty propagation for actual FP state changes; imprecise Dirty on non-writers allowed. Delegation, paging faults and scheduling combinations separate."

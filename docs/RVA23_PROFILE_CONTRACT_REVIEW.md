@@ -32,6 +32,33 @@
 
 ## 추가한 경계 사례
 
+### Zfa의 상수·반올림·조용한 비교와 모듈러 변환
+
+기준은 [Zfa 1.0](https://docs.riscv.org/reference/isa/v20260120/unpriv/zfa.html)이다.
+`scripts/run_zfa_contract.py`는 RV64 S/D에서 필요한 15형식을 전체 H/V
+SoC와 Sail에 포맷별 같은 ELF로 실행한다. Python의 비트·유리수 모델로
+독립 기대값을 계산하고 실제 operand, 목적지 writeback과 `fflags`를 검사한다.
+각 목적지는 기대값의 비트 보수로 미리 채워 결과 갱신도 관찰한다.
+
+| 형식 | 실행 검사 |
+|---|---|
+| FLI.S/D | 인덱스 0~31 전부, 포맷별 최소 양의 정규수, infinity·canonical NaN, flags 보존 |
+| FMINM/FMAXM.S/D | 어느 입력이든 NaN이면 canonical NaN, sNaN의 NV, ±0의 선택과 잘못된 S boxing |
+| FROUND/FROUNDNX.S/D | 정적·동적 5개 반올림 모드, signed zero·무한대·NaN, NX를 올리는 형식과 올리지 않는 형식 구분 |
+| FLTQ/FLEQ.S/D | qNaN에서는 false이며 NV 없음, sNaN에서는 NV, signed zero와 boxing |
+| FCVTMOD.W.D | RTZ로 자른 무한 정밀 정수의 low 32-bit를 sign extend. NaN/무한대 결과 0, flags는 일반 FCVT.W.D RTZ와 동일하게 검사 |
+
+S 724개·D 723개, 총 1,447개 probe와 같은 ELF의 Sail/RTL 이벤트
+32,781건이 일치했다. 초기 flags를 누적하며 반올림을 사용하지 않는 형식은
+예약된 `frm` 값의 영향도 받지 않는지 확인했다. 각 형식의 결과 또는 NX/NV를
+바꾼 trace 대조군 총 45개를 검사기가 거부했다. 이는 변조한 RTL 실행은 아니다.
+보고서는 `out/rva23/zfa_contract/report.json`이며 `--check`가 현재 RTL/model,
+ELF·trace·로그·생성기·참조 모델 해시를 확인하고 독립 검사를 다시 수행한다.
+
+이 유한 검사는 profile의 Zfhmin/Zvfhmin보다 넓은 full half 연산이나 Q,
+RV32 전용 transfer 형식을 요구하지 않는다. 예약 rm의 trap과 모든 FS 권한,
+분기/인터럽트 조합의 증거를 이 검사로 대신하지 않는다.
+
 ### 다섯 모드의 FP 상태 접근과 host/guest Dirty
 
 기준은 [H 1.0의 `vsstatus`](https://docs.riscv.org/reference/isa/v20260120/priv/hypervisor.html)와

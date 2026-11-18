@@ -23,6 +23,8 @@
 
 ## 2. 기능을 증명하는 별도 케이스
 
+- [x] Zfa의 RV64 S/D 15형식을 전체 H/V SoC와 Sail에서 포맷별 같은 ELF로 검증했다. 독립 비트·유리수 기대값과 probe 1,447개, 이벤트 32,781개가 일치하고 결과/NX/NV 변조 대조군 45개를 거부했다. FLI 상수 32개, 정적·동적 5개 반올림 모드, NaN·signed zero·boxing, FCVTMOD의 modulo 결과 및 FCVT.W.D RTZ와 같은 flags를 확인했다. `scripts/run_zfa_contract.py --check`를 통합 감사에 연결했다. 선택 H/Q/RV32 형식과 예약 rm·모든 권한/스케줄 조합은 이 범위에 포함하지 않는다.
+
 - [x] M/HS/VS/U/VU에서 host FS 0~3 × guest FS 0~3 × FP 명령·CSR 11종, 총 880개 probe를 같은 전체 H/V SoC와 Sail에서 모드별 같은 ELF로 검증했다. FS-Off의 정확한 cause 2·EPC·원본 tval과 상태 보존, 실제 상태가 바뀐 허용 명령의 host Dirty 및 guest 실행 시 guest Dirty를 검사했다. `scripts/run_fp_permission_matrix.py --check`를 통합 감사에 연결했다. non-writer의 보수적 Dirty는 허용하며 delegation·변환 fault·전체 스케줄 조합을 대신하지 않는다.
 
 - [x] 실제 분기 복구에서 잘못된 경로의 FP 대표 명령 8개를 dispatch했다. 5개 케이스에서 목표 FP 요청 수락, 4개에서 완료 결과를 관찰했고, 실행 중 FDIV 1개를 flush해 owner가 해제되고 새 정상 FDIV가 완료됐다. FP·정수·메모리·flags와 FS Off→Initial의 데이터 보존이 통과했으며 같은 ELF의 Sail·기본 RTL·관찰 RTL 이벤트 409개가 각각 일치했다. `scripts/run_fp_branch_order.py --check`를 통합 감사에 포함했다.
