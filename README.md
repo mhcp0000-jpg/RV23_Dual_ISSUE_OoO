@@ -4,9 +4,11 @@
 
 ## 코어 사양
 
-현재 작업 트리는 벡터 타이밍 경로를 수정한 뒤 재검증 중이다. 마지막 전체 통합
-감사 통과 기준은 `802e2e1`이며, 아래 Linux·ACT·CoreMark 기록을 수정 중인 RTL의
-새 통과 결과로 간주하지 않는다. [변경 내용과 남은 검증](docs/VECTOR_PIPELINE_REWORK.md)
+현재 작업 트리는 벡터 pipeline·공유 D-cache·성능 개선을 통합한 뒤 재검증 중이다.
+마지막 전체 통합 감사 기준은 `802e2e1`이다. 대규모 ACT와 기존 Linux 기록은
+그 시점의 근거이며, 이후 변경의 directed 회귀와 CoreMark는 아래에 소스별로
+구분한다. 최신 RTL의 Linux 재실행도 진행 중이다.
+[변경 내용과 남은 검증](docs/VECTOR_PIPELINE_REWORK.md)
 
 | 항목 | 현재 구성 |
 | --- | --- |
@@ -73,11 +75,16 @@ CRC와 retired instruction count **2,762,088개**는 같다.
 | RVV, 성능 개선 착수 전 `9332f6c` | 11,525,110 | 0.239658 | 0.867671 |
 | RVV, 반복 preflight/완료 대기 축소 `a49f7a9` | 10,270,851 | 0.268925 | 0.973629 |
 | RVV, 독립 scalar 중첩 `db13e32` | 9,243,916 | 0.298801 | 1.081793 |
-| **RVV, 확장 batch·요청 대기 축소 `009b013`** | **9,054,053** | **0.305066** | **1.104478** |
+| RVV, 확장 batch·요청 대기 축소 `009b013` | 9,054,053 | 0.305066 | 1.104478 |
+| RVV, 2/4/8-byte load 그룹 `672f061` | 9,049,013 | 0.305236 | 1.105093 |
+| **RVV, host Bare fast path `2d123d4`** | **8,784,522** | **0.314427** | **1.138366** |
 
 확장 batch·요청 대기 축소 단계는 이전 단계보다 **2.05% cycle 감소**다.
-성능 개선 착수 전 대비 **21.44% 감소**, 최초 `802e2e1` 대비 **20.55% 감소**다.
-RVV는 O3 scalar 기준보다 여전히 약 **1.85배 많은 cycles**를 사용한다.
+Load grouping의 추가 감소는 **0.0557%**, 그 이후 Bare 단계만의 감소는
+**2.9229%**다. 완료된 10회 기준으로 성능 개선 착수 전 대비 **23.78% 감소**,
+최초 `802e2e1` 대비 **22.92% 감소**다. RVV는 O3 scalar 기준보다 여전히 약
+**1.79배 많은 cycles**를 사용한다. 같은 2회 ELF도
+**1,814,469→1,761,562 cycles, 2.92% 감소**, IPC **0.313612**를 확인했다.
 
 비메모리 vector는 독립 scalar와 중첩한다. FP co-retirement 포트와 system
 wakeup data 전달도 수정했다. Vector 자체는 단일 owner로 순차 실행하고,
@@ -95,13 +102,14 @@ active vector memory element의 요청 전 control bubble을 줄였다.
 cycle 감소를 확인했다. 이 수치는 위 CoreMark 10회 표와 별도 측정이다.
 같은 CoreMark **2회** ELF는 **1,853,468→1,815,477 cycles, 2.05% 감소**,
 IPC **0.304299**이며 10회도 위 표와 같이 완료했다.
-공유 D-cache의 vector 요청은 여전히 원소별 <=64-bit이며, 두 뱅크에 걸친
+공유 D-cache의 vector 경로는 단일 outstanding의 <=64-bit 물리 요청을 사용한다.
+일부 연속 load는 여러 원소를 2/4/8-byte 그룹으로 읽는다. 두 뱅크에 걸친
 128-bit vector memory issue는 다음 작업이다.
 [변경 구조·진단·재현 절차](docs/VECTOR_EXTENSION_BATCH.md)
 
-후속 개발 branch에는 [2/4/8-byte unit-load 그룹](docs/VECTOR_ADAPTIVE_LOAD_GROUPS.md)과
-[host Bare memory-head 최적화](docs/VECTOR_BARE_FASTPATH.md)가 추가돼 있다.
-위 10회 표와 각 후속 후보의 진단·CoreMark 결과는 구분해 기록한다.
+[2/4/8-byte unit-load 그룹](docs/VECTOR_ADAPTIVE_LOAD_GROUPS.md)과
+[host Bare memory-head 최적화](docs/VECTOR_BARE_FASTPATH.md)는 `52e19c4`에서
+주 개발 브랜치에 통합했다. 위 10회 표와 각 단계의 진단·CoreMark 결과를 구분한다.
 
 ## 검증 현황
 

@@ -1,7 +1,8 @@
 # Host Bare memory-head fast path
 
 기준 RTL은 `672f061`이다. `perf/vector-bare-fast` branch의 별도 worktree에서
-개발해 이전 후보의 10회 측정과 source를 보존한다.
+개발해 이전 후보의 10회 측정과 source를 보존했다. `52e19c4`에서 주 개발
+branch `perf/vector-cache-simd`에 통합했다. 측정과 Linux replay는 고정 worktree에서 계속 실행한다.
 
 ## 구현
 
@@ -53,9 +54,15 @@ AXI64 및 기존 2/4/8-byte unit-load grouping은 유지한다. `FAST_BARE=0`으
 명령 수 552,447과 CRC가 같고 IPC는 **0.304468→0.313612**다.
 ELF는 재컴파일하지 않았다.
 
-10회 측정은 진행 중이다. 10회의 직접 비교 기준은 완료된 `009b013`
-RTL이며 unit-load grouping과 Bare fast path의 합산 효과다. 별도로 실행 중인
-`672f061`의 10회가 완료되면 그 결과와 Bare 단계만의 차이도 비교한다.
+같은 10회 ELF도 **8,784,522 cycles**, 명령 수 **2,762,088**, IPC
+**0.314427**, CoreMark/MHz 추정 **1.138366**으로 완료했다. CRC가 같다.
+직접 실행 보고서의 기준 `009b013`은 9,054,053 cycles로, grouping과 Bare
+단계의 합산 감소는 **2.9769%**다. 별도로 완료한 `672f061`의 9,049,013
+cycles와 비교하면 **Bare 단계만 2.9229% 감소**다.
+
+두 완료 실행의 독립 비교는 `compare_completed_vector_coremark.py`에서
+같은 ELF/params/CRC/instruction count, 실제 로그 packet과 executable hash,
+변경된 RTL이 memory head 한 파일뿐임을 확인했다. 새 실행으로 표시하지 않는다.
 [소스와 회귀·진단 근거](evidence/vector_bare_fastpath.json).
 전체 RVA23S64 적합성이나 모든 경합의 증명은 아니다.
 

@@ -6,7 +6,8 @@
 이 단계는 `009b013` RTL을 기준으로 개발 중인 후속 성능 변경이다.
 주 작업 폴더의 10회 측정을 보존하기 위해 별도 worktree
 `C:/rv_workspaces/rv23-vector-memory`, branch `perf/vector-memory-coalesce`에서
-작업한다. 아직 주 개발 branch에 통합하지 않았다.
+작업했다. 아래는 첫 후보의 기록이며 후속 그룹 선택과 Bare fast path는
+`52e19c4`에서 주 개발 branch에 통합했다.
 
 ## 동작
 

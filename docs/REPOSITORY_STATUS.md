@@ -1,6 +1,19 @@
 # RV23 Dual-Issue OoO 작업 정리
 
-2026-11-18 기준. 목표는 기존 `core_from_home` RTL을 재사용한 공식 RVA23S64
+2026-11-20: `52e19c4`에서 vector pipeline/shared D-cache 후속 성능 변경을
+주 개발 branch에 통합했다. 2/4/8-byte 연속 load grouping과 host Bare
+memory-head fast path를 포함한다. 통합된 native 입력 파일은 검증한 고정
+worktree 모델과 바이트 단위로 같고 RTL parse/elaboration도 통과했다.
+주 폴더의 native H/V 실행과 ACT harness smoke도 갱신 후 통과했다.
+
+확인된 최신 CoreMark 2회는 1,761,562 cycles / IPC 0.313612,
+10회는 8,784,522 cycles / IPC 0.314427다. 기존과 동일한 각 ELF다.
+최신 RTL의 Linux 6.14 Supm/vector 재실행은 진행 중이다.
+이후 소스의 부분 회귀와 [성능 기록](VECTOR_BARE_FASTPATH.md)을 아래 과거의
+대규모 ACT·Linux·RV32 release 근거와 구분한다. 전체 RVA23S64 완료 판정은 남아 있다.
+
+아래 광범위 회귀 기록은 2026-11-18의 `802e2e1` 기준이다.
+목표는 기존 `core_from_home` RTL을 재사용한 공식 RVA23S64
 구현이다. 필수 확장 58개와 RV64I 기본 ISA의 경로는
 [구현 맵](../config/rva23_implementation_map.json)에 기록한다. 전체 프로파일
 판정은 남은 규격 조항의 실행 근거와 통합 재검증이 필요하다.
