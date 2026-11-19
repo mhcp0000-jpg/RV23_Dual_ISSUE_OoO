@@ -23,6 +23,7 @@ module rv_vector_memory_engine_tb;
   logic invalidate=0;
   byte unsigned memory[1048576];
   int cycle=0,delay_q=0,accesses=0;
+  int coalesced_reads=0,coalesced_checkpoint=0;
   logic [63:0] expected,expected_tval;
   int fd,fields,count=0,kind,expected_exception,expected_cause;
   string path;
@@ -61,6 +62,7 @@ module rv_vector_memory_engine_tb;
         if(delay_q==1)mem_response<=1;
       end
       if(mem_valid && mem_ready)begin
+        if(dut.u_memory.coalesced_q)coalesced_reads++;
         if(mem_address<32'h80000000 || mem_address>=32'h80100000)$fatal(1,"out of SRAM");
         if(mem_strobe!==8'(((9'b1<<(1<<mem_size))-1)<<mem_address[2:0]))$fatal(1,"invalid element strobe");
         if((mem_address & ((32'b1<<mem_size)-1))!=0)$fatal(1,"unaligned physical element");
@@ -92,6 +94,12 @@ module rv_vector_memory_engine_tb;
         end
         7:for(int lane=0;lane<8;lane++)memory[a[19:0]+20'(lane)]=b[lane*8+:8];
         8:begin invalidate=1;@(negedge clk);invalidate=0;end
+        9:begin pmpcfg[instruction[2:0]]=a[7:0];pmpaddr[instruction[2:0]]=b[61:0];end
+        10:begin
+          if(b[0])coalesced_checkpoint=coalesced_reads;
+          else if(coalesced_reads-coalesced_checkpoint!=int'(a))
+            $fatal(1,"coalesced read count packet%0d got%0d expected%0d",count,coalesced_reads-coalesced_checkpoint,a);
+        end
         default:begin
           request=1;do @(posedge clk);while(!ready);
           @(negedge clk);request=0;wait(response);#1;

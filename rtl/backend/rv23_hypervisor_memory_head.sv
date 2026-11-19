@@ -9,7 +9,7 @@
 // virtual page, PMP, cache-line and bank boundaries. No atomicity is promised.
 module rv23_hypervisor_memory_head #(
   parameter int unsigned ADDRESS_WIDTH=64,
-  parameter bit HAS_MMU=1,HAS_SSNPM=1,NATURAL_ACCESS=1
+  parameter bit HAS_MMU=1,HAS_SSNPM=1,NATURAL_ACCESS=1,COALESCE_READ=0,FAST_BARE=1
 )(
   input logic clk_i,rst_ni,invalidate_i,
   input logic request_valid_i,
@@ -22,6 +22,11 @@ module rv23_hypervisor_memory_head #(
   input logic [1:0] pmm_i=0,
   input logic pointer_mask_disable_i=0,
   input logic require_idempotent_i=0,
+  // Optional vector unit-load widening; ineligible words retain element size.
+  input logic coalesce_read_i=0,
+  input logic [2:0] coalesce_size_i=3,
+  output logic response_coalesced_o,
+  output logic [2:0] response_coalesced_size_o,
   input rv_ooo_pkg::privilege_e privilege_i,
   input logic [63:0] mstatus_i,satp_i,menvcfg_i,senvcfg_i,
   input logic [7:0][7:0] pmpcfg_i,
@@ -66,7 +71,9 @@ module rv23_hypervisor_memory_head #(
   logic execute_q,implicit_q;
   logic [63:0] guest_q,trans_guest;
   logic trans_implicit,physical_sram,physical_rom,physical_mmio;
-  logic require_idempotent_q;
+  logic require_idempotent_q,coalesce_q,coalesced_q,coalesce_pmp_allow;
+  logic [2:0] coalesce_size_q;
+  logic bare_request,bare_q;
   privilege_e privilege_q;
   logic [5:0] cause_q;
   logic trans_ready,trans_valid,trans_fault,pmp_allow;
@@ -97,9 +104,15 @@ module rv23_hypervisor_memory_head #(
     .pmpcfg_i,.pmpaddr_i,.check_valid_i(1'b1),.check_address_i(full_pmp_address),
     .check_size_i(size_q),.check_access_i(pmp_access),.check_privilege_i(pmp_privilege),
     .allow_o(full_pmp_allow),.matched_o(),.fault_address_o());
+  if(COALESCE_READ)begin:g_coalesce
+    rv_pmp #(.PADDR_WIDTH(ADDRESS_WIDTH),.CHECK_PORTS(1)) u_coalesce_pmp(
+    .pmpcfg_i,.pmpaddr_i,.check_valid_i(coalesce_q),.check_address_i(full_pmp_address),
+    .check_size_i(coalesce_size_q),.check_access_i(pmp_access),.check_privilege_i(pmp_privilege),
+    .allow_o(coalesce_pmp_allow),.matched_o(),.fault_address_o());
+  end else assign coalesce_pmp_allow=0;
   if(HAS_MMU) begin:g_translation
     rv23_translation_port u_translate(.clk_i,.rst_ni,.invalidate_i,
-      .req_valid_i(state_q==TRANSLATE),.req_ready_o(trans_ready),.req_address_i(byte_va),
+      .req_valid_i(state_q==TRANSLATE && !bare_q),.req_ready_o(trans_ready),.req_address_i(byte_va),
       .req_access_i(write_q?2'd2:(execute_q?2'd3:2'd1)),.req_privilege_i(privilege_q),
       .req_virtual_i(virtual_i),.req_sum_i(mstatus_i[18]),.req_mxr_i(mstatus_i[19]),
       .req_hs_mxr_i(hs_mxr_i),.req_pbmt_enable_i(menvcfg_i[62]),.req_guest_pbmt_enable_i(guest_pbmt_enable_i),
@@ -118,7 +131,13 @@ module rv23_hypervisor_memory_head #(
     assign ptw_valid_o=0;assign ptw_device_o=0;assign ptw_address_o=0;assign ptw_response_ready_o=0;
   end
   assign request_ready_o=state_q==IDLE;
+  // Match the translation port's host Bare condition. Virtual accesses still
+  // use its guest/G-stage checks even when VSATP/HGATP select Bare.
+  assign bare_request=FAST_BARE && (!HAS_MMU ||
+    (!virtual_i && (privilege_i==PRIV_M || satp_i[63:60]==0)));
   assign response_valid_o=state_q==RESULT;
+  assign response_coalesced_o=coalesced_q;
+  assign response_coalesced_size_o=coalesce_size_q;
   assign response_exception_o=exception_q;assign response_cause_o=cause_q;
   assign response_tval_o=fault_address_q;
   assign response_guest_address_o=guest_q;assign response_implicit_guest_access_o=implicit_q;
@@ -129,7 +148,8 @@ module rv23_hypervisor_memory_head #(
     (translated_q>=32'h10000000 && translated_q<32'h10001000);
   always_comb begin
     response_data_o=result_q;
-    if(!write_q) case(size_q)
+    if(coalesced_q)response_data_o=result_q & (64'hffffffffffffffff>>(64-(8<<coalesce_size_q)));
+    if(!write_q && !coalesced_q) case(size_q)
       0:response_data_o=unsigned_q?{56'b0,result_q[7:0]}:{{56{result_q[7]}},result_q[7:0]};
       1:response_data_o=floating_q?{48'hffffffffffff,result_q[15:0]}:
           (unsigned_q?{48'b0,result_q[15:0]}:{{48{result_q[15]}},result_q[15:0]});
@@ -141,9 +161,9 @@ module rv23_hypervisor_memory_head #(
   assign memory_valid_o=state_q==MEMORY_REQUEST;
   assign memory_write_o=write_q;
   assign memory_device_o=physical_device_q[index_q];
-  assign memory_size_o=natural_q?size_q:3'd0;
+  assign memory_size_o=coalesced_q?coalesce_size_q:(natural_q?size_q:3'd0);
   assign memory_address_o=physical_q[index_q];
-  assign byte_mask=(9'b1<<(1<<size_q))-1'b1;
+  assign byte_mask=(9'b1<<(1<<(coalesced_q?coalesce_size_q:size_q)))-1'b1;
   assign memory_strobe_o=(natural_q?byte_mask[7:0]:8'b1)<<memory_address_o[2:0];
   assign memory_data_o=(natural_q?operand_q:64'(operand_q[index_q*8+:8]))<<(memory_address_o[2:0]*8);
   assign memory_response_ready_o=state_q==MEMORY_RESPONSE;
@@ -156,6 +176,9 @@ module rv23_hypervisor_memory_head #(
       execute_q<=0;guest_q<=0;implicit_q<=0;
       translated_pbmt_q<=0;
       require_idempotent_q<=0;
+      coalesce_q<=0;coalesced_q<=0;
+      coalesce_size_q<=0;
+      bare_q<=0;
     end else case(state_q)
       IDLE:if(request_valid_i) begin
         base_q<=masked;operand_q<=operand_i;size_q<=size_i;index_q<=0;
@@ -163,11 +186,27 @@ module rv23_hypervisor_memory_head #(
         privilege_q<=privilege_i;exception_q<=0;cause_q<=0;result_q<=0;
         execute_q<=execute_permission_i;guest_q<=0;implicit_q<=0;
         require_idempotent_q<=require_idempotent_i;
+        coalesce_q<=COALESCE_READ && coalesce_read_i && !write_i && !execute_permission_i &&
+          coalesce_size_i>size_i && coalesce_size_i<=3 &&
+          (masked & ((64'b1<<coalesce_size_i)-1))==0;
+        coalesce_size_q<=coalesce_size_i;
+        coalesced_q<=0;
+        bare_q<=bare_request;
         natural_q<=NATURAL_ACCESS && (address_i & ((64'b1<<size_i)-1))==0;
         fault_address_q<=masked;state_q<=TRANSLATE;
+        if(bare_request)begin
+          translated_q<=masked[31:0];translated_pbmt_q<=0;state_q<=CHECK;
+          if(masked[63:32]!=0)begin exception_q<=1;cause_q<=write_i?6'd7:6'd5;state_q<=RESULT;end
+        end
         if(size_i>3) begin exception_q<=1;cause_q<=write_i?6'd7:6'd5;state_q<=RESULT;end
       end
-      TRANSLATE:if(trans_ready) state_q<=WAIT_TRANSLATE;
+      TRANSLATE:if(bare_q)begin
+        // Split accesses still preflight every byte in the original order.
+        translated_q<=byte_va[31:0];translated_pbmt_q<=0;state_q<=CHECK;
+        if(byte_va[63:32]!=0)begin
+          exception_q<=1;cause_q<=write_q?6'd7:6'd5;fault_address_q<=byte_va;state_q<=RESULT;
+        end
+      end else if(trans_ready) state_q<=WAIT_TRANSLATE;
       WAIT_TRANSLATE:if(trans_valid) begin
         translated_q<=trans_address;state_q<=CHECK;
         translated_pbmt_q<=trans_pbmt;
@@ -187,6 +226,12 @@ module rv23_hypervisor_memory_head #(
         end else begin
           physical_q[index_q]<=translated_q;
           physical_device_q[index_q]<=translated_pbmt_q!=0 || !physical_sram;
+          // A complete normal SRAM group must pass its own full-width PMP
+          // check. Otherwise retain the original fault and transaction size.
+          if(coalesce_q && index_q==0 && natural_q && physical_sram &&
+             translated_pbmt_q==0 && (translated_q & ((32'b1<<coalesce_size_q)-1))==0 &&
+             full_pmp_allow && coalesce_pmp_allow)
+            coalesced_q<=1;
           // A naturally aligned <=8-byte access cannot cross a 4 KiB page,
           // an 8-byte bus word or these aligned PMA regions. Translation
           // permissions/PBMT are uniform within that page. Full-width PMP
@@ -221,6 +266,10 @@ module rv23_hypervisor_memory_head #(
       $stable({memory_write_o,memory_device_o,memory_size_o,memory_address_o,memory_data_o,memory_strobe_o}));
   assert property(@(posedge clk_i) disable iff(!rst_ni)
     response_valid_o && !response_ready_i |=> response_valid_o &&
-      $stable({response_data_o,response_exception_o,response_cause_o,response_tval_o,response_guest_address_o,response_implicit_guest_access_o}));
+      $stable({response_data_o,response_exception_o,response_cause_o,response_tval_o,response_guest_address_o,response_implicit_guest_access_o,response_coalesced_o,response_coalesced_size_o}));
+  assert property(@(posedge clk_i) disable iff(!rst_ni)
+    memory_valid_o && coalesced_q |-> !memory_write_o && !memory_device_o &&
+      (memory_address_o & ((32'b1<<memory_size_o)-1))==0 &&
+      memory_size_o>size_q && memory_size_o<=3 && natural_q);
 `endif
 endmodule

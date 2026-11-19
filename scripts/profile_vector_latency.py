@@ -6,6 +6,9 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--baseline-dir',default='out/performance/vector_fastpath_before')
 parser.add_argument('--output-dir',default='out/performance/vector_latency')
 parser.add_argument('--include-extensions',action='store_true')
+parser.add_argument('--include-small-loads',action='store_true')
+parser.add_argument('--include-short-vl',action='store_true')
+parser.add_argument('--expect-improved',nargs='+')
 args=parser.parse_args()
 folder=ROOT/args.output_dir;folder.mkdir(parents=True,exist_ok=True)
 before=json.loads((ROOT/args.baseline_dir/'model.json').read_bytes())
@@ -25,6 +28,26 @@ cases=[
     ('vslidedown',['vslidedown.vi v8,v16,1'],['vsetivli a2,2,e64,m1,tu,mu','vmv.v.i v16,2'],
      ['vmv.x.s t0,v8','li t1,2','bne t0,t1,fail']),
 ]
+if args.include_small_loads:
+    for width,length in [(8,16),(16,8)]:
+        cases.append((f'vle{width}',[f'vle{width}.v v8,(s0)'],[f'vsetivli a2,{length},e{width},m1,tu,mu'],
+            ['vmv.x.s t0,v8','li t1,123','bne t0,t1,fail']))
+    # Check all 128 loaded bits through vector store -> scalar load, outside
+    # the timed interval. A correct first element alone is insufficient.
+    for i,(name,body,setup,checks) in enumerate(cases):
+        if name in ['vle8','vle16','vle32']:
+            checks=checks+[f'vse{name[3:]}.v v8,(s2)']
+            for offset in [0,8]:checks += [f'ld t0,{offset}(s0)',f'ld t1,{offset}(s2)','bne t0,t1,fail']
+            cases[i]=(name,body,setup,checks)
+if args.include_short_vl:
+    assert args.include_small_loads
+    for width,lmul,offset in [(8,'mf8',0),(16,'mf4',0),(16,'mf4',4)]:
+        name=f'vle{width}vl2'+('off4' if offset else '')
+        size=width*2//8
+        cases.append((name,[f'vle{width}.v v8,(s3)'],
+            [f'vsetivli a2,2,e{width},{lmul},tu,mu','la s3,short_data',f'addi s3,s3,{offset}'],
+            [f'vse{width}.v v8,(s2)',f'{"lhu" if size==2 else "lw"} t0,0(s3)',
+             f'{"lhu" if size==2 else "lw"} t1,0(s2)','bne t0,t1,fail']))
 if args.include_extensions:
     for width,source_width,lmul,length in [(16,8,'mf2',8),(32,16,'mf2',4),(64,32,'mf2',2)]:
         for signed in [False,True]:
@@ -36,12 +59,15 @@ if args.include_extensions:
 lines=['.section .text.init,"ax"','.option norvc','.option norelax','.globl _start','_start:',
        'la t0,fail','csrw mtvec,t0','li t0,0x02000000','sw zero,0(t0)',
        'li t0,0x600','csrs mstatus,t0','la s0,data','li s1,0x10000000']
+if args.include_small_loads:lines+=['la s2,output_data']
 for index,(name,body,setup,checks) in enumerate(cases):
     lines += [*setup,f'call {name}','csrr s7,mcycle',f'call {name}','csrr s8,mcycle',
               'sub s8,s8,s7',*checks,f'li t0,0x{0x564c4100+index:08x}','sw t0,12(s1)','sw s8,12(s1)']
 lines += ['sw zero,20(s1)','halt: j halt','fail: li t0,1','li t1,0x10000000','sw t0,20(t1)','j halt']
 for name,body,setup,checks in cases:lines += ['.balign 64',name+':','.rept 128',*body,'.endr','ret']
 lines += ['.section .data,"aw"','.balign 64','data: .dword 123,456']
+if args.include_small_loads:lines+=['.balign 64','output_data: .zero 16']
+if args.include_short_vl:lines+=['.balign 64','short_data: .dword 0x112233445566007b,456']
 source=folder/'test.S';source.write_text('\n'.join(lines)+'\n',encoding='utf-8')
 elf=folder/'test.elf';linker='scripts/reference/upstream_htif.ld'
 inputs=source_inputs([source.relative_to(ROOT).as_posix(),linker,'tb/fixtures/bootrom/bootrom_host_jump64.hex'])
@@ -61,7 +87,9 @@ with Simulator() as sim:
 assert after['inputs']==source_inputs(after['inputs']) and inputs==source_inputs(inputs)
 old,new=results['before']['cycles'],results['after']['cycles']
 assert new['scalar_add']==old['scalar_add']
-if args.include_extensions:
+if args.expect_improved:
+    for name in args.expect_improved:assert name in new and new[name]<old[name],(name,old.get(name),new.get(name))
+elif args.include_extensions:
     assert new['vadd']==old['vadd'] and new['vluxei64']<old['vluxei64']
     for width in [16,32,64]:
         for op in ['vzext','vsext']:assert new[op+str(width)]<old[op+str(width)]

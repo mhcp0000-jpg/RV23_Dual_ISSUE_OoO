@@ -99,6 +99,10 @@ IPC **0.304299**이며 10회도 위 표와 같이 완료했다.
 128-bit vector memory issue는 다음 작업이다.
 [변경 구조·진단·재현 절차](docs/VECTOR_EXTENSION_BATCH.md)
 
+후속 개발 branch에는 [2/4/8-byte unit-load 그룹](docs/VECTOR_ADAPTIVE_LOAD_GROUPS.md)과
+[host Bare memory-head 최적화](docs/VECTOR_BARE_FASTPATH.md)가 추가돼 있다.
+위 10회 표와 각 후속 후보의 진단·CoreMark 결과는 구분해 기록한다.
+
 ## 검증 현황
 
 | 검사 | 확인한 결과 |
