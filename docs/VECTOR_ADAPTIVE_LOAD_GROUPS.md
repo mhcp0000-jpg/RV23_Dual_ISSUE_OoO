@@ -1,8 +1,8 @@
 # Adaptive vector unit-load groups
 
 `001ce80`의 8-byte 전용 후보에서 2/4/8-byte 그룹을 선택하도록 확장했다.
-현재 작업 branch는 `perf/vector-memory-coalesce`이며 주 개발 branch에는
-아직 통합하지 않았다. [첫 후보 기록](VECTOR_WORD_LOAD_COALESCING.md)을 보존한다.
+`perf/vector-memory-coalesce`에서 개발했고 `52e19c4`에서 주 개발 branch
+`perf/vector-cache-simd`에 통합했다. [첫 후보 기록](VECTOR_WORD_LOAD_COALESCING.md)을 보존한다.
 
 ## 구현과 선택 근거
 
