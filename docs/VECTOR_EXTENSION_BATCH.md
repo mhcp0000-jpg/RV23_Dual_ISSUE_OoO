@@ -1,0 +1,85 @@
+# Vector extension batches and memory issue
+
+기준 소스는 `bdc6f37`이다. 이번 단계는 기존 128-bit 정수 pipeline을
+부호·제로 확장에도 사용하고, active vector memory element의 요청 전에
+소모하던 control bubble을 제거한다. 기존 CoreMark ELF를 재컴파일하지 않는다.
+
+## 구현
+
+- `rv_vector_engine`: `vzext`/`vsext`도 packed issue한다. 좁은 source 원소를
+  destination SEW의 slot에 배치한 뒤 operand register에 저장한다.
+  SEW16/32/64와 합법적인 VF2/4/8의 여섯 조합을 고정 bit slice로 연결한다.
+  Destination row 경계가 batch를 제한하므로 더 좁은 source도 해당 row를
+  넘지 않는다. 기존 mask, vstart, VL 및 write mask가 유지된다.
+- `rv_vector_simd_alu`: 두 64-bit lane에서 고정 배선과 sign-bit 복제로
+  확장한다. 모든 element ALU에 동적 extension 폭 계산을 복제하지 않는다.
+  SEW16은 최대 8개, SEW32는 4개, SEW64는 2개 원소를 한 batch로 처리한다.
+  연속 batch의 issue interval은 1사이클이다. 명령 간 issue interval이나
+  전체 명령 latency가 1사이클이라는 뜻은 아니다.
+- Memory: active element의 주소와 데이터가 준비된 `ELEMENT`에서 head가
+  ready이면 즉시 요청을 수락하고 `MEM_WAIT`로 간다. Backpressure 때는
+  기존 `MEM_ISSUE`에서 같은 요청을 유지한다. Segment의 후속 field와
+  translation/PMP/PMA, fault-only-first, precise fault 경로는 유지한다.
+
+## 성능 진단
+
+같은 진단 ELF를 변경 전·후 native full-core 모델에 실행했다. 각 함수를
+한 번 워밍한 후 128회 명령의 두 번째 호출을 측정했다. 아래 수치는
+frontend/call/CSR 비용을 포함하며 독립 실행 유닛 latency가 아니다.
+
+| 경로 | 변경 전 cycles | 변경 후 cycles | 감소율 |
+|---|---:|---:|---:|
+| Scalar ADD | 148 | 148 | 0.00% |
+| VSET | 783 | 783 | 0.00% |
+| VADD / VSLIDEDOWN | 1,295 | 1,295 | 0.00% |
+| VLE64 | 3,285 | 3,029 | 7.79% |
+| VLE32 | 5,385 | 4,873 | 9.51% |
+| VLUXEI64 | 3,298 | 3,046 | 7.64% |
+| VZEXT16 / VSEXT16 | 2,191 | 1,295 | 40.89% |
+| VZEXT32 | 1,680 | 1,296 | 22.86% |
+| VSEXT32 | 1,679 | 1,295 | 22.87% |
+| VZEXT64 / VSEXT64 | 1,423 | 1,295 | 9.00% |
+
+같은 **CoreMark 2회 ELF**의 cycles는 **1,853,468→1,815,477**로
+**2.05% 감소**했고 IPC는 **0.298061→0.304299**다. Retired instructions는
+양쪽 552,447개이며 CRC `[e9f5, e714, 1fd7, 8e3a]`가 같다.
+10회 측정은 실행 중이며 이 2회 값을 10회 결과로 대신하지 않는다.
+완료된 진단과 회귀의 소스 해시 근거는
+[evidence snapshot](evidence/vector_extension_batch.json)에 보존한다.
+
+## 変更箇所の確認
+
+- SIMD: 독립 값 계산과 대조한 7,808 cases / 57 forms.
+- Integer owner: 3,041 packets. 합법적인 SEW/LMUL/VF, mask, vstart,
+  tail, group/row 경계, 허용된 source/destination overlap 및
+  불법 fractional LMUL의 거부를 포함한다.
+- Pipeline: extension 248 issues, 8 batches의 8사이클 연속 issue와
+  8원소 병렬 처리, pending RF write의 completion 전 drain을 관찰했다.
+- Memory owner: 9,119 packets / 2,756 physical bytes.
+
+Native M/HS/VS H/V 통합, 같은 ELF의 scalar/vector overlap 145 reference
+events, non-memory vector 중 PLIC interrupt의 retire 경계, vector memory 중
+PLIC claim 순서, FENCE·atomic·CBO.ZERO·debug 동시 접근도 변경 후 모델에서
+통과했다. Zero-data system wake 대조군은 기존 load-base assertion에서
+실패했다. 84,348개 paired latency probes / 231 forms와 secret-dependent
+VCLZ 대조군도 통과했다. FP owner 235 packets도 회귀했다.
+
+위 component 확인은 이번 변경 범위의 회귀이며 전체 RVA23S64 적합성이나
+물리 타이밍 sign-off를 대신하지 않는다. 실제 Fmax/STA는 측정하지 않았다.
+
+## 재현 및 다음 병목
+
+```powershell
+python scripts/profile_vector_latency.py --baseline-dir out/performance/vector_batch_before --output-dir out/performance/vector_batch_latency --include-extensions
+python scripts/compare_vector_overlap_performance.py --coremark-iterations 10 --baseline-dir out/performance/vector_batch_before --output-dir out/performance/vector_batch --before-commit bdc6f37 --expected-changes rtl/backend/rv_vector_engine.sv rtl/backend/rv_vector_simd_alu.sv
+```
+
+이 비교에는 로컬에 보존된 변경 전 executable/model/report가 필요하다.
+일반 기능 검사는 `run_vector_simd_checks.py`, `run_vector_integer_engine_checks.py`,
+`run_vector_pipeline_checks.py`, `run_vector_memory_engine_checks.py`로 실행한다.
+
+현재 vector memory는 공유 D-cache를 통과하지만 원소 단위 <=64-bit 요청과
+단일 pending memory transaction을 사용한다. 다음 성능 작업은 contiguous
+load/store의 bank 활용과 요청·응답 중첩이다. 사용자가 제안한 통합
+Permutation/Load/Store unit 및 hazard scoreboard, vector-vector OoO,
+128-bit vector memory issue는 이번 변경에 포함되지 않는다.

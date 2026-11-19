@@ -1,9 +1,14 @@
 """Compare unchanged full-core vector probes with the saved pre-fastpath binary."""
-import json,re
+import argparse,json,re
 from sim_runner import ROOT,Simulator,GCC,dump,sha,source_inputs
 
-folder=ROOT/'out/performance/vector_latency';folder.mkdir(parents=True,exist_ok=True)
-before=json.loads((ROOT/'out/performance/vector_fastpath_before/model.json').read_bytes())
+parser=argparse.ArgumentParser()
+parser.add_argument('--baseline-dir',default='out/performance/vector_fastpath_before')
+parser.add_argument('--output-dir',default='out/performance/vector_latency')
+parser.add_argument('--include-extensions',action='store_true')
+args=parser.parse_args()
+folder=ROOT/args.output_dir;folder.mkdir(parents=True,exist_ok=True)
+before=json.loads((ROOT/args.baseline_dir/'model.json').read_bytes())
 after=json.loads((ROOT/'out/rva23/hypervisor_integration/model.json').read_bytes())
 assert before['params']==after['params']
 assert after['inputs']==source_inputs(after['inputs'])
@@ -20,6 +25,14 @@ cases=[
     ('vslidedown',['vslidedown.vi v8,v16,1'],['vsetivli a2,2,e64,m1,tu,mu','vmv.v.i v16,2'],
      ['vmv.x.s t0,v8','li t1,2','bne t0,t1,fail']),
 ]
+if args.include_extensions:
+    for width,source_width,lmul,length in [(16,8,'mf2',8),(32,16,'mf2',4),(64,32,'mf2',2)]:
+        for signed in [False,True]:
+            name=('vsext' if signed else 'vzext')+str(width)
+            value=-(1<<(source_width-1)) if signed else 1<<(source_width-1)
+            cases.append((name,[('vsext' if signed else 'vzext')+'.vf2 v8,v16'],
+                [f'vsetivli a2,{length},e{source_width},{lmul},tu,mu',f'li t0,{1<<(source_width-1)}','vmv.v.x v16,t0',f'vsetivli a2,{length},e{width},m1,tu,mu'],
+                ['vmv.x.s t0,v8',f'li t1,{value}','bne t0,t1,fail']))
 lines=['.section .text.init,"ax"','.option norvc','.option norelax','.globl _start','_start:',
        'la t0,fail','csrw mtvec,t0','li t0,0x02000000','sw zero,0(t0)',
        'li t0,0x600','csrs mstatus,t0','la s0,data','li s1,0x10000000']
@@ -47,7 +60,13 @@ with Simulator() as sim:
         results[label]=dict(model=model,run=run,cycles=dict(zip([c[0] for c in cases],words[1::2])))
 assert after['inputs']==source_inputs(after['inputs']) and inputs==source_inputs(inputs)
 old,new=results['before']['cycles'],results['after']['cycles']
-assert new['scalar_add']==old['scalar_add'] and new['vadd']<old['vadd'] and new['vluxei64']<old['vluxei64']
+assert new['scalar_add']==old['scalar_add']
+if args.include_extensions:
+    assert new['vadd']==old['vadd'] and new['vluxei64']<old['vluxei64']
+    for width in [16,32,64]:
+        for op in ['vzext','vsext']:assert new[op+str(width)]<old[op+str(width)]
+else:
+    assert new['vadd']<old['vadd'] and new['vluxei64']<old['vluxei64']
 measured=[dict(name=c[0],operations=128,before_cycles=old[c[0]],after_cycles=new[c[0]],
     cycle_reduction_percent=100*(old[c[0]]-new[c[0]])/old[c[0]]) for c in cases]
 dump(folder/'report.json',dict(passed=True,scope='Warmed full-core probes, 128 vector instructions; includes frontend/call/CSR overhead, not isolated FU latency or CoreMark',

@@ -55,7 +55,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_simd_alu.sv",
-      "sha256": "c5013ae6778876881c0654383d358bea67007f0bdc1910e784b42b2a950f6ca4",
+      "sha256": "bd88543682586faa6f1e66a3976c2f3942ac204920ac3214711d459599fb8486",
       "origin": "new"
     },
     {
@@ -85,7 +85,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_engine.sv",
-      "sha256": "aa350b7751f0d2dc425a7eb33a6269199823f8a5c9aaf3f624653f4ad97882f1",
+      "sha256": "5a9321107c1c5d779fdab87ce9492b4dfd512c09b79f64fc9a69984ab8738ca4",
       "origin": "new"
     },
     {

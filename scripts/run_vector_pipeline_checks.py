@@ -21,8 +21,11 @@ assert issues>=64 and max_add>=8 and max_write>=8
 packed=re.search(r'VECTOR_SIMD parallel=16/8/4/2 batches=(\d+)/(\d+)/(\d+)/(\d+) full_writes=(\d+)',log)
 assert packed and all(int(value)>=8 for value in packed.groups())
 assert f'instruction packets={prior["instructions"]}' in log
+extension=re.search(r'VECTOR_EXT issues=(\d+) max_run=(\d+) parallel=(\d+)',log)
+assert extension and int(extension[2])>=8 and int(extension[3])>=8
 dump(ROOT/'out/rva23/vector_pipeline.json',dict(passed=True,scope='Component arithmetic stream and consecutive pipeline/complete-drain witnesses; not physical timing or native-core sign-off',
     model=model,run=run,prior_report_sha256=sha(ROOT/'out/rva23/vector_integer_engine/report.json'),vectors_sha256=sha(vectors),
     driver_sha256=sha(__file__),issues=issues,writes=writes,max_add=max_add,max_write=max_write,
-    parallel_elements=[16,8,4,2],packed_batch_runs=list(map(int,packed.groups()))))
+    parallel_elements=[16,8,4,2],packed_batch_runs=list(map(int,packed.groups())),
+    extension=dict(zip(['issues','max_run','parallel'],map(int,extension.groups())))))
 print('PASS 128-bit vector II=1, SEW8/16/32/64 parallelism 16/8/4/2, drained completion',issues,writes,max_add,max_write)

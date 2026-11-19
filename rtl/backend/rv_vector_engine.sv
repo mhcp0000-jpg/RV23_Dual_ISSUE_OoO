@@ -110,7 +110,7 @@ module rv_vector_engine #(
   logic packed_integer;
   int unsigned packed_capacity,packed_count;
   logic [15:0] packed_active;
-  logic [127:0] packed_b,int_packed_a_q,int_packed_b_q,int_packed_c_q,simd_result;
+  logic [127:0] packed_a,packed_b,int_packed_a_q,int_packed_b_q,int_packed_c_q,simd_result;
   logic [15:0] int_packed_carry_q,simd_saturated;
   logic [127:0] packed_result,packed_write_mask,int_wide_result_q,int_write_mask_q;
   logic int_carry_q,int_wide_q;
@@ -183,6 +183,7 @@ module rv_vector_engine #(
       .result_o(),.saturated_o(),.supported_o(alu_supported[w]));
   end
   rv_vector_simd_alu u_simd(.operation_i(int_operation_q),.sew_size_i(int_meta_q.sew),.rounding_i(int_rounding_q),
+    .extension_factor_i(int_extension_q),
     .a_i(int_packed_a_q),.b_i(int_packed_b_q),.c_i(int_packed_c_q),.carry_i(int_packed_carry_q),
     .result_o(simd_result),.saturated_o(simd_saturated));
   rv_vector_divider u_integer_divider(.clk_i,.rst_ni,.request_valid_i(state_q==DIV_REQUEST),.request_ready_o(div_ready),
@@ -196,7 +197,8 @@ module rv_vector_engine #(
     .operand_c_i(fp_probe_q?64'b0:read_data[2]),.response_valid_o(fp_valid),.response_ready_i(state_q==FP_WAIT),
     .response_data_o(fp_data),.response_flags_o(fp_flags),.response_exception_o(fp_exception));
   rv23_hypervisor_memory_head #(.ADDRESS_WIDTH(ADDRESS_WIDTH),.HAS_MMU(HAS_MMU),.HAS_SSNPM(HAS_SSNPM)) u_memory(
-    .clk_i,.rst_ni,.invalidate_i,.request_valid_i(state_q==MEM_ISSUE),.request_ready_o(mem_ready),
+    .clk_i,.rst_ni,.invalidate_i,.request_valid_i(state_q==MEM_ISSUE ||
+      (state_q==ELEMENT && decoded.memory && index_q<effective_length && element_active)),.request_ready_o(mem_ready),
     .address_i(mem_address),.operand_i(read_data[2]),.size_i({1'b0,mem_size}),
     .write_i(decoded.store),.unsigned_i(1'b1),.floating_i(1'b0),.privilege_i,
     // vstart resumes at the segment boundary and can repeat earlier fields.
@@ -342,7 +344,7 @@ module rv_vector_engine #(
     integer_pipeline=!special_operation && !decoded.scalar_destination;
     integer_divide=operation inside {VI_VDIV,VI_VDIVU,VI_VREM,VI_VREMU};
     packed_integer=integer_pipeline && !integer_divide && !reduction && !widening && !narrowing &&
-      !mask_logic && !(operation inside {VI_VZEXT,VI_VSEXT});
+      !mask_logic;
     read_base[0]=instruction_q[24:20];read_base[1]=instruction_q[19:15];read_base[2]=instruction_q[11:7];
     read_element[0]=index_q;read_element[1]=index_q;read_element[2]=index_q;
     read_size[0]=source2_size;read_size[1]=sew_size;read_size[2]=destination_size;
@@ -392,6 +394,19 @@ module rv_vector_engine #(
     else if(packed_count>effective_length-int'(index_q))packed_count=effective_length-int'(index_q);
     packed_active=0;
     for(int e=0;e<16;e++)packed_active[e]=e<packed_count && (instruction_q[25] || packed_mask[e] || carry_operation);
+    packed_a=read_packed[0];
+    // Dense narrow sources are spread into destination-sized element slots.
+    // Destination row limits also bound the narrower source row. The ALU
+    // receives the real extension factor and applies zero/sign extension.
+    if(operation inside {VI_VZEXT,VI_VSEXT})case({sew_size,extension_factor})
+      4'b0101:for(int e=0;e<8;e++)packed_a[e*16+:16]={8'b0,read_packed[0][e*8+:8]};
+      4'b1001:for(int e=0;e<4;e++)packed_a[e*32+:32]={16'b0,read_packed[0][e*16+:16]};
+      4'b1010:for(int e=0;e<4;e++)packed_a[e*32+:32]={24'b0,read_packed[0][e*8+:8]};
+      4'b1101:for(int e=0;e<2;e++)packed_a[e*64+:64]={32'b0,read_packed[0][e*32+:32]};
+      4'b1110:for(int e=0;e<2;e++)packed_a[e*64+:64]={48'b0,read_packed[0][e*16+:16]};
+      4'b1111:for(int e=0;e<2;e++)packed_a[e*64+:64]={56'b0,read_packed[0][e*8+:8]};
+      default:begin end
+    endcase
     packed_b=read_packed[1];
     if(decoded.scalar_source_used[0] || instruction_q[14:12]==3)case(sew_size)
       0:for(int e=0;e<16;e++)packed_b[e*8+:8]=b[7:0];
@@ -508,7 +523,7 @@ module rv_vector_engine #(
         int_meta_q.size<=destination_size;int_meta_q.sew<=sew_size;
         int_meta_q.mask<=mask_result;int_meta_q.reduction<=reduction;
         int_meta_q.packed_mode<=packed_integer;int_meta_q.active_mask<=packed_active;
-        int_packed_a_q<=read_packed[0];int_packed_b_q<=packed_b;int_packed_c_q<=read_packed[2];
+        int_packed_a_q<=packed_a;int_packed_b_q<=packed_b;int_packed_c_q<=read_packed[2];
         int_packed_carry_q<=instruction_q[25]?16'b0:packed_mask;
       end
       if(csr_write_i && state_q==IDLE)begin
@@ -555,7 +570,7 @@ module rv_vector_engine #(
           end
           else begin
             if(element_active)begin
-              if(decoded.memory)state_q<=MEM_ISSUE;
+              if(decoded.memory)state_q<=mem_ready?MEM_WAIT:MEM_ISSUE;
               else if(decoded.fp_operation)begin
                 if((decoded.operation==V_VFMV_S_F && index_q!=0) || (fp_slide && !fp_insert))index_q<=index_q+1'b1;
                 else state_q<=FP_REQUEST;

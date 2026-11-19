@@ -28,9 +28,28 @@ for size in range(4):
                     assert supported and value<=mask
                     a|=av<<(element*width);b|=bv<<(element*width);c|=cv<<(element*width)
                     result|=value<<(element*width);sat|=int(clipped)<<element;carry|=bit<<element
-                lines.append(f'{op_id:x} {size:x} {rm:x} {a:032x} {b:032x} {c:032x} {carry:04x} {result:032x} {sat:04x}')
+                lines.append(f'{op_id:x} {size:x} {rm:x} 0 {a:032x} {b:032x} {c:032x} {carry:04x} {result:032x} {sat:04x}')
                 count+=1
     width_counts[width]=count
+# Extension operands occupy destination-width slots; upper source bits are
+# intentionally random so sign/zero extension must use the declared EEW.
+for size in range(1,4):
+    width=8<<size;elements=128//width
+    for factor in range(1,size+1):
+        source_width=width>>factor
+        for op in ['vzext','vsext']:
+            forms.add(op);op_id=table['integer_operations'].index(op)+1
+            for pattern in range(64):
+                a=result=0
+                for e in range(elements):
+                    value=rng.getrandbits(width)
+                    value=(value&~((1<<source_width)-1)) | ([0,1,(1<<source_width)-1,1<<(source_width-1)][(pattern+e)%4] if pattern<16 else rng.getrandbits(source_width))
+                    expected,clipped,supported=calculate(op,width,value,0,0,0,False,0,factor)
+                    assert supported and not clipped
+                    a|=value<<(e*width);result|=expected<<(e*width)
+                lines.append(f'{op_id:x} {size:x} 0 {factor:x} {a:032x} 0 0 0 {result:032x} 0')
+                width_counts[width]+=1
+
 vectors=folder/'vectors.hex';vectors.write_text('\n'.join(lines)+'\n')
 with Simulator() as sim:
     model=sim.build('vector_simd','rv_vector_simd_alu_tb',[

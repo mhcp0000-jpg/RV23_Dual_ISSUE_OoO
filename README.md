@@ -88,6 +88,16 @@ vector memory의 ordering barrier는 유지한다. 원소별 indexed data 요청
 · [이전 pipeline/cache 개선](docs/VECTOR_PIPELINE_REWORK.md)
 · [컴파일 옵션과 과거 측정](docs/COREMARK_PERFORMANCE.md)
 
+후속 성능 변경에서는 `vzext`/`vsext`를 기존 128-bit batch pipeline에 넣고,
+active vector memory element의 요청 전 control bubble을 줄였다.
+같은 128회 진단 ELF에서 load는 **7.64~9.51%**, 확장은 **9.00~40.89%**
+cycle 감소를 확인했다. 이 수치는 위 CoreMark 10회 표와 별도 측정이다.
+같은 CoreMark **2회** ELF는 **1,853,468→1,815,477 cycles, 2.05% 감소**,
+IPC **0.304299**이며 10회 측정은 진행 중이다.
+공유 D-cache의 vector 요청은 여전히 원소별 <=64-bit이며, 두 뱅크에 걸친
+128-bit vector memory issue는 다음 작업이다.
+[변경 구조·진단·재현 절차](docs/VECTOR_EXTENSION_BATCH.md)
+
 ## 검증 현황
 
 | 검사 | 확인한 결과 |
