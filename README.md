@@ -48,7 +48,7 @@ backend의 등록 경계를 설명한 것이며, 물리적인 9단 또는 모든
 | FP FADD/FSUB/FMUL/FMA, F/D·변환 등 | 현재 RVA23 FP: 입력 등록 → 조합 HardFloat/보조 연산 → 결과 등록. 단일 owner 상태 머신 | fast 경로 모듈 지연 2 cycles, backpressure 없을 때 최소 요청 간격 3 cycles. 다단 arithmetic pipeline과 구분 |
 | FP FDIV.S / FDIV.D | iterative HardFloat, FP owner 공유 | 가변. `1/3` 실측 28/57 cycles, D의 0 나누기 3 cycles |
 | FP FSQRT.S / FSQRT.D | iterative HardFloat, FP owner 공유 | 가변. `sqrt(2)` 실측 26/55 cycles, D의 `sqrt(0)` 3 cycles |
-| 벡터 | 일반 정수: 2×64 SIMD, operand → result → writeback 등록. 독립 128비트 배치 II=1. DIV/REM은 반복형 unit | 명령당 완료 지연은 VL·SEW·마스크·특수 경로에 따라 가변. 현재 명령 owner 및 scalar/vector 경계는 직렬화 |
+| 벡터 | 일반 정수: 2×64 SIMD, operand → result → writeback 등록. 독립 128비트 배치 II=1. DIV/REM은 반복형 unit | 명령당 완료 지연은 VL·SEW·마스크·특수 경로에 따라 가변. Vector owner는 순차 실행. 비메모리 vector와 독립 scalar는 중첩, memory vector는 직렬화 |
 
 지연의 기준은 **모듈 입력 handshake edge부터 결과 handoff edge까지**, 출력 ready=1,
 flush 없음이다. issue→retire 지연은 IQ 대기·결과 중재·선행 명령과 메모리 응답에 따라 달라진다.
@@ -59,6 +59,10 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 · [측정 재현 스크립트](scripts/run_pipeline_latency.py)
 
 ### 벡터 성능 개선 작업
+
+후속 구현에서는 non-memory vector의 scalar dispatch barrier를 줄였다.
+FP co-retirement 읽기 포트와 system wakeup data 전달도 함께 수정했다.
+[Scalar/vector 중첩 구조와 현재 측정](docs/VECTOR_SCALAR_OVERLAP.md).
 
 공유 D-cache와 2×64 SIMD를 연결한 뒤, 자연 정렬 메모리의 반복 주소 변환과
 정수 ALU의 완료 대기를 줄였다. 같은 ELF의 warmed 128회 진단에서 VADD는

@@ -4,8 +4,12 @@ The active target is complete RVV 1.0 plus RVA23-required Zvfhmin, Zvbb and Zvkt
 The vector owner is now connected to the decoder, ROB-head result path, scalar
 integer/FP register operands, vector CSRs and the shared physical memory/PTW
 ports. HAS_V defaults on for RV64 and remains off in the explicit RV32 mode.
-The 95-file main source lists include the vector implementation. This is not
-complete RVA23 compliance; H/VS context integration remains outstanding.
+The 103-file main source lists include the vector implementation. H/VS context
+is integrated with the vector memory path, with directed guest fault/restart
+evidence. Full RVA23 normative review and release validation remain pending.
+The numerical coverage below records earlier functional milestones; current
+[pipeline/cache changes](VECTOR_PIPELINE_REWORK.md) and
+[scalar overlap](VECTOR_SCALAR_OVERLAP.md) have separate source-bound results.
 
 - `rv_vector_decode_pkg.sv`: 391 disjoint V/Zvbb encoding forms, exact scalar
   integer/FP source and destination namespaces. All forms were assembled with
@@ -37,8 +41,10 @@ vfrec7/vfrsqrt7 passed 849,880 exact comparisons against independently compiled
 Spike helpers, including every FP16 bit pattern. Provenance and licenses for
 the selected helper reference and normative tables remain under config/ and tb/.
 
-Memory elements use `rv23_hypervisor_memory_head` for byte prevalidation and
-VS/G context. Unit,
+Memory elements use `rv23_hypervisor_memory_head` for permission preflight and
+VS/G context. A naturally aligned element within one page can use one translation
+when its full-width PMP check permits it; split/fallback accesses retain byte
+prevalidation. Unit,
 stride, indexed, segmented, whole-register, mask and fault-only-first transfers
 passed 9,100 standalone packets transferring 2,740 bytes in Bare/Sv39
 modes. Tests check nonadjacent physical pages, W/D/invalid/PBMT faults, first
@@ -52,8 +58,10 @@ aligned elements use one 8/16/32/64-bit physical request, with full-size PMP
 validation; two individually permitted PMP regions cannot be combined into one
 aligned access. Unaligned elements split only after every byte is validated.
 
-The caller drains older LSU traffic and holds irreversible head ownership until
-retirement or the accepted fault. mstatus.VS and FS permissions are decoded;
+Memory vectors drain older LSU traffic. Non-memory vectors can overlap scalar
+execution, while all vector instructions retain ordered ROB-head ownership
+until retirement or the accepted fault. FP scalar operands are captured at
+acceptance and the shared retirement read port is then released. mstatus.VS and FS permissions are decoded;
 vector CSR writes commit through the CSR file, and partial vector state marks
 VS Dirty even on a later memory fault. Native execution passed 733 integer,
 235 FP and 8,660 Bare-memory packets on the same OoO SoC. Separate native ELFs

@@ -198,21 +198,17 @@ CoreMark의 `vluxei64.v` 뒤 64는 **index EEW**다. 실제 주요 gather는
 
 ### 다음 성능 후보의 구현 제약
 
-현재 `rv_decode2`는 모든 vector op를 serializing으로 표시한다. 이 표시는
+`a49f7a9`까지 `rv_decode2`는 모든 vector op를 serializing으로 표시했다. 이 표시는
 backend의 UQ/decode/dispatch barrier와 ROB의 두 번째 retire 억제에 연결된다.
 non-memory vector는 여전히 ROB head에서 순차 실행하되, 독립 scalar를 먼저
 rename/issue하도록 허용하는 것이 다음 후보이다. 이것은 vector-vector OoO나
-Permutation/LSU 통합 구현과는 별도 단계이며 아직 RTL에 적용하지 않았다.
+Permutation/LSU 통합 구현과는 별도 단계다. 후속 scalar overlap 구현은 아래 링크에 기록한다.
 
-serializing bit 하나만 제거하면 안 된다. `vector_start`가 무조건
-`lsu_memory_idle`을 기다리므로, 뒤의 ordered MMIO 요청이 LSQ에 들어와
-head를 기다리면 앞 vector와 순환 대기가 생길 수 있다. non-memory vector의
-시작 조건도 함께 분리하고, memory vector/FENCE/CSR의 barrier는 유지해야 한다.
-검사 대상은 vector→younger scalar RAW/WAW rename, speculative branch squash,
-vector exception + younger physical result, pending MMIO, CSR FS/VS dirty visibility,
-interrupt와 scalar/vector memory ordering이다. 단일 vector owner의 snapshot과
-순차 head 실행은 유지하므로 이 단계에서 여러 vector instruction의 동시 실행을
-광고하지 않는다.
+후속 구현에서는 non-memory vector의 시작 조건도 분리했다. 현재 LSU는
+queued MMIO만으로 memory_idle을 내리지 않으므로 초기 순환 대기 가설은
+정정했다. Accepted scalar memory traffic과의 중첩이 실제 개선 대상이다.
+FP retirement read-port 중재와 system wakeup data 전달도 함께 수정해야 했다.
+[후속 구현·관찰 결과](VECTOR_SCALAR_OVERLAP.md)를 참조한다.
 
 ### CoreMark 10회 최종 결과
 
