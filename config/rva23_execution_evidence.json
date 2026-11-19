@@ -1,6 +1,13 @@
 [
   {
     "requirements": [
+      "A"
+    ],
+    "report": "out/rva23/amo_retry_matrix/report.json",
+    "behavior": "270 real production-component engine/xbar/exclusive bridge/SRAM cases: nine AMOs, D and both W lanes, five interference forms, one/two interposed operations using test-only AW backpressure. Same-granule 162 cases force 243 failed exclusives and fresh-read retries; unrelated-line and read-only each 54 cases do not retry. Independent Python byte/integer oracle verifies old and final word; bench checks 108 interference guard words. Excluding initialization, exactly 594 SRAM writes (324 interference plus 270 successful AMOs), with no failed-write leakage. Five corrupt witness controls. Not whole-core issue/trap scheduling or universal liveness proof."
+  },
+  {
+    "requirements": [
       "I"
     ],
     "report": "out/rva23/delayed_store_order/report.json",

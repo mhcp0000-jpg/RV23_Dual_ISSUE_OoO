@@ -113,16 +113,38 @@
       ],
       "open_items": [
         {
-          "id": "atomics.1",
-          "topic": "Review the exclusive read-modify-write retry path against interfering accepted writes."
-        },
-        {
           "id": "atomics.2",
           "topic": "Map access-fault, misalignment and permission priority for LR, SC and AMO."
         },
         {
           "id": "atomics.3",
           "topic": "Document the constrained-loop progress argument under the platform arbitration assumptions."
+        }
+      ],
+      "resolved_items": [
+        {
+          "id": "atomics.1",
+          "topic": "Review the exclusive read-modify-write retry path against interfering accepted writes.",
+          "disposition": "Exclusive read/write retry reviewed through engine old-value recomputation, ID/address/size monitors, accepted-write invalidation, failed-exclusive no-write and serialized successful target ownership. A production-component AXI interference matrix covers 270 cases and 243 failed attempts; whole-core AMO value and drain evidence remain complementary. Fault priority and constrained progress stay open.",
+          "review_document": "docs/RVA23_ATOMIC_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/soc/rv23_atomic_engine.sv",
+            "rtl/soc/rv_axi_to_local_bridge.sv",
+            "rtl/soc/rv_axi_xbar.sv",
+            "rtl/soc/rv23_sram.sv",
+            "rtl/soc/rv23_soc_top.sv",
+            "rtl/backend/rv_backend.sv"
+          ],
+          "checks": [
+            "run_amo_retry_matrix.py",
+            "run_amo_field_contract.py",
+            "run_fence_order.py"
+          ],
+          "reports": [
+            "out/rva23/amo_retry_matrix/report.json",
+            "out/rva23/amo_field_contract/report.json",
+            "out/rva23/fence_order/report.json"
+          ]
         }
       ]
     },

@@ -134,6 +134,8 @@
 
 ## 4. 남은 완료 감사
 
+- [x] `atomics.1`을 [A 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)의 exclusive monitor·accepted write·실패 시 재읽기·성공 write 직렬화 논증과 연결해 닫았다. production component 270개 사례에서 162개 간섭 사례·실패 exclusive 243회, 정상 AMO와 간섭 write 합계 594회를 확인했다. 기존 whole-core 값·drain 검사를 함께 사용하며 오류 우선순위·지속 간섭 진행성·모든 core/debug 스케줄은 별도다. 열린 검토 주제는 46개다.
+
 - [x] `base.2`의 load-value 근거를 지연 store/load 실행 448개로 보강했다. 4개 store 폭·7개 load 형식의 896개 값과 대상 store의 전 바이트를 확인했고, 같은 ELF의 Sail 이벤트 21,290건이 기존 RTL 및 관찰 wrapper trace 각각과 일치했다. ELF 실행 구간에서 unknown-address/partial-overlap/store-data 대기 및 DIV와 older unresolved SQ의 겹침을 관찰했다. 두 값 변조·다섯 witness 누락을 거부한다. 전체 RVWMO·자연 정렬 외부 원자성은 별도 검토이며 `base.2`와 열린 주제 47개는 유지한다.
 
 - [x] `base.1`을 [I/M 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)의 ECALL/EBREAK·정의된 illegal·precise trap·instret 경로와 연결해 닫았다. 다섯 모드·네 위임 설정의 100개 사례에서 카운터 차이 100쌍, 보존 값 200개 및 probe/escape trap 200개를 확인했다. 절대 instret 원점만 정규화한 같은 ELF의 Sail/RTL 이벤트 8,083건이 일치했다. 메모리 원자성·RVWMO `base.2`는 남아 있으며 열린 검토 주제는 47개다.
@@ -144,7 +146,7 @@
 
 - [x] `hints.1`·`hints.2`를 [HINT 검토 결론](RVA23_HINT_CLAUSE_REVIEW.md)의 허용된 구현 선택·실제 decode/head 경로·현재 실행 근거와 함께 닫았다. 구조 검사기는 종료 결론, 소스 경로, 현재 생성기와 일치하는 실행 보고서가 없는 `reviewed` 표기를 거부한다. 열린 검토 주제는 52개이며 전체 프로파일 판정은 계속 열린 상태다.
 
-- [x] RV64I와 필수 확장 58개의 검토 연결을 [별도 작업 목록](RVA23_REMAINING_REVIEW.md)에 정리했다. 22개 그룹·47개 열린 검토 주제이며 기능 결함 수를 뜻하지 않는다. 인덱스는 `config/rva23_clause_review_index.json`, 검사는 `scripts/audit_clause_review_index.py`다. 문서 내용의 충분성은 별도로 검토하며 구조 검사의 통과를 프로파일 완료로 간주하지 않는다.
+- [x] RV64I와 필수 확장 58개의 검토 연결을 [별도 작업 목록](RVA23_REMAINING_REVIEW.md)에 정리했다. 22개 그룹·46개 열린 검토 주제이며 기능 결함 수를 뜻하지 않는다. 인덱스는 `config/rva23_clause_review_index.json`, 검사는 `scripts/audit_clause_review_index.py`다. 문서 내용의 충분성은 별도로 검토하며 구조 검사의 통과를 프로파일 완료로 간주하지 않는다.
 
 Svpbmt RTL 수정 이전의 ACT4와 Linux 결과는 이전 RTL의 실행 근거다. 수정된 RTL의 재검증 결과가 나오면 현재 소스 기준의 통합 감사에 반영한다.
 

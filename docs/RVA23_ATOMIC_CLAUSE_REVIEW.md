@@ -15,7 +15,61 @@
 | 12.1.4 AMO.W/D | swap/add/logic/signed·unsigned min/max는 memory old 값을 반환하고 폭에 맞는 새 값을 저장한다. W는 상위 operand 비트를 무시하고 반환값을 부호 확장한다. | 아래 18형식 field matrix와 기존 upstream 42 AMO retirement의 값 모델. rd=x0에서도 메모리 갱신을 후속 읽기로 관찰한다. |
 | 레지스터 중첩 | 주소와 operand는 writeback 이전의 source 상태에서 취한다. | distinct, rd=x0, rd=rs2, rd=rs1, rs1=rs2, triple alias의 여섯 패턴. prime register의 대표 조합이며 모든 32개 register의 Cartesian product는 아니다. |
 
-## AMO field matrix
+## Exclusive retry 경로의 검토 결론
+
+`atomics.1`은 accepted write가 read-modify-write 사이에 들어와도 AMO가 그
+값을 잃지 않는 경로의 검토다. [A의 AMO 규칙](https://docs.riscv.org/reference/isa/unpriv/a-st-ext.html)은
+원래 값을 반환하고 그 값과 operand로 계산한 결과를 원자적으로 저장하도록
+요구한다. 현재 SRAM 플랫폼은 exclusive read/write와 내부 재시도로 구현한다.
+
+`rv_backend`는 ROB head의 atomic을 LSU drain 뒤 `rv23_atomic_head`로 보낸다.
+`rv23_soc_top`의 production engine은 data AXI mux를 거쳐 system xbar와 SRAM
+bridge에 연결된다. 이 integration 연결과 aq/rl 전후 drain 실행은 기존 native
+AMO field matrix 및 `run_fence_order.py`의 별도 근거를 함께 사용한다.
+
+`rv23_atomic_engine`은 read의 old 값과 연산 결과를 보관하되 EXOKAY write
+응답을 받아야 그 old 값을 완료 결과로 내보낸다. write가 OKAY로 실패하면
+RESULT로 가지 않고 READ_ADDR부터 다시 읽고 계산한다. SLVERR/DECERR와 ID
+오류는 store access fault 경로이며 성공 또는 정상 재시도로 숨기지 않는다.
+
+`rv_axi_to_local_bridge`는 확장된 AXI ID별 monitor를 유지한다. 수락된 local
+write는 같은 64바이트 granule의 monitor를 무효화한다. exclusive AW에서는
+주소·크기와 monitor를 확인하고 그 예약을 소비한다. 실패한 exclusive W는
+OKAY 응답으로 끝내고 SRAM local write 요청을 만들지 않는다. 성공 AW 뒤에는
+해당 target bridge가 transaction을 소유하므로 그 local write까지 다른 master의
+write가 끼어들지 않는다. 따라서 read 뒤 같은 granule의 write가 먼저 수락됐으면
+실패·재읽기하고, 성공 write의 SRAM 수락 시점에는 그 사이의 다른 write를 잃지
+않는다. SRAM write snoop는 resident cache 값에도 전달된다. 이 논증은 현재
+단일 target bridge의 직렬화 및 모든 SRAM master가 그 경로를 쓴다는 조건이다.
+
+새 `rv23_amo_retry_matrix_tb`는 production engine·xbar·exclusive bridge·SRAM을
+그대로 연결한다. 기본 wiring·bus task·SV arithmetic oracle은 기존 atomic
+engine bench에서 가져왔으며, 독립 Python byte/정수 oracle도 결과를 재계산한다.
+test-only AW backpressure adapter로 engine의 exclusive write를 잠시 막아 다른
+master의 실제 read/write 완료가 exclusive read와 write 사이에 오게 한다.
+engine·bridge의 response/monitor를 강제로 바꾸거나 합성 응답을 주입하지 않는다.
+adapter는 기존 production mux/cache/ROB를 포함하는 whole-core 검사는 아니다.
+
+9개 AMO × D/W-low/W-high × 다섯 간섭 형태 × 한 번/두 번의 270개 사례를
+실행했다. 간섭 형태는 같은 word 전체 쓰기, 대상 byte 쓰기, 같은 line의 다른
+word 쓰기, 다른 line 쓰기 및 read-only master다. 같은 granule의 162개 사례에서
+exclusive 실패 243회를 만들고 매번 재읽은 최신 old 값 및 최종 memory 값을
+확인했다. 다른 line과 read-only는 각각 54개 사례에서 불필요한 재시도가 없었다.
+같은 line의 다른 word 및 다른 line의 간섭 값도 완료 뒤 108회 다시 읽어 확인했다.
+
+초기화 쓰기를 제외한 SRAM write snoop 594회는 간섭 write 324회와 성공 AMO
+270회다. 각 사례에서 이 수를 확인해 실패 exclusive 243회가 write를 새지 않도록
+검사했다. 반환값·최종 word는 두 word lane과 이웃 byte 보존을 포함한다.
+read 횟수·실패 응답 횟수·실제 write 수·old·memory의 변조 대조군 다섯 개를
+거부했고, 현재 RTL/TB·model binary·build/run 로그·driver 해시를 `--check`로
+재검사한다. 보고서는 `out/rva23/amo_retry_matrix/report.json`이다.
+
+이 source 논증·실제 component 간섭 실행·기존 whole-core 값/순서 근거로
+`atomics.1`을 닫는다. 모든 오류/위임/PMP 조합, cache/debug/interrupt의 모든
+interleaving, 지속 간섭 아래 진행성이나 전체 RVWMO 증명을 뜻하지 않는다.
+fault 우선순위 `atomics.2`와 constrained progress `atomics.3`은 계속 열린다.
+
+## AMO field matrix 실행
 
 `scripts/run_amo_field_contract.py`는 18형식 × aq/rl 네 조합 × alias 여섯 패턴
 × 선택 old/operand 네 쌍인 1,728개 사례를 현재 전체 H/V SoC에서 실행한다.
@@ -36,6 +90,7 @@ M-mode Bare SRAM 접근이며, W/D 자연 정렬 주소를 64바이트 line 내�
 
 ```text
 python scripts/run_amo_field_contract.py --check
+python scripts/run_amo_retry_matrix.py --check
 python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm
 ```
 

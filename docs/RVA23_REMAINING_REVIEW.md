@@ -2,7 +2,7 @@
 
 이 문서는 `config/rva23_clause_review_index.json`에서 생성한 검토 작업 목록이다.
 RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그룹과
-47개 미완료 검토 주제를 연결한다. 이는 결함 47개라는 뜻이 아니다.
+46개 미완료 검토 주제를 연결한다. 이는 결함 46개라는 뜻이 아니다.
 또한 완전한 규격 조항 목록이나 구현·검증 완료 판정표가 아니다.
 
 각 주제를 닫을 때는 규격 조항, 실제 RTL 경로, 실행·예외·상태·순서의 근거와
@@ -18,7 +18,7 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 |---|---|---:|---|
 | base | I | 1 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | muldiv | M | 0 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md) |
-| atomics | A, Za64rs, Ziccrse, Ziccamoa | 3 | [RVA23_ATOMIC_CLAUSE_REVIEW.md](RVA23_ATOMIC_CLAUSE_REVIEW.md) |
+| atomics | A, Za64rs, Ziccrse, Ziccamoa | 2 | [RVA23_ATOMIC_CLAUSE_REVIEW.md](RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | scalar_fp | F, D, Zfhmin, Zfa | 3 | [RVA23_FP_CLAUSE_REVIEW.md](RVA23_FP_CLAUSE_REVIEW.md) |
 | bitmanip | B, Zicond | 2 | [RVA23_BITMANIP_CLAUSE_REVIEW.md](RVA23_BITMANIP_CLAUSE_REVIEW.md) |
 | compressed | C, Zimop, Zcmop, Zcb | 2 | [RVA23_C_CLAUSE_REVIEW.md](RVA23_C_CLAUSE_REVIEW.md), [RVA23_ZCB_CLAUSE_REVIEW.md](RVA23_ZCB_CLAUSE_REVIEW.md), [RVA23_MOP_CLAUSE_REVIEW.md](RVA23_MOP_CLAUSE_REVIEW.md) |
@@ -68,9 +68,14 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 ## atomics: A and reservation contracts
 
-- [ ] `atomics.1` — Review the exclusive read-modify-write retry path against interfering accepted writes.
 - [ ] `atomics.2` — Map access-fault, misalignment and permission priority for LR, SC and AMO.
 - [ ] `atomics.3` — Document the constrained-loop progress argument under the platform arbitration assumptions.
+- [x] `atomics.1` — Review the exclusive read-modify-write retry path against interfering accepted writes.
+
+검토 결론: Exclusive read/write retry reviewed through engine old-value recomputation, ID/address/size monitors, accepted-write invalidation, failed-exclusive no-write and serialized successful target ownership. A production-component AXI interference matrix covers 270 cases and 243 failed attempts; whole-core AMO value and drain evidence remain complementary. Fault priority and constrained progress stay open.
+
+근거: [RVA23_ATOMIC_CLAUSE_REVIEW.md](RVA23_ATOMIC_CLAUSE_REVIEW.md)
+
 
 ## scalar_fp: F/D/Zfhmin/Zfa
 

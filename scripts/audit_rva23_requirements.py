@@ -196,6 +196,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('audit_rv64a_contract.py', [], 'out/rva23/rv64a_contract_audit.json'),
         ('run_base_trap_contract.py', ['--check'], 'out/rva23/base_trap_contract/report.json'),
         ('run_delayed_store_order.py', ['--check'], 'out/rva23/delayed_store_order/report.json'),
+        ('run_amo_retry_matrix.py', ['--check'], 'out/rva23/amo_retry_matrix/report.json'),
         ('run_rv64m_encoding_edges.py', ['--check'], 'out/rva23/rv64m_encoding_edges/report.json'),
         ('run_rv64_muldiv_ownership.py', ['--check'], 'out/rva23/rv64_muldiv_ownership/report.json'),
         ('run_amo_field_contract.py', ['--check'], 'out/rva23/amo_field_contract/report.json'),
