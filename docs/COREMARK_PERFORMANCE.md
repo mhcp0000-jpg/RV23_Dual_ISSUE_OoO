@@ -23,6 +23,15 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 **1.081793**다. CRC와 명령 수는 같다.
 [현재 구조·회귀·성능](VECTOR_SCALAR_OVERLAP.md) 및 [snapshot](evidence/vector_scalar_overlap.json).
 
+## 후속 확장 batch와 memory issue
+
+`009b013` RTL에서 같은 10회 ELF는 **9,243,916→9,054,053 cycles**,
+추가 **2.05% 감소**를 확인했다. 명령 수 2,762,088과 CRC가 같고 IPC는
+**0.305066**, CoreMark/MHz 추정치는 **1.104478**이다. 같은 2회 ELF도
+1,853,468→1,815,477 cycles로 2.05% 감소했다.
+[구조·진단](VECTOR_EXTENSION_BATCH.md) 및 [snapshot](evidence/vector_extension_batch.json).
+이후의 word-load coalescing 후보 측정과 구분한다.
+
 ## 측정 조건
 
 - upstream commit: `1f483d5b8316753a742cbf5590caf5bd0a4e4777`, 알고리즘 소스 변경 없음.
