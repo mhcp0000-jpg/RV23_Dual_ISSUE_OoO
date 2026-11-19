@@ -413,18 +413,74 @@
       "requirements": [
         "Zifencei"
       ],
-      "review_status": "partial",
+      "review_status": "reviewed",
       "reviews": [
-        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md"
+        "docs/RVA23_PROFILE_CONTRACT_REVIEW.md",
+        "docs/RVA23_FENCEI_CLAUSE_REVIEW.md"
       ],
-      "open_items": [
+      "open_items": [],
+      "resolved_items": [
         {
           "id": "fencei.1",
-          "topic": "Review FENCE.I ordering from older accepted stores to future instruction fetch."
+          "topic": "Review FENCE.I ordering from older accepted stores to future instruction fetch.",
+          "disposition": "FENCE.I reaches completion only after older committed stores receive responses and LSU accepted traffic/translations drain. Serializing ROB and head ownership preserve the explicit-memory boundary; source and native self-modifying execution reviewed.",
+          "review_document": "docs/RVA23_FENCEI_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/backend/rv_decode2.sv",
+            "rtl/backend/rv_backend.sv",
+            "rtl/backend/rv_fence_controller.sv",
+            "rtl/backend/rv_lsu_cluster.sv",
+            "rtl/backend/rv_store_buffer.sv",
+            "rtl/backend/rv_rob.sv",
+            "rtl/backend/rv_trap_controller.sv",
+            "rtl/rv_ooo_core.sv",
+            "rtl/frontend/rv_frontend.sv",
+            "rtl/frontend/rv_fetch_target_buffer.sv",
+            "rtl/soc/rv23_soc_top.sv",
+            "rtl/soc/rv23_cache.sv",
+            "rtl/soc/rv23_if_adapter.sv"
+          ],
+          "checks": [
+            "run_fencei_selfmod_contract.py",
+            "run_fence_order.py",
+            "audit_profile_contracts.py"
+          ],
+          "reports": [
+            "out/rva23/fencei_selfmod_contract/report.json",
+            "out/rva23/fence_order/report.json",
+            "out/rva23/contract_evidence.json"
+          ]
         },
         {
           "id": "fencei.2",
-          "topic": "Connect resident/refilling I-cache and frontend invalidation completion to retirement."
+          "topic": "Connect resident/refilling I-cache and frontend invalidation completion to retirement.",
+          "disposition": "The I-fabric idle input is constant, so correctness uses retire-driven invalidate, killed refills that cannot install valid tags, retained response epochs, and architectural frontend redirect/target-buffer invalidation. Both source priority rules and current race/self-modifying execution evidence reviewed.",
+          "review_document": "docs/RVA23_FENCEI_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/backend/rv_decode2.sv",
+            "rtl/backend/rv_backend.sv",
+            "rtl/backend/rv_fence_controller.sv",
+            "rtl/backend/rv_lsu_cluster.sv",
+            "rtl/backend/rv_store_buffer.sv",
+            "rtl/backend/rv_rob.sv",
+            "rtl/backend/rv_trap_controller.sv",
+            "rtl/rv_ooo_core.sv",
+            "rtl/frontend/rv_frontend.sv",
+            "rtl/frontend/rv_fetch_target_buffer.sv",
+            "rtl/soc/rv23_soc_top.sv",
+            "rtl/soc/rv23_cache.sv",
+            "rtl/soc/rv23_if_adapter.sv"
+          ],
+          "checks": [
+            "run_fencei_selfmod_contract.py",
+            "run_fence_order.py",
+            "audit_profile_contracts.py"
+          ],
+          "reports": [
+            "out/rva23/fencei_selfmod_contract/report.json",
+            "out/rva23/fence_order/report.json",
+            "out/rva23/contract_evidence.json"
+          ]
         }
       ]
     },

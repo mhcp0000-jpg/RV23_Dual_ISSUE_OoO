@@ -66,7 +66,8 @@ def validate(index, inventory, implementation):
                 path = PurePosixPath(name)
                 assert path.parts[0] == 'out' and '..' not in path.parts and path.suffix == '.json'
                 report = json.loads((ROOT / name).read_bytes())
-                assert report['passed'] and report['generator_sha256'] in {sha(driver) for driver in drivers}
+                producer = report.get('generator_sha256', report.get('driver_sha256', report.get('audit_sha256')))
+                assert report['passed'] and producer in {sha(driver) for driver in drivers}
                 closure_inputs.add(name)
             closure_inputs.update('scripts/' + name for name in item['checks'])
             resolved_ids.add(item['id'])

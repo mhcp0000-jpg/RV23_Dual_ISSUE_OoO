@@ -1,5 +1,10 @@
 [
   {
+    "requirements": ["Zifencei", "I", "C"],
+    "report": "out/rva23/fencei_selfmod_contract/report.json",
+    "behavior": "148 native self-modifying-code cases: 74 representative ignored funct12/rd/rs1 encodings, old/new execution of 16-bit C.LI and 32-bit ADDI at every aligned halfword/word position in 64-byte lines. Exact store address/value, raw patched instruction, PC length and no destination write checked. Same Sail ELF matches 2968 events; four stale-instruction/writeback trace controls rejected. Source review separately covers LSU drain, refill kill and frontend epoch; no NOP-mutated RTL or universal concurrency proof."
+  },
+  {
     "requirements": ["V", "F", "H"],
     "report": "out/rva23/vector_permission_matrix/report.json",
     "behavior": "690 native VFADD/VADD/VLENB probes across M/HS/VS/U/VU: all host/guest FS/VS Off/on patterns repeated with Initial/Clean/Dirty nonzero states (46 contexts per mode). Identical Sail ELF per mode, precise cause-2 traps, destination/FCSR preservation, and mandatory host/guest Dirty after actual vector or FP state changes. Not full mixed-nonzero Cartesian product, all opcodes, delegation, page/PMP fault priority or all schedules."

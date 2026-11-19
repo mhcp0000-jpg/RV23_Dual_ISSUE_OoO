@@ -2,7 +2,7 @@
 
 The remaining review queue is [RVA23_REMAINING_REVIEW](RVA23_REMAINING_REVIEW.md),
 generated from `config/rva23_clause_review_index.json`. It links RV64I and all
-58 mandatory names to 22 groups and 52 open review topics. These are review
+58 mandatory names to 22 groups and 50 open review topics. These are review
 tasks, not a defect count or an exhaustive clause inventory. The required
 `audit_clause_review_index.py` gate checks omissions, duplicates, document
 links, status consistency and content hashes; it does not judge architectural

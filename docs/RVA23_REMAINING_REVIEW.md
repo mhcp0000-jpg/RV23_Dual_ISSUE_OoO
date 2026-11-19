@@ -2,7 +2,7 @@
 
 이 문서는 `config/rva23_clause_review_index.json`에서 생성한 검토 작업 목록이다.
 RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그룹과
-52개 미완료 검토 주제를 연결한다. 이는 결함 52개라는 뜻이 아니다.
+50개 미완료 검토 주제를 연결한다. 이는 결함 50개라는 뜻이 아니다.
 또한 완전한 규격 조항 목록이나 구현·검증 완료 판정표가 아니다.
 
 각 주제를 닫을 때는 규격 조항, 실제 RTL 경로, 실행·예외·상태·순서의 근거와
@@ -31,7 +31,7 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 | vector | V, Zvfhmin, Zvbb, Zvkt | 4 | [RVA23_VECTOR_CLAUSE_REVIEW.md](RVA23_VECTOR_CLAUSE_REVIEW.md), [TIMING_CONTRACT.md](TIMING_CONTRACT.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | wrs | Zawrs | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | pointer_mask | Supm, Ssnpm | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
-| fencei | Zifencei | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
+| fencei | Zifencei | 0 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md), [RVA23_FENCEI_CLAUSE_REVIEW.md](RVA23_FENCEI_CLAUSE_REVIEW.md) |
 | supervisor | Ss1p13, Svbare, Sv39, Svade, Ssccptr | 3 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | supervisor_profile | Sstvecd, Sstvala, Sscounterenw, Ssu64xl | 2 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | page_extensions | Svpbmt, Svinval, Svnapot | 3 | [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
@@ -133,8 +133,20 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 ## fencei: Instruction-fetch synchronization
 
-- [ ] `fencei.1` — Review FENCE.I ordering from older accepted stores to future instruction fetch.
-- [ ] `fencei.2` — Connect resident/refilling I-cache and frontend invalidation completion to retirement.
+이 작업 목록에 남은 검토 주제 없음. 연결 문서의 실제 근거와 한계를 확인한다.
+
+- [x] `fencei.1` — Review FENCE.I ordering from older accepted stores to future instruction fetch.
+
+검토 결론: FENCE.I reaches completion only after older committed stores receive responses and LSU accepted traffic/translations drain. Serializing ROB and head ownership preserve the explicit-memory boundary; source and native self-modifying execution reviewed.
+
+근거: [RVA23_FENCEI_CLAUSE_REVIEW.md](RVA23_FENCEI_CLAUSE_REVIEW.md)
+
+- [x] `fencei.2` — Connect resident/refilling I-cache and frontend invalidation completion to retirement.
+
+검토 결론: The I-fabric idle input is constant, so correctness uses retire-driven invalidate, killed refills that cannot install valid tags, retained response epochs, and architectural frontend redirect/target-buffer invalidation. Both source priority rules and current race/self-modifying execution evidence reviewed.
+
+근거: [RVA23_FENCEI_CLAUSE_REVIEW.md](RVA23_FENCEI_CLAUSE_REVIEW.md)
+
 
 ## supervisor: Ss1p13/Bare/Sv39/Svade/PTE coherence
 
