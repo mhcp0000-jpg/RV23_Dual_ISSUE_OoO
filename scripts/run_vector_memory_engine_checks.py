@@ -27,6 +27,16 @@ def raw(address,size):
 def verify(address,length):
     for i in range(length):packet(3,a=address+i,value=memory[address-base+i])
 def write_ref(address,value,size):memory[address-base:address-base+size]=value.to_bytes(size,'little')
+
+def expected_groups(address,count,size,start=0):
+    # Tile the requested byte interval using aligned 2/4/8-byte transfers,
+    # bounded by each 16-byte destination row. Data expectations stay separate.
+    cursor=address+start*size;left=(count-start)*size;row=start*size%16;groups=0
+    while left:
+        legal=[n for n in [8,4,2] if n>size and cursor%n==0 and n<=left and row+n<=16]
+        step=legal[0] if legal else size
+        groups+=bool(legal);cursor+=step;left-=step;row=(row+step)%16
+    return groups
 def load(asm,address,count,size,reg=8,stride=None,offsets=None,fields=1,start=0,active=None):
     global accesses
     op(asm,a=address,b=stride or 0)
@@ -264,11 +274,7 @@ for width in [8,16,32]:
         config(length,width,lmul);csr(8,1)
         packet(10,b=1)
         values=load(f'vle{width}.v v8,(a0)',base+0x12000,length,size,start=1)[0]
-        i=1;groups=0
-        while i<length:
-            if i%group==0 and i+group<=length:groups+=1;i+=group
-            else:i+=1
-        packet(10,a=groups);state(length);traffic()
+        packet(10,a=expected_groups(base+0x12000,length,size,1));state(length);traffic()
         config(count,width,lmul);elements(8,[7]+values[1:]+[7],width)
         coalescing_cases+=1
 
@@ -280,6 +286,21 @@ for sew,width,count,destination_lmul in [(8,16,16,'m2'),(8,32,16,'m4'),(16,8,8,'
     packet(10,a=count//(64//width));state(count);traffic()
     config(count,width,destination_lmul);elements(8,values,width)
     coalescing_cases+=1
+
+# Small VL, non-word-aligned bases, partial tails and destination row crossings.
+for width,lengths,offsets in [(8,[1,2,3,7,8,9,15,17,31],[0,1,2,4,6,7]),
+                              (16,[1,2,3,4,7,8,9,15],[0,2,4,6]),
+                              (32,[1,2,3,4,7],[0,4])]:
+    size=width//8;capacity=256//width
+    for length in lengths:
+        for offset in offsets:
+            address=base+0x14000+offset;start=1 if length>3 and offset==2 else 0
+            config(capacity,width,'m2');op('vmv.v.i v8,7')
+            config(length,width,'m2');csr(8,start);packet(10,b=1)
+            values=load(f'vle{width}.v v8,(a0)',address,length,size,start=start)[0]
+            packet(10,a=expected_groups(address,length,size,start));state(length);traffic()
+            config(capacity,width,'m2');elements(8,[7]*start+values[start:]+[7]*(capacity-length),width)
+            coalescing_cases+=1
 
 # Adjacent NA4 PMP entries authorize both elements, but cannot authorize one
 # wider word. The opportunity must fall back, not fault or read extra bytes.
@@ -295,6 +316,12 @@ config(2,32);op('vmv.v.i v8,7');packet(10,b=1)
 op('vle32.v v8,(a0)',a=base+0x12000,cause=5,tval=base+0x12004)
 accesses+=4;packet(10,a=0);state(2,1);traffic()
 config(2,32);elements(8,[raw(base+0x12000,4),7],32)
+# A denied large opportunity can fall back, later accept a smaller group,
+# then fault. Vstart must count elements, not the number of transactions.
+config(8,8);op('vmv.v.i v8,7');packet(10,b=1)
+op('vle8.v v8,(a0)',a=base+0x12000,cause=5,tval=base+0x12004)
+accesses+=4;packet(10,a=1);state(8,4);traffic()
+config(8,8);elements(8,[raw(base+0x12000+i,1) for i in range(4)]+[7]*4,8)
 
 source=folder/'program.S';source.write_text('.text\n.option norvc\n'+'\n'.join(row[1] for row in program)+'\n')
 files=(ROOT/'rtl/filelist.f').read_text().splitlines()+['tb/unit/backend/rv_vector_memory_engine_tb.sv']

@@ -9,10 +9,16 @@ module rv23_vector_word_irq_tb;
   logic [63:0] irq_pc;
   int cycle=0,first=0,pending=0,last_rf=0,retired=0,trapped=0,scalar_write=0;
   int reads=0,responses=0,writes=0,refills=0,pending_reads=0;
+  int word_bytes,expected_reads,group_bytes,group_size;
   wire active=`B.vector_active_q && `B.rob_head_pc==irq_pc;
   wire interrupt_accept=`B.csr_trap_valid && `B.csr_trap_ready && `B.csr_trap_is_interrupt;
   initial begin
     if(!$value$plusargs("irq_pc=%h",irq_pc))$fatal(1,"Missing load PC");
+    if(!$value$plusargs("word_bytes=%d",word_bytes) || !(word_bytes inside {2,4,8,128}))
+      $fatal(1,"Missing or invalid load byte count");
+    group_bytes=word_bytes<8?word_bytes:8;
+    group_size=group_bytes==2?1:(group_bytes==4?2:3);
+    expected_reads=word_bytes/group_bytes;
     wait(reads==1);
     @(negedge core.clk);force core.external_irq=31'd1;
     wait(trapped!=0);
@@ -22,15 +28,15 @@ module rv23_vector_word_irq_tb;
     cycle++;
     if(active)begin
       if(`V.memory_valid_o && `V.memory_ready_i)begin
-        if(`V.memory_write_o || !`V.u_memory.coalesced_q || `V.memory_size_o!=3 ||
-           `V.memory_address_o!=32'h800a0000+32'(reads*8) || reads>=16)
-          $fatal(1,"Expected sixteen complete SRAM word reads");
+        if(`V.memory_write_o || !`V.u_memory.coalesced_q || int'(`V.memory_size_o)!=group_size ||
+           `V.memory_address_o!=32'h800a0000+32'(reads*group_bytes) || reads>=expected_reads)
+          $fatal(1,"Unexpected coalesced SRAM group");
         if(reads==0)first=cycle;
         reads++;
       end
       if(`V.memory_response_valid_i && `V.memory_response_ready_o)responses++;
       if(`V.rf_write_q)begin
-        if(!`V.rf_packed_q || `V.rf_bit_mask_q!={64'b0,64'hffffffffffffffff})
+        if(!`V.rf_packed_q || `V.rf_bit_mask_q!=((128'b1<<(group_bytes*8))-1'b1))
           $fatal(1,"Expected a registered packed word write");
         writes++;last_rf=cycle;
       end
@@ -38,12 +44,12 @@ module rv23_vector_word_irq_tb;
          core.u_dut.d_normal_axi.ar_addr>=32'h800a0000 && core.u_dut.d_normal_axi.ar_addr<32'h800a0080)
         refills++;
       if(`B.csr_interrupt_pending && pending==0)begin
-        if(reads==0 || reads>=16)$fatal(1,"IRQ missed active word-load interval");
+        if(reads==0 || writes>=expected_reads)$fatal(1,"IRQ missed active word-load interval");
         pending=cycle;pending_reads=reads;
       end
     end
     for(int p=0;p<2;p++)if(core.trace_valid[p] && !core.trace_trap[p] && core.trace_pc[p]==irq_pc)begin
-      if(retired!=0 || reads!=16 || responses!=16 || writes!=16 || last_rf>=cycle)
+      if(retired!=0 || reads!=expected_reads || responses!=expected_reads || writes!=expected_reads || last_rf>=cycle)
         $fatal(1,"Load retired before its final RF word");
       retired=cycle;
     end

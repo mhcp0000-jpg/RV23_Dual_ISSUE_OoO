@@ -1,5 +1,8 @@
 # Vector unit-load word coalescing candidate
 
+이 문서는 8-byte 전용 첫 후보의 기록이다. 현재 후속 구현은
+[2/4/8-byte 그룹 선택](VECTOR_ADAPTIVE_LOAD_GROUPS.md)을 사용한다.
+
 이 단계는 `009b013` RTL을 기준으로 개발 중인 후속 성능 변경이다.
 주 작업 폴더의 10회 측정을 보존하기 위해 별도 worktree
 `C:/rv_workspaces/rv23-vector-memory`, branch `perf/vector-memory-coalesce`에서

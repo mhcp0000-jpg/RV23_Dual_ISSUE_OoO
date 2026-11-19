@@ -28,7 +28,11 @@ fill:
   cbo.flush 0(t0)
 #endif
   fence rw,rw
+#if TEST_ELEMENTS
+  li s2,TEST_ELEMENTS
+#else
   li s2,128/(DATA_EEW/8)
+#endif
 #if DATA_EEW == 8
   vsetvli t0,s2,e8,m8,tu,mu
 #elif DATA_EEW == 16

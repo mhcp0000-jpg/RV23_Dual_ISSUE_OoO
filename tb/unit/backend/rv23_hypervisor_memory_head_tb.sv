@@ -15,6 +15,7 @@ module rv23_hypervisor_memory_head_tb;
   logic [2:0] memory_size;
   logic execute_permission=0,hs_mxr=0;
   logic coalesce=0,coalesced;
+  logic [2:0] coalesce_size=3,coalesced_size;
   logic [1:0] pmm=0;
   logic [63:0] io_word=64'h8877665544332211;
   logic [63:0] md,mrd=0;
@@ -27,6 +28,7 @@ module rv23_hypervisor_memory_head_tb;
     .request_valid_i(req),.request_ready_o(ready),.address_i(address),.operand_i(operand),
     .size_i(size),.write_i(write_enable),.unsigned_i(unsign),.floating_i(floating),.privilege_i(privilege),
     .coalesce_read_i(coalesce),.response_coalesced_o(coalesced),
+    .coalesce_size_i(coalesce_size),.response_coalesced_size_o(coalesced_size),
     .mstatus_i(64'b0),.satp_i(64'b0),.menvcfg_i(64'b0),.senvcfg_i(64'b0),.pmpcfg_i(pmpcfg),.pmpaddr_i(pmpaddr),
     .response_valid_o(rsp),.response_ready_i(rsp_ready),.response_data_o(result),.response_tval_o(tval),
     .response_exception_o(exception),.response_cause_o(cause),
@@ -41,7 +43,7 @@ module rv23_hypervisor_memory_head_tb;
     if(mv && mr) begin
       if(memory_device!==!ma[31])$fatal(1,"incorrect SRAM/MMIO device attribute");
       if(!(ma>=32'h80000000 && ma<32'h80000200) && !(ma>=32'h02000000 && ma<32'h02000008))$fatal(1,"unexpected memory address %h",ma);
-      if(memory_size!=(coalesced?3:((address & ((64'b1<<size)-1))==0?size:0)))$fatal(1,"incorrect natural/split size");
+      if(memory_size!=(coalesced?coalesced_size:((address & ((64'b1<<size)-1))==0?size:0)))$fatal(1,"incorrect natural/split size");
       if(ms!==8'(((9'b1<<(1<<memory_size))-1)<<ma[2:0]))$fatal(1,"non-atomic natural strobe");
       accesses<=accesses+1;mrv<=1;
       for(int b=0;b<8;b++) begin
@@ -160,6 +162,14 @@ module rv23_hypervisor_memory_head_tb;
     pmpcfg[1]=8'h11;pmpaddr[1]=62'((address+4)>>2);
     expected=0;for(int b=0;b<4;b++)expected[b*8+:8]=memory[256+b];
     transact(expected);if(coalesced)$fatal(1,"cross-entry PMP widening");
+    size=0;coalesce_size=1;expected=0;
+    for(int b=0;b<2;b++)expected[b*8+:8]=memory[256+b];
+    transact(expected);if(!coalesced || coalesced_size!=1)$fatal(1,"missing 2-byte group");
+    coalesce_size=2;expected=0;
+    for(int b=0;b<4;b++)expected[b*8+:8]=memory[256+b];
+    transact(expected);if(!coalesced || coalesced_size!=2)$fatal(1,"missing 4-byte group");
+    coalesce_size=3;transact(64'(memory[256]));
+    if(coalesced)$fatal(1,"8-byte opportunity crossed two PMP entries");
     $display("PASS rv23_hypervisor_memory_head_tb checks=%0d byte_accesses=%0d",checks,accesses);$finish;
   end
   initial begin #1000000;$fatal(1,"assist timeout");end

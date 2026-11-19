@@ -85,7 +85,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_engine.sv",
-      "sha256": "27f21d6fc6014ea945cd4e4210fddbd4670c2b5804c686a9c7ae469827eeac4f",
+      "sha256": "76b02c58586a272175390f56397f48af291ed96e44f4973922e3db8fcfdffcb7",
       "origin": "new"
     },
     {
@@ -515,7 +515,7 @@
     },
     {
       "path": "rtl/backend/rv23_hypervisor_memory_head.sv",
-      "sha256": "0872f2c3c074289e9fdd0e38804d070678b885301338b9876163583eb7e7eaa0",
+      "sha256": "8766f14a836a54dc4076505a336f8dfe4a6cf56cb8cb44a9602b0a5464c07a48",
       "origin": "new"
     }
   ],
