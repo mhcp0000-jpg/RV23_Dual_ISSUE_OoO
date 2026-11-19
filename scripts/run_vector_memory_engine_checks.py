@@ -248,11 +248,56 @@ op('vlseg2e32.v v8,(a0)',a=0x10000018,cause=5,tval=0x10000018)
 op('vsseg2e32.v v8,(a0)',a=0x10000018,cause=7,tval=0x10000018)
 state(2);traffic()
 
+# Coalescing witnesses: full words, group/row boundaries, fractional LMUL,
+# nonzero vstart and a partial tail. Independent byte data remains the oracle.
+packet(6,'.word 3')
+coalescing_cases=0
+for width in [8,16,32]:
+    size=width//8;group=8//size
+    for exponent in range(-3,4):
+        if exponent<(width.bit_length()-1)-6:continue
+        lmul=f'm{1<<exponent}' if exponent>=0 else f'mf{1<<-exponent}'
+        count=(128<<exponent if exponent>=0 else 128>>-exponent)//width
+        if count<2:continue
+        config(count,width,lmul);op('vmv.v.i v8,7')
+        length=count-1
+        config(length,width,lmul);csr(8,1)
+        packet(10,b=1)
+        values=load(f'vle{width}.v v8,(a0)',base+0x12000,length,size,start=1)[0]
+        i=1;groups=0
+        while i<length:
+            if i%group==0 and i+group<=length:groups+=1;i+=group
+            else:i+=1
+        packet(10,a=groups);state(length);traffic()
+        config(count,width,lmul);elements(8,[7]+values[1:]+[7],width)
+        coalescing_cases+=1
+
+# The load EEW can differ from SEW; destination EMUL and packed RF offsets
+# still follow the encoded memory width, not the arithmetic SEW.
+for sew,width,count,destination_lmul in [(8,16,16,'m2'),(8,32,16,'m4'),(16,8,8,'mf2'),(16,32,8,'m2')]:
+    config(count,sew);packet(10,b=1)
+    values=load(f'vle{width}.v v8,(a0)',base+0x12000,count,width//8)[0]
+    packet(10,a=count//(64//width));state(count);traffic()
+    config(count,width,destination_lmul);elements(8,values,width)
+    coalescing_cases+=1
+
+# Adjacent NA4 PMP entries authorize both elements, but cannot authorize one
+# wider word. The opportunity must fall back, not fault or read extra bytes.
+packet(6,'.word 1')
+packet(9,'.word 0',a=0x11,b=(base+0x12000)>>2)
+packet(9,'.word 1',a=0x11,b=(base+0x12004)>>2)
+config(2,32);packet(10,b=1)
+values=load('vle32.v v8,(a0)',base+0x12000,2,4)[0]
+packet(10,a=0);elements(8,values,32);traffic()
+# Remove permission on the second element: first commits, precise vstart=1.
+packet(9,'.word 1',a=0,b=0)
+config(2,32);op('vmv.v.i v8,7');packet(10,b=1)
+op('vle32.v v8,(a0)',a=base+0x12000,cause=5,tval=base+0x12004)
+accesses+=4;packet(10,a=0);state(2,1);traffic()
+config(2,32);elements(8,[raw(base+0x12000,4),7],32)
+
 source=folder/'program.S';source.write_text('.text\n.option norvc\n'+'\n'.join(row[1] for row in program)+'\n')
-prior=json.loads((ROOT/'out/rva23/vector_integer_engine/report.json').read_text())['model']
-files=list(dict.fromkeys((ROOT/'rtl/filelist.f').read_text().splitlines()+[
-    p for p in prior['inputs'] if not p.endswith(('.vi','.svh','.vh')) and p!='tb/unit/backend/rv_vector_integer_engine_tb.sv']))
-files+=['tb/unit/backend/rv_vector_memory_engine_tb.sv']
+files=(ROOT/'rtl/filelist.f').read_text().splitlines()+['tb/unit/backend/rv_vector_memory_engine_tb.sv']
 with Simulator() as sim:
     obj=folder/'program.o';binary=folder/'program.bin'
     sim.run([GCC/'riscv-none-elf-gcc.exe','-march=rv64gcv_zvbb','-mabi=lp64d','-c',source,'-o',obj],folder/'assemble.log',60)
@@ -267,6 +312,6 @@ with Simulator() as sim:
     model=sim.build('rva23_vector_memory_engine','rv_vector_memory_engine_tb',files)
     model['run']=sim.simulate(model,[f'+vectors={vectors.relative_to(ROOT).as_posix()}']);model['passed']=True
     dump(folder/'report.json',{'passed':True,'scope':'Vector memory owner Bare+Sv39: unit/stride/index/segments/masks/whole/FF/restart and second-page permissions/PBMT; native core integration has separate evidence',
-        'packets':len(program),'physical_byte_accesses':accesses,'model':model,'source_sha256':sha(source),
+        'packets':len(program),'physical_byte_accesses':accesses,'coalescing_cases':coalescing_cases,'model':model,'source_sha256':sha(source),
         'vectors_sha256':sha(vectors),'generator_sha256':sha(__file__)})
     print('PASS vector memory packets',len(program),'physical byte accesses',accesses,flush=True)

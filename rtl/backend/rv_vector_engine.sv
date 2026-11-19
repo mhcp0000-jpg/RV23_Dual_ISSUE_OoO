@@ -73,6 +73,7 @@ module rv_vector_engine #(
   logic [63:0] guest_q,mem_guest_address;
   logic implicit_q,mem_implicit;
   logic mem_ready,mem_valid,mem_fault,mem_indexed,mem_whole,mem_mask,mem_ff;
+  logic mem_coalesce,mem_coalesced;
   logic [2:0] field_q;
   logic [1:0] mem_size,index_size;
   int signed mem_exponent,index_exponent;
@@ -196,11 +197,12 @@ module rv_vector_engine #(
     .operand_a_i(fp_probe_q?64'b0:read_data[0]),.operand_b_i(fp_probe_q?64'b0:fp_operand_b),
     .operand_c_i(fp_probe_q?64'b0:read_data[2]),.response_valid_o(fp_valid),.response_ready_i(state_q==FP_WAIT),
     .response_data_o(fp_data),.response_flags_o(fp_flags),.response_exception_o(fp_exception));
-  rv23_hypervisor_memory_head #(.ADDRESS_WIDTH(ADDRESS_WIDTH),.HAS_MMU(HAS_MMU),.HAS_SSNPM(HAS_SSNPM)) u_memory(
+  rv23_hypervisor_memory_head #(.ADDRESS_WIDTH(ADDRESS_WIDTH),.HAS_MMU(HAS_MMU),.HAS_SSNPM(HAS_SSNPM),.COALESCE_READ(1)) u_memory(
     .clk_i,.rst_ni,.invalidate_i,.request_valid_i(state_q==MEM_ISSUE ||
       (state_q==ELEMENT && decoded.memory && index_q<effective_length && element_active)),.request_ready_o(mem_ready),
     .address_i(mem_address),.operand_i(read_data[2]),.size_i({1'b0,mem_size}),
     .write_i(decoded.store),.unsigned_i(1'b1),.floating_i(1'b0),.privilege_i,
+    .coalesce_read_i(mem_coalesce),.response_coalesced_o(mem_coalesced),
     // vstart resumes at the segment boundary and can repeat earlier fields.
     .require_idempotent_i(mem_fields>1),
     .mstatus_i,.satp_i,.menvcfg_i,.senvcfg_i,.pmpcfg_i,.pmpaddr_i,
@@ -212,6 +214,12 @@ module rv_vector_engine #(
     .ptw_data_i,.ptw_error_i,.memory_valid_o,.memory_ready_i,.memory_write_o,.memory_device_o,.memory_size_o,.memory_address_o,
     .memory_data_o,.memory_strobe_o,.memory_response_valid_i,.memory_response_ready_o,
     .memory_response_data_i,.memory_response_error_i);
+  // Read only complete, unmasked, row-aligned groups within VL. Permission
+  // and normal-SRAM qualification happen after translation in the owner.
+  assign mem_coalesce=decoded.memory && !decoded.store && instruction_q[25] &&
+    instruction_q[27:26]==0 && !mem_whole && !mem_mask && !mem_ff && mem_fields==1 && mem_size<3 &&
+    mem_address[2:0]==0 && (int'(index_q) & ((8>>mem_size)-1))==0 &&
+    int'(index_q)+(8>>mem_size)<=effective_length;
   always_comb begin
     sew_size=vtype_q[4:3];sew=8<<sew_size;
     lmul_exponent=int'($signed(vtype_q[2:0]));
@@ -476,6 +484,9 @@ module rv_vector_engine #(
     if(state_q==FINISH && reduction && vl_q!=0)begin rf_write=1;rf_element=0;rf_data=accumulator_q;end
     if(state_q==MEM_WAIT && mem_valid && !mem_fault && !decoded.store)begin
       rf_write=1;rf_base=5'(mem_base);rf_element=index_q;rf_size=mem_size;rf_mask=0;rf_data=mem_result;
+      if(mem_coalesced)begin
+        rf_packed=1;rf_packed_data={64'b0,mem_result};rf_bit_mask={64'b0,64'hffffffffffffffff};
+      end
     end
   end
   // Every vector write crosses this boundary, including slides/FP/memory.
@@ -618,7 +629,7 @@ module rv_vector_engine #(
               guest_q<=mem_guest_address;implicit_q<=mem_implicit;
             end
           end else if(int'(field_q)+1==mem_fields)begin
-            field_q<=0;index_q<=index_q+1'b1;state_q<=ELEMENT;
+            field_q<=0;index_q<=index_q+(mem_coalesced?8'(8>>mem_size):8'd1);state_q<=ELEMENT;
           end else begin field_q<=field_q+1'b1;state_q<=MEM_ISSUE;end
         end
         FP_REQUEST:if(fp_ready)state_q<=FP_WAIT;

@@ -14,6 +14,7 @@ module rv23_hypervisor_memory_head_tb;
   logic [31:0] ma;
   logic [2:0] memory_size;
   logic execute_permission=0,hs_mxr=0;
+  logic coalesce=0,coalesced;
   logic [1:0] pmm=0;
   logic [63:0] io_word=64'h8877665544332211;
   logic [63:0] md,mrd=0;
@@ -21,10 +22,11 @@ module rv23_hypervisor_memory_head_tb;
   byte unsigned memory[512];
   int ticks=0,accesses=0,checks=0;
   assign mr=!mrv && ticks%3!=0;
-  rv23_hypervisor_memory_head #(.HAS_MMU(0)) dut(
+  rv23_hypervisor_memory_head #(.HAS_MMU(0),.COALESCE_READ(1)) dut(
     .clk_i(clk),.rst_ni(rst_n),.invalidate_i(1'b0),.execute_permission_i(execute_permission),.pmm_i(pmm),.hs_mxr_i(hs_mxr),
     .request_valid_i(req),.request_ready_o(ready),.address_i(address),.operand_i(operand),
     .size_i(size),.write_i(write_enable),.unsigned_i(unsign),.floating_i(floating),.privilege_i(privilege),
+    .coalesce_read_i(coalesce),.response_coalesced_o(coalesced),
     .mstatus_i(64'b0),.satp_i(64'b0),.menvcfg_i(64'b0),.senvcfg_i(64'b0),.pmpcfg_i(pmpcfg),.pmpaddr_i(pmpaddr),
     .response_valid_o(rsp),.response_ready_i(rsp_ready),.response_data_o(result),.response_tval_o(tval),
     .response_exception_o(exception),.response_cause_o(cause),
@@ -39,7 +41,7 @@ module rv23_hypervisor_memory_head_tb;
     if(mv && mr) begin
       if(memory_device!==!ma[31])$fatal(1,"incorrect SRAM/MMIO device attribute");
       if(!(ma>=32'h80000000 && ma<32'h80000200) && !(ma>=32'h02000000 && ma<32'h02000008))$fatal(1,"unexpected memory address %h",ma);
-      if(memory_size!=((address & ((64'b1<<size)-1))==0?size:0))$fatal(1,"incorrect natural/split size");
+      if(memory_size!=(coalesced?3:((address & ((64'b1<<size)-1))==0?size:0)))$fatal(1,"incorrect natural/split size");
       if(ms!==8'(((9'b1<<(1<<memory_size))-1)<<ma[2:0]))$fatal(1,"non-atomic natural strobe");
       accesses<=accesses+1;mrv<=1;
       for(int b=0;b<8;b++) begin
@@ -143,6 +145,21 @@ module rv23_hypervisor_memory_head_tb;
     hs_mxr=1;before_access=accesses;transact(0,1,5,address);
     if(accesses!=before_access)$fatal(1,"HS MXR failed to disable pointer masking");
     hs_mxr=0;execute_permission=1;transact(0,1,5,address);
+    // An explicit unit-load opportunity may widen only normal SRAM reads.
+    execute_permission=0;pmm=0;coalesce=1;address=64'h80000100;size=2;
+    expected=0;for(int b=0;b<8;b++)expected[b*8+:8]=memory[256+b];
+    before_access=accesses;transact(expected);
+    if(!coalesced || accesses!=before_access+1)$fatal(1,"missing complete SRAM word");
+    address=64'h02000000;before_access=accesses;transact({32'b0,io_word[31:0]});
+    if(coalesced || accesses!=before_access+1)$fatal(1,"coalesced MMIO side effect");
+    address=64'h80000104;expected=0;
+    for(int b=0;b<4;b++)expected[b*8+:8]=memory[260+b];
+    transact(expected);if(coalesced)$fatal(1,"unaligned word widened");
+    address=64'h80000100;privilege=PRIV_S;
+    pmpcfg[0]=8'h11;pmpaddr[0]=62'(address>>2);
+    pmpcfg[1]=8'h11;pmpaddr[1]=62'((address+4)>>2);
+    expected=0;for(int b=0;b<4;b++)expected[b*8+:8]=memory[256+b];
+    transact(expected);if(coalesced)$fatal(1,"cross-entry PMP widening");
     $display("PASS rv23_hypervisor_memory_head_tb checks=%0d byte_accesses=%0d",checks,accesses);$finish;
   end
   initial begin #1000000;$fatal(1,"assist timeout");end
