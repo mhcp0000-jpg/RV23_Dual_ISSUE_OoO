@@ -101,4 +101,31 @@ CoreMark 내부 counter read 위치와 다르므로 window cycles를 점수 계�
 
 관측 래퍼는 먼저 기존 H/V ELF로 smoke를 통과했다. 이 window에서 3,163
 cycles, vector physical 요청/응답 각각 8건과 상태별 합계를 확인했다.
-CoreMark 관측 실행은 진행 중이며 아직 상태별 병목 결론으로 사용하지 않는다.
+CoreMark 관측 실행도 완료했고 기존 quiet 실행과 전체 packet이 같다.
+내부 CoreMark 측정은 1,815,477 cycles / 552,447 instructions다.
+Retire 경계의 관측 window는 1,815,503 cycles / 552,448 instructions이며
+위에서 설명한 경계 차이로 내부 counter와 다르다.
+
+| 관측 | Cycles / count |
+|---|---:|
+| Vector MEM_WAIT | 166,149 cycles |
+| 그중 TRANSLATE / WAIT_TRANSLATE / CHECK / MEMORY_REQUEST / RESULT | 각각 26,596 cycles |
+| 그중 MEMORY_RESPONSE | 33,169 cycles |
+| 물리 vector 요청 / 응답 | 각각 26,596건 |
+| 요청이 ready를 기다린 시간 | 0 cycles |
+| Window 전체 D-cache hit / miss accept | 106,591 / 35건 |
+| Vector owner CHECK / RESULT | 94,507 / 94,588 cycles |
+| Vector owner INT_DRAIN | 102,810 cycles |
+
+이 workload에서 물리 vector 요청 수락→응답은 평균 약 1.25사이클이다.
+각 원소마다 그 밖의 다섯 memory-head 제어 상태에 1사이클씩 반복해서
+머문다. 따라서 연속 원소의 요청 수를 줄이거나 preflight와 요청·응답을
+중첩하는 작업이 현재의 구체적인 개선 대상이다. CHECK/RESULT/INT_DRAIN
+등 명령별 owner overhead도 남아 있다. IDLE 1,129,305 cycles에는 scalar
+실행과 다른 대기가 섞이므로 이를 전부 vector stall로 계산하지 않는다.
+
+초기 관측은 외부 hierarchical enum 참조의 폭이 잘못 처리되어 memory
+하위 상태 합계 검사에서 거부됐다. 외부 조건은 숫자 bin으로 고치고 driver가
+실제 두 enum 선언의 순서를 검사하도록 했다. 수정 후 주 상태와 하위 상태의
+합계 및 같은 benchmark packet을 다시 확인했다.
+[완료된 관측의 소스·로그 해시](evidence/vector_occupancy.json)
