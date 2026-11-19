@@ -1,8 +1,8 @@
 {
   "passed": true,
   "complete_profile_validation": false,
-  "coremark_10_complete": false,
-  "scope": "Current-source directed scalar/vector overlap, IRQ, wake-data negative control and same-ELF two-iteration performance; ten-iteration measurement pending",
+  "coremark_10_complete": true,
+  "scope": "Current-source directed scalar/vector overlap, precise IRQ, wake-data negative control and same-ELF two/ten-iteration performance; not full profile or physical timing sign-off",
   "before_commit": "a49f7a9",
   "native_inputs_before": {
     "rtl/soc/rv_soc_pkg.sv": "b8c5ab345000ddf0a0e4813a3f0a9c975901753e79ece66e34081c741a2bed48",
@@ -360,6 +360,49 @@
     "guest_vu": {
       "path": "out/rva23/hypervisor_vector_faults_vu/report.json",
       "sha256": "7a0722b443d3e13f1d958159e187f96750d377e0af741ae3a873daaf8fed293b"
+    },
+    "coremark_10": {
+      "path": "out/performance/vector_overlap/coremark_10.json",
+      "sha256": "cda8607138f601f5d7b7a4bab7bf9762bbb4f8319c9eaff6c95bb0fa0799422b"
+    },
+    "profile": {
+      "path": "out/performance/vector_overlap_profile/after.json",
+      "sha256": "1ee05f320cc470c0c97625271ad6a516a947454e25fd98f3bc6baecb7e097583"
     }
-  }
+  },
+  "after_rtl_commit": "db13e32",
+  "coremark_10": {
+    "elf_sha256": "59c583cf167435f458d4186d2083fdeb4917f56e5ff71c30e8a3dd03990742e1",
+    "packet": [
+      1129119745,
+      10,
+      9243916,
+      0,
+      2762088,
+      0,
+      59893,
+      59156,
+      8151,
+      36410,
+      64687,
+      9
+    ],
+    "cycles": 9243916,
+    "instructions": 2762088,
+    "ipc": 0.2988006381710955,
+    "coremark_per_mhz_estimate": 1.081792608240923,
+    "cycle_reduction_percent": 9.99853858263546,
+    "speedup": 1.1110930692143892,
+    "run": {
+      "exit_code": 0,
+      "seconds": 1736.791,
+      "log": "out/performance/vector_overlap/coremark_10.log",
+      "log_sha256": "af1d30ce7f1e0c7dbd71f6749826f18ced0d6337845601f6c1d9dd935ad4b1da",
+      "expected_failure": null,
+      "passed": true,
+      "host_timeout_seconds": 5000
+    }
+  },
+  "before_coremark_10_cycles": 10270851,
+  "combined_cycle_reduction_percent": 19.793251431005864
 }

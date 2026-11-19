@@ -78,7 +78,7 @@ VLE32 진단의 증가도 포함해 기록한다. 이 단계는 vector memory en
 CoreMark는 `compare_vector_overlap_performance.py --coremark-iterations 2`
 또는 `10`으로 이전 ELF를 재컴파일하지 않고 실행한다. 변경 전 binary와
 10회 결과는 `out/performance/vector_overlap_before/`에 보존했다.
-2회/10회 최종값은 각각의 report가 `passed=true`가 된 뒤 추가한다.
+2회와 10회 모두 완료했으며 결과는 아래에 기록한다.
 
 실제 Fmax/STA는 측정하지 않았다. Pipeline/cache 1차 변경과 당시 CoreMark
 10.88% 개선은 [이전 작업 기록](VECTOR_PIPELINE_REWORK.md)을 참조한다.
@@ -90,4 +90,48 @@ CoreMark는 `compare_vector_overlap_performance.py --coremark-iterations 2`
 retired instructions는 양쪽 552,447개이며 CRC가 일치했다.
 
 주소 캐시 오류가 발생했던 첫 CoreMark 실행은 실패로 보존했으며, 위 수치는
-등록된 system wake data 수정 후 재실행한 결과다. 10회 결과는 실행 중이다.
+등록된 system wake data 수정 후 재실행한 결과다. 10회 결과도 아래와 같이 완료했다.
+
+## 갱신한 retire-gap 진단
+
+같은 2회 ELF에서 trace를 켠 실행도 quiet 실행과 cycles/instructions가 같았다.
+공백을 다음 retired mnemonic에 귀속한 값이며 인과적 stall 분해는 아니다.
+
+| mnemonic | 명령 수 | 이전 gap 귀속 | 변경 후 gap 귀속 |
+|---|---:|---:|---:|
+| vluxei64.v | 8,208 | 266,876 | 260,335 |
+| vzext.vf2 | 8,208 | 102,611 | 90,288 |
+| vsetvli | 15,552 | 95,920 | 78,384 |
+| vsetivli | 10,113 | 63,955 | 50,752 |
+| vadd.vv | 8,640 | 90,670 | 77,760 |
+| vsll.vi | 8,424 | 94,104 | 81,432 |
+
+`vluxei64.v`는 여기서 64-bit index를 사용하는 주로 SEW16 data gather다.
+원소별 주소/변환/cache 요청은 현재 그대로이며 다음 우선 후보로 남는다.
+`vzext.vf2`도 현재 packed SIMD에서 제외된 원소 경로라서, source를 destination
+SEW 간격으로 펼쳐 두 64-bit lane에 넣는 확장 연산 batching을 추가 후보로 둔다.
+이를 위해서는 SIMD의 extension_factor 전달, fractional LMUL/group 경계,
+vstart/mask와 inactive write 보존을 확인해야 한다. 아직 이 batching은 구현하지 않았다.
+
+프로파일 재현 명령:
+
+```powershell
+python scripts/profile_coremark_vector_fastpath.py after --baseline-dir out/performance/vector_overlap_before --output-dir out/performance/vector_overlap_profile --expected-changes rtl/backend/rv_decode2.sv rtl/backend/rv_backend.sv --expected-report out/performance/vector_overlap/coremark_2.json
+```
+
+Focused 회귀는 `python scripts/run_vector_overlap_regression.py`로 실행한다.
+[Sail reference 설정](SAIL_REFERENCE.md)이 필요하다. 이 회귀의 source/log/binary
+감사는 전체 `audit_rva23_requirements.py`의 필수 audit 목록에도 연결했다.
+
+## CoreMark 10회 최종 결과
+
+- Source checkpoint: `db13e32`, 비교 기준 `a49f7a9`.
+- 같은 ELF SHA-256: `59c583cf167435f458d4186d2083fdeb4917f56e5ff71c30e8a3dd03990742e1`.
+- Cycles: **10,270,851→9,243,916**, **10.00% 감소**.
+- IPC: **0.268925→0.298801**, CoreMark/MHz 추정 **1.081793**.
+- Retired instructions: 양쪽 **2,762,088**. CRC e9f5/e714/1fd7/8e3a 일치.
+- 성능 개선 착수 전 `9332f6c` 대비 **19.79% cycle 감소**.
+
+원본 보고서: `out/performance/vector_overlap/coremark_10.json`.
+[공개 source-bound snapshot](evidence/vector_scalar_overlap.json).
+이 결과는 새로운 ISA 기능 완료, 전체 profile 승인 또는 실제 clock 개선의 증거가 아니다.

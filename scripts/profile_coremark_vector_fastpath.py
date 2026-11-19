@@ -4,16 +4,21 @@ from sim_runner import ROOT,Simulator,dump,sha,source_inputs
 
 parser=argparse.ArgumentParser()
 parser.add_argument('mode',choices=['before','after'])
+parser.add_argument('--baseline-dir',default='out/performance/vector_fastpath_before')
+parser.add_argument('--output-dir',default='out/performance/vector_fastpath_profile')
+parser.add_argument('--expected-changes',nargs='+',default=[
+    'rtl/backend/rv_vector_engine.sv','rtl/backend/rv23_hypervisor_memory_head.sv'])
+parser.add_argument('--expected-report',help='Require the same cycles as an existing quiet execution')
 args=parser.parse_args()
-folder=ROOT/'out/performance/vector_fastpath_profile';folder.mkdir(parents=True,exist_ok=True)
+folder=ROOT/args.output_dir;folder.mkdir(parents=True,exist_ok=True)
 prior=json.loads((ROOT/'out/performance/rv64_coremark/report.json').read_bytes())
 old=next(c for c in prior['cases'] if c['variant']=='o3_rvv' and c['iterations']==2)
-saved=ROOT/'out/performance/vector_fastpath_before'
+saved=ROOT/args.baseline_dir
 before=json.loads((saved/'model.json').read_bytes())
 current=json.loads((ROOT/'out/rva23/hypervisor_integration/model.json').read_bytes())
 assert current['inputs']==source_inputs(current['inputs']) and current['params']==before['params']
 changes={p for p,h in before['inputs'].items() if current['inputs'][p]!=h}
-assert changes=={'rtl/backend/rv_vector_engine.sv','rtl/backend/rv23_hypervisor_memory_head.sv'},changes
+assert changes==set(args.expected_changes),changes
 for p in changes:assert sha(saved/p.rsplit('/',1)[-1])==before['inputs'][p]
 model=before if args.mode=='before' else current
 assert sha(ROOT/model['binary'])==model['binary_sha256']
@@ -34,6 +39,14 @@ packet=words[words.index(0x434d0001):][:12]
 assert packet[1]==2 and packet[6:10]==[0xe9f5,0xe714,0x1fd7,0x8e3a] and packet[11]&0x17==1
 cycles=packet[2]+(packet[3]<<32);instructions=packet[4]+(packet[5]<<32)
 assert instructions==old['instructions'] and sha(elf)==old['elf_sha256']
+expected_sha256=None
+if args.expected_report:
+    expected_path=ROOT/args.expected_report
+    expected=json.loads(expected_path.read_bytes())
+    assert expected['passed'] and expected['elf_sha256']==sha(elf)
+    assert expected['model']['inputs']==model['inputs']
+    assert (cycles,instructions)==(expected['cycles'],expected['instructions'])
+    expected_sha256=sha(expected_path)
 mix=collections.Counter();gaps=collections.Counter();active=False;stopped=False;last=None
 with trace.open(newline='') as stream:
     for row in csv.DictReader(stream):
@@ -50,6 +63,7 @@ dump(folder/(args.mode+'.json'),dict(passed=True,
     scope='Same two-iteration ELF. No-retire gaps attributed to next retired mnemonic; attribution is not causal stall ownership. Ten-iteration comparison is separate.',
     driver_sha256=sha(__file__),model=model,run=run,elf_sha256=sha(elf),
     trace_sha256=sha(trace),disassembly_sha256=sha(disassembly),packet=packet,
+    baseline_dir=args.baseline_dir,expected_report_sha256=expected_sha256,
     cycles=cycles,instructions=instructions,ipc=instructions/cycles,
     instruction_mix=dict(mix),gap_attribution=dict(gaps)))
 print('PASS exact-ELF RVV profile',args.mode,'cycles',cycles,'IPC',instructions/cycles,flush=True)

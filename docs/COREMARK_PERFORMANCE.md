@@ -16,6 +16,13 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 시간과 검증 절차를 완료한 공식 점수가 아니다.
 [공식 실행·보고 규칙](https://github.com/eembc/coremark/blob/1f483d5b8316753a742cbf5590caf5bd0a4e4777/README.md)
 
+## 후속 non-memory vector/scalar 중첩
+
+같은 10회 RVV ELF는 **10,270,851→9,243,916 cycles**, 추가
+**10.00% 감소**했다. IPC **0.298801**, CoreMark/MHz 추정
+**1.081793**다. CRC와 명령 수는 같다.
+[현재 구조·회귀·성능](VECTOR_SCALAR_OVERLAP.md) 및 [snapshot](evidence/vector_scalar_overlap.json).
+
 ## 측정 조건
 
 - upstream commit: `1f483d5b8316753a742cbf5590caf5bd0a4e4777`, 알고리즘 소스 변경 없음.
@@ -135,7 +142,7 @@ completion을 통과한 지속 load 처리량은 별개다. 이 결과만으로 
 | load-use와 분기 | 리스트 추적과 CRC에는 의존성·분기가 있다 | forwarding/응답-to-use 경로와 branch recovery 검토 | retire 공백이 집중된 함수·PC, load-use/redirect 실제 계측; gap을 원인으로 단정하지 않음 |
 | miss 처리 | 64B refill을 AXI64 single-beat 여덟 번으로 요청, 제한된 outstanding | 실제 burst refill, 이후 다중 miss/독립 요청 중첩 | 같은 ELF의 cold/steady cycles, AR/R beat, 오류·backpressure·snoop/refill 경합 |
 | 벡터 메모리 | 벡터는 별도 메모리 head 경로에서 원소별 접근 | L1의 두 뱅크를 이용한 벡터 공급, 정렬된 접근 결합 | 실제 벡터 load/store 대기·전송 수; 마스크·PMA·부분 fault/vstart 보존 |
-| 벡터 실행 중첩 | 벡터 명령이 serial barrier이며 뒤의 scalar dispatch를 막는다 | 독립 scalar/vector 실행 중첩, 이후 벡터 의존성·rename/scheduling | 유용 작업당 cycles; precise trap·분기 취소·메모리 순서 검증 선행 |
+| 벡터 실행 중첩 | Memory vector는 serial barrier를 유지하고 non-memory vector/scalar 중첩은 구현했다. Vector owner 자체는 순차 실행한다 | Vector-vector 의존성·rename/scheduling, 통합 data movement unit과 memory issue 개선 | 유용 작업당 cycles; precise trap·분기 취소·메모리 순서 검증 선행 |
 | compiler | auto-vectorizer의 cost model과 현재 원소 순차 엔진의 비용이 다를 수 있다 | O2/O3/RVV 실측 후 LTO·loop/code 배치 등을 별도 비교 | 모든 옵션 공개, CRC 일치; static V와 실제 실행된 V를 구분 |
 | divider, 별도 workload | 현재 radix-2의 64/32회 반복, 모듈 일반 지연 65/33 cycles | radix-4 및 선행 0·작은 피연산자·2의 거듭제곱 빠른 경로 검토 | signed/W·0 나누기·overflow·flush·backpressure, cycle과 합성 Fmax/PPA 함께 비교; 현재 RTL에는 미적용 |
 

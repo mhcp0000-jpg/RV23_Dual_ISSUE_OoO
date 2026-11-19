@@ -58,39 +58,35 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 [연산기 지연 실측 근거](docs/evidence/pipeline_latency.json)
 · [측정 재현 스크립트](scripts/run_pipeline_latency.py)
 
-### 벡터 성능 개선 작업
+### CoreMark 성능과 벡터 개선
 
-후속 구현에서는 non-memory vector의 scalar dispatch barrier를 줄였다.
-FP co-retirement 읽기 포트와 system wakeup data 전달도 함께 수정했다.
-[Scalar/vector 중첩 구조와 현재 측정](docs/VECTOR_SCALAR_OVERLAP.md).
+RVV 전·후는 **같은 10회 ELF**를 재컴파일하지 않고 실행했다.
+CRC와 retired instruction count **2,762,088개**는 같다.
+스칼라 두 행은 이전 실측 기준이다. 수치는 RTL cycle 기반 CoreMark/MHz
+추정치이며 실제 합성 clock이나 공식 인증 점수는 아니다.
 
-공유 D-cache와 2×64 SIMD를 연결한 뒤, 자연 정렬 메모리의 반복 주소 변환과
-정수 ALU의 완료 대기를 줄였다. 같은 ELF의 warmed 128회 진단에서 VADD는
-1,877→1,534 cycles, VLE64는 8,789→3,285 cycles, VLUXEI64는
-8,789→3,298 cycles였다. scalar ADD는 148 cycles로 동일했다.
-이 값은 짧은 진단 코드 결과이며, 아래 CoreMark 점수와 구분한다.
-동일한 10회 RVV CoreMark ELF는 **11,525,110→10,270,851 cycles**,
-**10.88% 감소 / 1.122배** 개선됐다. IPC는 0.239658→0.268925.
-CRC와 retired instruction count 2,762,088은 같다.
-[입력·ELF·실행 로그 해시에 묶인 근거](docs/evidence/vector_fastpath.json)
-[변경 내용·측정 범위·남은 구조 개선](docs/VECTOR_PIPELINE_REWORK.md)
-
-### CoreMark 성능
-
-아래 표는 벡터 pipeline/cache 재작업 전의 RV64·LP64D **10회 RTL 실행 결과**다.
-같은 upstream 알고리즘과 2 KiB performance data를 사용했다.
-세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
-
-| 빌드 | Cycles | IPC | CoreMark/MHz 추정 |
+| 구성 | Cycles | IPC | CoreMark/MHz 추정 |
 |---|---:|---:|---:|
-| O2 scalar, 10회 완료 | 4,896,919 | 0.612160 | 2.042100 |
-| O3 scalar, 10회 완료 | 4,902,692 | 0.619334 | 2.039696 |
-| O3 auto-RVV, 10회 완료 | 11,396,161 | 0.242370 | 0.877488 |
+| O2 scalar 기준 | 4,896,919 | 0.612160 | 2.042100 |
+| O3 scalar 기준 | 4,902,692 | 0.619334 | 2.039696 |
+| RVV, pipeline/cache 변경 전 `802e2e1` | 11,396,161 | 0.242370 | 0.877488 |
+| RVV, 성능 개선 착수 전 `9332f6c` | 11,525,110 | 0.239658 | 0.867671 |
+| RVV, 반복 preflight/완료 대기 축소 `a49f7a9` | 10,270,851 | 0.268925 | 0.973629 |
+| **RVV, 독립 scalar 중첩 `db13e32`** | **9,243,916** | **0.298801** | **1.081793** |
 
-auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보다 약 2.32배 많은 cycles를 썼다. 벡터의 원소 처리·
-메모리 경로와 명령 직렬화가 개선 후보이며, IPC만으로 유용 작업량을 비교하지 않는다.
-예전에 언급한 IPC 1.123518은 별도의 고정 RV32 ELF 결과다.
-[컴파일 옵션·CRC·실측 근거·개선 후보](docs/COREMARK_PERFORMANCE.md)
+이번 단계는 이전 단계보다 **10.00% cycle 감소**다. 성능 개선 착수 전 대비
+**19.79% 감소**, 최초 `802e2e1` 대비 **18.89% 감소**다.
+RVV는 O3 scalar 기준보다 여전히 약 **1.89배 많은 cycles**를 사용한다.
+
+비메모리 vector는 독립 scalar와 중첩한다. FP co-retirement 포트와 system
+wakeup data 전달도 수정했다. Vector 자체는 단일 owner로 순차 실행하고,
+vector memory의 ordering barrier는 유지한다. 원소별 indexed data 요청이
+주요 개선 후보로 남는다. 실제 Fmax/STA는 별도 측정이 필요하다.
+
+[현재 구현·회귀·측정](docs/VECTOR_SCALAR_OVERLAP.md)
+· [현재 결과의 해시 근거](docs/evidence/vector_scalar_overlap.json)
+· [이전 pipeline/cache 개선](docs/VECTOR_PIPELINE_REWORK.md)
+· [컴파일 옵션과 과거 측정](docs/COREMARK_PERFORMANCE.md)
 
 ## 검증 현황
 
