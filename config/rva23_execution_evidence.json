@@ -1,6 +1,16 @@
 [
   {
     "requirements": [
+      "A",
+      "H",
+      "Sv39",
+      "Svade"
+    ],
+    "report": "out/rva23/atomic_translation_faults/report.json",
+    "behavior": "1008 native HS/U/VS/VU Sv39/two-stage LR/SC/AMOADD D/W-low/W-high cases across 14 contexts and alignment. 864 faults independently check precise PC/cause/tval, no destination, GVA/MPV/MPP and mtval2/mtinst; explicit GPA and implicit PTE read metadata. 144 normal results, 1872 traps and 2016 destination/whole-word observations; same ELF per batch matches 148168 Sail/RTL events and 28 corrupt trace controls. Host G-stage configurations are inactive controls. Locked PMP, MPRV, delegation/live reservation and all PTE/PMP/PBMT products remain separate; atomics.2 remains open."
+  },
+  {
+    "requirements": [
       "A"
     ],
     "report": "out/rva23/atomic_fault_contract/report.json",

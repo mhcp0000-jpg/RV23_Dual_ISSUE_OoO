@@ -94,6 +94,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | 지연 store·후속 load | DIV로 store 주소/데이터를 늦춘 448개 사례·896개 값 검사. 같은 ELF의 Sail/RTL 이벤트 21,290건 일치, 실제 LSQ 대기와 더 오래된 SQ/DIV 겹침 관찰. [범위와 한계](docs/RVA23_INTEGER_CLAUSE_REVIEW.md); 전체 RVWMO 검토는 진행 중 |
 | AMO 재시도·간섭 | production engine·xbar·SRAM 경로의 270개 component 사례, exclusive 실패 243회와 최신 값 재읽기 확인. 초기화 제외 실제 write 594회로 실패 쓰기 누출 검사. [A 검토](docs/RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | Atomic Bare 예외 | M/HS/U 900개 사례, PMP·정렬·비원자 주소의 fault 690건과 결과/guard 1,800개 확인. 같은 ELF의 Sail/RTL 이벤트 76,656건 일치. [A 검토](docs/RVA23_ATOMIC_CLAUSE_REVIEW.md); translated/guest fault 검토는 진행 중 |
+| Atomic 주소 변환·guest 예외 | HS/U/VS/VU 1,008개 사례, fault 864건의 cause·PC/tval·GVA/MPV/MPP·mtval2/mtinst 확인. Sail/RTL 이벤트 148,168건 일치. [검증 범위](docs/RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | 스칼라/벡터 FP 상태 | SEW32/64·다섯 frm·mask/vstart/vl 선택의 교차 실행 160개. 공유 flags와 destination words 640개 확인, Sail/RTL 이벤트 13,507건 일치. [V 상태·실행 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md) |
 | RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | RV64 압축 산술 범위 | 18형식의 probe 7,226개, 배치별 동일 ELF의 Sail/RTL 이벤트 62,776건 일치. 즉시값·시프트의 유효 범위와 MV/ADD의 비영 레지스터 쌍 전체, 선택 데이터 패턴 및 대조군 60개 포함 |

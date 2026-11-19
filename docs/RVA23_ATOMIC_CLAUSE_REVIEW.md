@@ -111,6 +111,40 @@ PMP가 겹치는 모든 조합 또는 guest metadata를 포괄하지 않는다. 
 해당 경로의 source gating과 기존 별도 bus 근거를 구분한다. 이 단계에서는
 `atomics.2`를 계속 열린 상태로 유지한다.
 
+## Sv39·guest fault matrix
+
+`run_atomic_translation_faults.py`는 HS/U/VS/VU 각각 252개, 총 1,008개를
+실행한다. LR/SC/AMOADD의 D 및 두 W lane에 14개 context와 정렬/비정렬을
+적용한다. context는 정상 RW, invalid PTE, read-only, A=0, D=0, 잘못된 U 권한,
+PMP 거부, invalid+PMP, G-stage invalid, implicit PTE read fault, G-stage A=0,
+D=0/read-only 및 양쪽 stage invalid다. host의 G-stage 설정은 비활성 대조군이다.
+각 접근의 예약은 scratch SC로 먼저 비우며 모든 SC가 예약 없는 경우다.
+
+guest는 Sv39 VS-stage와 Sv39x4 G-stage를 실제로 사용한다. code와 page-table
+메모리를 허용한 채 data의 guest physical mapping만 거부한다. implicit 사례는
+VS-stage의 다음 PTE를 읽는 GPA 0x10000000을 G-stage에서 거부한다.
+host의 대응 PTE-read 사례는 physical 0x90000000의 bus access fault다.
+PTE는 명시적으로 초기화하고 SFENCE/HFENCE 뒤 실행하며 초기 SRAM 값을
+가정하지 않는다. PMP보다 앞서는 page fault와 두 stage 오류가 겹치는 우선순위를
+구별한다. PBMT 선택은 이 matrix에 추가하지 않으며 기존 Sv39/PBMT 검사를 사용한다.
+
+정상 결과 144건·fault 864건, escape ECALL을 포함한 trap 1,872건과 목적지/전체
+word 관찰값 2,016개를 확인했다. 각 fault에서 cause·원본 PC/tval·write 없음에
+더해 mstatus의 GVA/MPV/MPP 및 mtval2/mtinst 읽기를 독립 검사한다.
+[H 규칙](https://docs.riscv.org/reference/isa/priv/hypervisor.html)에 따라 이 target은
+guest-page fault GPA를 mtval2에 2비트 우측 이동해 제공하며, implicit 64-bit PTE
+read에는 mtinst=0x3000을 제공한다. 다른 fault의 mtval2/mtinst는 0이고 guest
+실행의 GVA/MPV 및 원래 privilege가 보존돼야 한다. 이 구체적인 정보 제공 정책을
+모든 허용 구현의 선택으로 확대하지 않는다.
+
+배치별 같은 ELF를 Sail과 RTL에 사용해 이벤트 148,168건이 일치했다.
+cause/tval/result/guard/GPA/implicit/GVA 변조 일곱 개씩 총 28개를 거부했다.
+보고서는 `out/rva23/atomic_translation_faults/report.json`이다. 생성기와 Bare
+oracle helper·현재 RTL/model·ELF·assembly·Sail·trace·로그를 `--check`로 재검사한다.
+이것은 대표 LR/SC/AMOADD의 유한 우선순위/metadata 검사이며 locked PMP,
+MPRV, delegation, live reservation 및 모든 PTE/PMP/PBMT 조합은 별도다.
+`atomics.2`의 종합 검토는 계속 열린다.
+
 ## AMO field matrix 실행
 
 `scripts/run_amo_field_contract.py`는 18형식 × aq/rl 네 조합 × alias 여섯 패턴
@@ -134,6 +168,7 @@ M-mode Bare SRAM 접근이며, W/D 자연 정렬 주소를 64바이트 line 내�
 python scripts/run_amo_field_contract.py --check
 python scripts/run_amo_retry_matrix.py --check
 python scripts/run_atomic_fault_contract.py --check
+python scripts/run_atomic_translation_faults.py --check
 python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm
 ```
 
