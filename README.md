@@ -16,11 +16,16 @@
 | 파이프라인 | 2-issue out-of-order, ROB 기반 순차 retire |
 | ISA 및 권한 | RV64 정수·단정도/배정도 FP·벡터, M/HS/VS/U/VU, Sv39 및 Sv39x4 |
 | 벡터 | VLEN128/ELEN64. 일반 정수 ALU 64비트 lane 2개: SEW64/32/16/8에서 2/4/8/16 원소 배치. 특수·widen/narrow·reduction·DIV·FP는 별도 경로 |
-| L1 | I-cache 32 KiB + D-cache 32 KiB, 캐시별 64비트 2뱅크, 64바이트 라인 |
+| L1 | I-cache 32 KiB + D-cache 32 KiB, 캐시별 64비트 2뱅크, 64바이트 라인, AXI64 8-beat burst 리필 |
 | SoC | AXI64 시스템 버스, 기본 1 MiB SRAM, CLINT·PLIC, native halt/drain/resume·AXI·retire trace 디버그 |
 | RTL 파일 목록 | 저장소 루트 기준 `rtl/filelist.f` 또는 `sim/sources.f` |
 
 뱅크가 다른 접근은 캐시 내부에서 두 64비트 뱅크를 함께 사용할 수 있다. SRAM 리필은 AXI64를 사용한다. [SoC 구성, 주소 맵, 부팅 및 디버그](docs/ARCHITECTURE.md)
+
+리필 주소 요청을 라인당 8회→1회로 줄였다. 실제 AXI bridge/SRAM을 연결한
+32개 cold-line 시험은 **1,952→1,344 cycles (31.15% 감소)**다.
+전체 CoreMark 개선율과 구분하며, 동시에 처리하는 refill은 아직 하나다.
+[구현과 측정 범위](docs/CACHE_BURST_REFILL.md)
 
 전체 시스템 합성 TOP은 [`rv23_soc_top`](rtl/soc/rv23_soc_top.sv)이며,
 저장소 루트를 작업 디렉터리로 [rtl/filelist.f](rtl/filelist.f)를 읽는다.

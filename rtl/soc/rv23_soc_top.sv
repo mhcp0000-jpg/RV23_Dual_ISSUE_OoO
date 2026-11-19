@@ -140,9 +140,11 @@ module rv23_soc_top #(
   rv_axi4_if #(.ID_WIDTH(4)) cbo_axi(.clk_i,.rst_ni);
   rv_axi4_if #(.ID_WIDTH(4)) cache_cbo_axi(.clk_i,.rst_ni);
   logic cbo_cache_invalidate,cbo_cache_ready;
+  logic i_refill,d_refill,i_bridge_idle,d_bridge_idle;
   logic [1:0] cbo_privilege;
   logic head_cache_idle,cbo_memory_use_dcache;
-  assign cbo_cache_ready=i_idle && d_idle && arb_idle && atomic_idle && head_cache_idle;
+  assign cbo_cache_ready=i_idle && d_idle && i_bridge_idle && d_bridge_idle &&
+    arb_idle && atomic_idle && head_cache_idle;
   logic cbo_memory_read,cbo_memory_device;
   assign cbo_bus.req_id=6'he;assign cbo_bus.req_write=!cbo_memory_read;
   assign cbo_bus.req_priv=rv_soc_pkg::privilege_e'(cbo_privilege);
@@ -326,19 +328,21 @@ module rv23_soc_top #(
     .clk_i,.rst_ni,.invalidate_i(fence_i || (cbo_cache_invalidate && cbo_cache_ready)),
     .snoop_valid_i(sram_write_snoop),.snoop_addr_i(sram_write_snoop_addr),
     .snoop_wdata_i(sram_write_snoop_data),.snoop_wstrb_i(sram_write_snoop_strb),
-    .idle_o(i_idle),.cpu(i_cpu),.cpu_b(i_cpu_hi),.mem(i_outbound)
+    .idle_o(i_idle),.refill_o(i_refill),.cpu(i_cpu),.cpu_b(i_cpu_hi),.mem(i_outbound)
   );
   rv23_cache #(.SIZE_KB(rv23_pkg::DCACHE_KB)) u_dcache (
     .clk_i,.rst_ni,.invalidate_i(cbo_cache_invalidate && cbo_cache_ready),
     .snoop_valid_i(sram_write_snoop),.snoop_addr_i(sram_write_snoop_addr),
     .snoop_wdata_i(sram_write_snoop_data),.snoop_wstrb_i(sram_write_snoop_strb),
-    .idle_o(d_idle),.cpu(dcache_port0),.cpu_b(d_cpu),.mem(d_outbound)
+    .idle_o(d_idle),.refill_o(d_refill),.cpu(dcache_port0),.cpu_b(d_cpu),.mem(d_outbound)
   );
-  rv_local_to_axi_bridge #(.IS_INSTRUCTION(1)) u_i_bridge (
-    .clk_i,.rst_ni,.local_bus(i_outbound),.axi_m(i_axi)
+  rv_local_to_axi_bridge #(.IS_INSTRUCTION(1),.CACHE_BURST(1),
+    .CACHE_BASE_ADDR(rv23_pkg::SRAM_BASE),.CACHE_MEMORY_KB(rv23_pkg::SRAM_KB)) u_i_bridge (
+    .clk_i,.rst_ni,.refill_i(i_refill),.idle_o(i_bridge_idle),.local_bus(i_outbound),.axi_m(i_axi)
   );
-  rv_local_to_axi_bridge u_d_bridge (
-    .clk_i,.rst_ni,.local_bus(d_outbound),.axi_m(d_normal_axi)
+  rv_local_to_axi_bridge #(.CACHE_BURST(1),
+    .CACHE_BASE_ADDR(rv23_pkg::SRAM_BASE),.CACHE_MEMORY_KB(rv23_pkg::SRAM_KB)) u_d_bridge (
+    .clk_i,.rst_ni,.refill_i(d_refill),.idle_o(d_bridge_idle),.local_bus(d_outbound),.axi_m(d_normal_axi)
   );
   rv23_system_bus #(.CLOCK_HZ(CLOCK_HZ),.TIMEBASE_HZ(TIMEBASE_HZ),
     .PLIC_NUM_SOURCES(PLIC_NUM_SOURCES),.BOOTROM_INIT_FILE(BOOTROM_INIT_FILE),
@@ -355,5 +359,5 @@ module rv23_soc_top #(
   assign irq_timer_o = mtip;
   assign irq_external_o = meip;
   assign debug_halted_o = rst_ni && core_drained && arb_idle &&
-    i_idle && d_idle && if_quiescent;
+    i_idle && d_idle && i_bridge_idle && d_bridge_idle && if_quiescent;
 endmodule

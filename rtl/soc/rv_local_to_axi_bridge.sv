@@ -6,17 +6,22 @@ module rv_local_to_axi_bridge #(
   parameter int unsigned ROB_SEQ_WIDTH    = rv_ooo_pkg::ROB_SEQ_WIDTH,
   parameter int unsigned AXI_PROGRESS_TIMEOUT_CYCLES =
     rv_soc_pkg::AXI_PROGRESS_TIMEOUT_CYCLES,
-  parameter bit          IS_INSTRUCTION   = 1'b0
+  parameter bit          IS_INSTRUCTION   = 1'b0,
+  parameter bit          CACHE_BURST      = 1'b0,
+  parameter logic [31:0] CACHE_BASE_ADDR   = 32'h80000000,
+  parameter int unsigned CACHE_MEMORY_KB  = 1024
 ) (
   input  logic                   clk_i,
   input  logic                   rst_ni,
+  input  logic                   refill_i,
+  output logic                   idle_o,
   rv_local_mem_if.target         local_bus,
   rv_axi4_if.master              axi_m
 );
 
   import rv_soc_pkg::*;
 
-  typedef enum logic [2:0] {
+  typedef enum logic [3:0] {
     BR_IDLE,
     BR_WRITE_SEND,
     BR_WRITE_RESP,
@@ -24,7 +29,11 @@ module rv_local_to_axi_bridge #(
     BR_READ_DATA,
     BR_DRAIN_WRITE_SEND,
     BR_DRAIN_WRITE_RESP,
-    BR_DRAIN_READ_DATA
+    BR_DRAIN_READ_DATA,
+    BR_FILL_ADDR,
+    BR_FILL_DATA,
+    BR_FILL_REPLAY,
+    BR_FILL_DRAIN
   } bridge_state_e;
 
   localparam int unsigned TIMEOUT_COUNTER_WIDTH =
@@ -55,6 +64,24 @@ module rv_local_to_axi_bridge #(
   logic timeout_expired;
   logic aw_complete;
   logic w_complete;
+  // A transient refill transport buffer, never a separately addressable cache.
+  // Payload is not reset. The cache still owns tags, invalidation and banking.
+  logic [63:0] fill_data_q [0:7];
+  logic [7:0] fill_valid_q;
+  logic [3:0] fill_received_q, fill_next_q;
+  logic fill_pending_q, fill_done_q, fill_error_q;
+  wire fill_active = state_q inside {BR_FILL_ADDR, BR_FILL_DATA,
+                                    BR_FILL_REPLAY, BR_FILL_DRAIN};
+  wire fill_request_match = !local_bus.req_write && !local_bus.req_device &&
+    local_bus.req_size == 3 && local_bus.req_addr ==
+      address_q + (32'(fill_next_q) << 3) &&
+    local_bus.req_priv == privilege_q &&
+    AXI_ID_WIDTH'(local_bus.req_id) == axi_id_q;
+  wire fill_eligible = CACHE_BURST && refill_i &&
+    !local_bus.req_write && !local_bus.req_device && local_bus.req_size == 3 &&
+    local_bus.req_addr[5:0] == 0 &&
+    addr_in_region(local_bus.req_addr, CACHE_BASE_ADDR,
+                   size_kb_to_bytes(CACHE_MEMORY_KB));
 
   function automatic logic request_is_aligned(
     input logic [ADDR_WIDTH-1:0] request_address,
@@ -67,8 +94,12 @@ module rv_local_to_axi_bridge #(
     return (request_address & byte_mask) == 0;
   endfunction
 
-  assign local_bus.req_ready  = (state_q == BR_IDLE) &&
-                                !local_response_valid_q;
+  assign idle_o = (state_q == BR_IDLE) && !local_response_valid_q;
+  assign local_bus.req_ready  = !local_response_valid_q &&
+    ((state_q == BR_IDLE) ||
+     (fill_active && !fill_pending_q && !fill_done_q &&
+      (fill_error_q || !fill_request_match ||
+       (fill_next_q < 8 && fill_valid_q[fill_next_q[2:0]]))));
   assign local_bus.rsp_valid  = local_response_valid_q;
   assign local_bus.rsp_id     = local_id_q;
   assign local_bus.rsp_rdata  = response_data_q;
@@ -106,7 +137,7 @@ module rv_local_to_axi_bridge #(
 
     axi_m.ar_id    = axi_id_q;
     axi_m.ar_addr  = address_q;
-    axi_m.ar_len   = 8'd0;
+    axi_m.ar_len   = fill_active ? 8'd7 : 8'd0;
     axi_m.ar_size  = size_q;
     axi_m.ar_burst = 2'b01;
     axi_m.ar_lock = 1'b0;
@@ -114,9 +145,10 @@ module rv_local_to_axi_bridge #(
                       (privilege_q != PRIV_U)};
     axi_m.ar_cache = device_q ? 4'b0000 : 4'b0011;
     axi_m.ar_qos   = '0;
-    axi_m.ar_valid = (state_q == BR_READ_ADDR);
+    axi_m.ar_valid = (state_q == BR_READ_ADDR) || (state_q == BR_FILL_ADDR);
     axi_m.r_ready  = (state_q == BR_READ_DATA) ||
-                     (state_q == BR_DRAIN_READ_DATA);
+                     (state_q == BR_DRAIN_READ_DATA) ||
+                     (state_q == BR_FILL_DATA) || (state_q == BR_FILL_DRAIN);
   end
 
   always_ff @(posedge clk_i) begin
@@ -137,9 +169,33 @@ module rv_local_to_axi_bridge #(
       response_code_q <= AXI_RESP_OKAY;
       local_response_valid_q <= 1'b0;
       timeout_count_q <= '0;
+      fill_valid_q <= '0;
+      fill_received_q <= '0;
+      fill_next_q <= '0;
+      fill_pending_q <= 1'b0;
+      fill_done_q <= 1'b0;
+      fill_error_q <= 1'b0;
     end else begin
       if (local_response_valid_q && local_bus.rsp_ready)
         local_response_valid_q <= 1'b0;
+
+      if (fill_active) begin
+        if (local_bus.req_valid && local_bus.req_ready) begin
+          local_id_q <= local_bus.req_id;
+          fill_pending_q <= 1'b1;
+          if (!fill_request_match) fill_error_q <= 1'b1;
+        end
+        // Register each local response so downstream stalls cannot change it.
+        if (fill_pending_q && !local_response_valid_q &&
+            (fill_error_q || fill_valid_q[fill_next_q[2:0]])) begin
+          response_data_q <= fill_error_q ? '0 : fill_data_q[fill_next_q[2:0]];
+          response_code_q <= fill_error_q ? AXI_RESP_SLVERR : AXI_RESP_OKAY;
+          local_response_valid_q <= 1'b1;
+          fill_pending_q <= 1'b0;
+          fill_next_q <= fill_next_q + 1'b1;
+          if (fill_error_q || fill_next_q == 7) fill_done_q <= 1'b1;
+        end
+      end
 
       case (state_q)
         BR_IDLE: begin
@@ -164,6 +220,14 @@ module rv_local_to_axi_bridge #(
               state_q         <= BR_IDLE;
             end else if (local_bus.req_write) begin
               state_q <= BR_WRITE_SEND;
+            end else if (fill_eligible) begin
+              state_q <= BR_FILL_ADDR;
+              fill_valid_q <= '0;
+              fill_received_q <= '0;
+              fill_next_q <= '0;
+              fill_pending_q <= 1'b1;
+              fill_done_q <= 1'b0;
+              fill_error_q <= 1'b0;
             end else begin
               state_q <= BR_READ_ADDR;
             end
@@ -268,6 +332,47 @@ module rv_local_to_axi_bridge #(
         BR_DRAIN_READ_DATA: begin
           if (axi_m.r_valid && axi_m.r_ready)
             state_q <= BR_IDLE;
+        end
+
+        BR_FILL_ADDR: begin
+          if (axi_m.ar_ready) begin
+            state_q <= fill_error_q ? BR_FILL_DRAIN : BR_FILL_DATA;
+            timeout_count_q <= '0;
+          end else if (!fill_error_q) begin
+            if (timeout_expired) begin
+              // Keep AR stable until accepted, even after the local timeout.
+              fill_error_q <= 1'b1;
+              timeout_count_q <= '0;
+            end else timeout_count_q <= timeout_count_q + 1'b1;
+          end
+        end
+
+        BR_FILL_DATA: begin
+          if (axi_m.r_valid) begin
+            timeout_count_q <= '0;
+            if (axi_m.r_id != axi_id_q || axi_m.r_resp != AXI_RESP_OKAY ||
+                axi_m.r_last != (fill_received_q == 7)) begin
+              fill_error_q <= 1'b1;
+              state_q <= axi_m.r_last ? BR_FILL_REPLAY : BR_FILL_DRAIN;
+            end else begin
+              fill_data_q[fill_received_q[2:0]] <= axi_m.r_data;
+              fill_valid_q[fill_received_q[2:0]] <= 1'b1;
+              fill_received_q <= fill_received_q + 1'b1;
+              if (axi_m.r_last) state_q <= BR_FILL_REPLAY;
+            end
+          end else if (timeout_expired) begin
+            fill_error_q <= 1'b1;
+            state_q <= BR_FILL_DRAIN;
+            timeout_count_q <= '0;
+          end else timeout_count_q <= timeout_count_q + 1'b1;
+        end
+
+        BR_FILL_DRAIN: begin
+          if (axi_m.r_valid && axi_m.r_last) state_q <= BR_FILL_REPLAY;
+        end
+
+        BR_FILL_REPLAY: begin
+          if (fill_done_q && !local_response_valid_q) state_q <= BR_IDLE;
         end
 
         default: state_q <= BR_IDLE;

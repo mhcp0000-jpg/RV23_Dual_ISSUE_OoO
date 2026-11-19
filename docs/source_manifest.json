@@ -260,7 +260,7 @@
     },
     {
       "path": "rtl/soc/rv_local_to_axi_bridge.sv",
-      "sha256": "5932d0c590fc2bd46c7e1e2af6edc02b249a39cc47928b6103e35d79f3bf28c0",
+      "sha256": "95cbe3a261fce50f71ee7ae6ee96f7dd82cabf21fe0fec7fa7586f47a3da1260",
       "origin": "modified"
     },
     {
@@ -310,7 +310,7 @@
     },
     {
       "path": "rtl/soc/rv23_cache.sv",
-      "sha256": "b119cb4ed291cd6ba886394c4e90f2d0913a7f30266cae49d90ee5c8756f62d1",
+      "sha256": "99d8346de5e697cd04d3a7f757d28983e4665a6d834cdf36e6902efa310246ba",
       "origin": "new"
     },
     {
@@ -340,7 +340,7 @@
     },
     {
       "path": "rtl/soc/rv23_soc_top.sv",
-      "sha256": "7a5343438fa87b52d4b5e4ef8fe27ce14bc2829a2b719aa53799f48844194dc6",
+      "sha256": "ca4d20588cc728522d62fc6221e9eb1c03fcafc988b121e231abc8452e362c27",
       "origin": "new"
     },
     {

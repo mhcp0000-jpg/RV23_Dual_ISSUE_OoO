@@ -15,6 +15,7 @@ module rv23_cache #(
   input logic [63:0] snoop_wdata_i,
   input logic [7:0] snoop_wstrb_i,
   output logic idle_o,
+  output logic refill_o,
   rv_local_mem_if.target cpu,cpu_b,
   rv_local_mem_if.requester mem
 );
@@ -88,6 +89,7 @@ module rv23_cache #(
   assign cpu_b.rsp_resp=axi_resp_e'(forward_response[1] ? bus_response_code:response_code_q[1]);
   assign cpu.rsp_replay=MEM_REPLAY_NONE;assign cpu_b.rsp_replay=MEM_REPLAY_NONE;
   assign idle_o=state_q==IDLE && !(|busy_q);
+  assign refill_o=launch ? launch_fill : filling_q;
   always_comb begin
     for(int p=0;p<2;p++) begin
       req_index[p]=req_addr[p][6+:INDEX_W];req_row[p]={req_index[p],req_addr[p][5:4]};
