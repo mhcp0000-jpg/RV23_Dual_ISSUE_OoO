@@ -50,7 +50,12 @@
     },
     {
       "path": "rtl/backend/rv_vector_integer_alu.sv",
-      "sha256": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
+      "sha256": "0f19c63024408c80064feab5fd0801bb594ab4ea70a4c23de6e55c371a654511",
+      "origin": "new"
+    },
+    {
+      "path": "rtl/backend/rv_vector_simd_alu.sv",
+      "sha256": "c5013ae6778876881c0654383d358bea67007f0bdc1910e784b42b2a950f6ca4",
       "origin": "new"
     },
     {
@@ -60,7 +65,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_register_file.sv",
-      "sha256": "3f00463aeea016222a34d180ca96a5fbf24edb3c21e0389bc4a8c600e4766165",
+      "sha256": "b18e093e84e50fe373ebc72f083f750a6144e537fe26800664cc880dc139cea9",
       "origin": "new"
     },
     {
@@ -80,7 +85,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_engine.sv",
-      "sha256": "29f292e340e79298c1c7b837e21222c9d36fc29f7f1fc3a1987761115b64b906",
+      "sha256": "a98cc97554fb7f0f5a24589dd898076d5162c9e9cbdb6f4b6c7aaf0ee1fb388f",
       "origin": "new"
     },
     {
@@ -184,6 +189,11 @@
       "origin": "reused"
     },
     {
+      "path": "rtl/backend/rv_vector_divider.sv",
+      "sha256": "d7c26e501ec88b29214f4c25ebd3729b539d02883436efee82c201e4f5da8f4e",
+      "origin": "new"
+    },
+    {
       "path": "rtl/backend/rv_fpu.sv",
       "sha256": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
       "origin": "reused"
@@ -240,12 +250,12 @@
     },
     {
       "path": "rtl/backend/rv_backend.sv",
-      "sha256": "e6dbacd949d03b1b742d0b532403d7739fad133162874e023f3b304569b75c71",
+      "sha256": "e68876bc865be18a1141c278ec6010f4b86402f9f482ad6e3b4b1a2b4eff2e15",
       "origin": "modified"
     },
     {
       "path": "rtl/rv_ooo_core.sv",
-      "sha256": "257d1e245c5a52b6188e24029db93096d375ddb6766efb90a78e6f7930cac8a8",
+      "sha256": "d0b8c9ffd9fae6e076671f45a0dd04c5a29965c6ec290e52f6faa565b1822d63",
       "origin": "modified"
     },
     {
@@ -309,6 +319,11 @@
       "origin": "new"
     },
     {
+      "path": "rtl/soc/rv23_head_cache_router.sv",
+      "sha256": "b6346b4c4f0382d4ef7c5b3843ff8fd8e8ead3c326f9858aa1ab722dab5fd3d7",
+      "origin": "new"
+    },
+    {
       "path": "rtl/soc/rv23_if_adapter.sv",
       "sha256": "e8f848fb0e8b018b746b50763000870604cff91a0e0abf8b63f9145043100441",
       "origin": "new"
@@ -325,7 +340,7 @@
     },
     {
       "path": "rtl/soc/rv23_soc_top.sv",
-      "sha256": "0256739239f11568c7155575d7da5bbfa6b6b6a45fd48367db3cfa1544928f80",
+      "sha256": "7a5343438fa87b52d4b5e4ef8fe27ce14bc2829a2b719aa53799f48844194dc6",
       "origin": "new"
     },
     {

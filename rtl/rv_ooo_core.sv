@@ -49,6 +49,7 @@ module rv_ooo_core #(
 ) (
   output logic cbo_memory_read_o,
   output logic cbo_memory_device_o,
+  output logic cbo_memory_use_dcache_o,
   output logic [2:0] cbo_memory_size_o,
   output logic [63:0] cbo_memory_data_o,
   output logic [7:0] cbo_memory_strobe_o,
@@ -503,7 +504,7 @@ module rv_ooo_core #(
     .RESET_VECTOR    (RESET_VECTOR),
     .TRAP_VECTOR     (TRAP_VECTOR)
   ) u_backend (
-    .cbo_memory_read_o,.cbo_memory_device_o,.cbo_memory_size_o,.cbo_memory_data_o,.cbo_memory_strobe_o,.cbo_memory_response_data_i,
+    .cbo_memory_read_o,.cbo_memory_device_o,.cbo_memory_use_dcache_o,.cbo_memory_size_o,.cbo_memory_data_o,.cbo_memory_strobe_o,.cbo_memory_response_data_i,
     .cbo_write_valid_o,.cbo_write_ready_i,.cbo_write_address_o,.cbo_write_privilege_o,
     .cbo_write_response_valid_i,.cbo_write_response_error_i,.cbo_write_response_ready_o,
     .cbo_cache_invalidate_o,.cbo_cache_invalidate_ready_i,

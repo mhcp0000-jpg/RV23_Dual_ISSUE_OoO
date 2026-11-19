@@ -119,6 +119,15 @@ for policy in ['tu,mu', 'tu,ma', 'ta,mu', 'ta,ma']:
     op('vmseq.vi v7,v8,0')
     mask_words(7, (initial & ~0x54) | 0x04, initial)
 
+# LMUL8 supplies eight consecutive 128-bit batches at every SEW.
+for size in range(4):
+    width=8<<size;length=128>>size
+    op('vsetvl a2,a0,a1',a=length,b=(size<<3)|3,expected=length)
+    op('vmv.v.i v16,2');op('vmv.v.i v24,3');op('vadd.vv v8,v16,v24')
+    for index in sorted({0,1,(64//width)-1,64//width,(128//width)-1,128//width,length//2,length-1}):
+        op('vslidedown.vx v0,v8,a0',a=index)
+        op('vmv.x.s a1,v0',expected=5)
+
 source=folder/'program.S';source.write_text('.text\n.option norvc\n'+'\n'.join(row[1] for row in program)+'\n')
 with Simulator() as sim:
     obj=folder/'program.o';binary=folder/'program.bin'
@@ -134,7 +143,7 @@ with Simulator() as sim:
         x['path'] for x in vendor['files'] if x['path'].endswith('.v')]+[
         'rtl/backend/'+name+'.sv' for name in ['rv_fp_format','rv_fp_convert','rv_fp_round_to_int',
         'rv_fp_immediate','rv_fp_cvtmod','rv_fpu_rva23','rv_vector_fp_integer','rv_vector_fp_estimate',
-        'rv_vector_fp_lane','rv_vector_integer_alu','rv_vector_config','rv_vector_register_file','rv_vector_engine']]+[
+        'rv_divider','rv_vector_divider','rv_vector_fp_lane','rv_vector_integer_alu','rv_vector_simd_alu','rv_vector_config','rv_vector_register_file','rv_vector_engine']]+[
         'rtl/backend/rv_pmp.sv','rtl/soc/rv23_pointer_mask.sv','rtl/backend/rv23_hypervisor_memory_head.sv',
         'tb/unit/backend/rv_vector_integer_engine_tb.sv']
     model=sim.build('rva23_vector_integer_engine','rv_vector_integer_engine_tb',files)

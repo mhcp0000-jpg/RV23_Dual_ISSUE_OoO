@@ -4,12 +4,16 @@
 
 ## 코어 사양
 
+현재 작업 트리는 벡터 타이밍 경로를 수정한 뒤 재검증 중이다. 마지막 전체 통합
+감사 통과 기준은 `802e2e1`이며, 아래 Linux·ACT·CoreMark 기록을 수정 중인 RTL의
+새 통과 결과로 간주하지 않는다. [변경 내용과 남은 검증](docs/VECTOR_PIPELINE_REWORK.md)
+
 | 항목 | 현재 구성 |
 | --- | --- |
 | 합성 및 통합 | `rv23_soc_top`, 기본 XLEN=64, 구현 물리 주소 폭 32비트 |
 | 파이프라인 | 2-issue out-of-order, ROB 기반 순차 retire |
 | ISA 및 권한 | RV64 정수·단정도/배정도 FP·벡터, M/HS/VS/U/VU, Sv39 및 Sv39x4 |
-| 벡터 | VLEN 128비트, ELEN 64비트 |
+| 벡터 | VLEN128/ELEN64. 일반 정수 ALU 64비트 lane 2개: SEW64/32/16/8에서 2/4/8/16 원소 배치. 특수·widen/narrow·reduction·DIV·FP는 별도 경로 |
 | L1 | I-cache 32 KiB + D-cache 32 KiB, 캐시별 64비트 2뱅크, 64바이트 라인 |
 | SoC | AXI64 시스템 버스, 기본 1 MiB SRAM, CLINT·PLIC, native halt/drain/resume·AXI·retire trace 디버그 |
 | RTL 파일 목록 | 저장소 루트 기준 `rtl/filelist.f` 또는 `sim/sources.f` |
@@ -44,7 +48,7 @@ backend의 등록 경계를 설명한 것이며, 물리적인 9단 또는 모든
 | FP FADD/FSUB/FMUL/FMA, F/D·변환 등 | 현재 RVA23 FP: 입력 등록 → 조합 HardFloat/보조 연산 → 결과 등록. 단일 owner 상태 머신 | fast 경로 모듈 지연 2 cycles, backpressure 없을 때 최소 요청 간격 3 cycles. 다단 arithmetic pipeline과 구분 |
 | FP FDIV.S / FDIV.D | iterative HardFloat, FP owner 공유 | 가변. `1/3` 실측 28/57 cycles, D의 0 나누기 3 cycles |
 | FP FSQRT.S / FSQRT.D | iterative HardFloat, FP owner 공유 | 가변. `sqrt(2)` 실측 26/55 cycles, D의 `sqrt(0)` 3 cycles |
-| 벡터 | VLEN128/ELEN64, ROB head의 원소 단위 상태 머신 | VL·SEW·마스크·메모리·예외에 따라 가변. 현재 scalar/vector 경계 직렬화 |
+| 벡터 | 일반 정수: 2×64 SIMD, operand → result → writeback 등록. 독립 128비트 배치 II=1. DIV/REM은 반복형 unit | 명령당 완료 지연은 VL·SEW·마스크·특수 경로에 따라 가변. 현재 명령 owner 및 scalar/vector 경계는 직렬화 |
 
 지연의 기준은 **모듈 입력 handshake edge부터 결과 handoff edge까지**, 출력 ready=1,
 flush 없음이다. issue→retire 지연은 IQ 대기·결과 중재·선행 명령과 메모리 응답에 따라 달라진다.
@@ -56,7 +60,8 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 
 ### CoreMark 성능
 
-RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **10회 RTL 실행 결과**다.
+아래 표는 벡터 pipeline/cache 재작업 전의 RV64·LP64D **10회 RTL 실행 결과**다.
+같은 upstream 알고리즘과 2 KiB performance data를 사용했다.
 세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
 
 | 빌드 | Cycles | IPC | CoreMark/MHz 추정 |

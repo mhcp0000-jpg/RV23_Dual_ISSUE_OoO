@@ -49,6 +49,7 @@ module rv_backend #(
 ) (
   output logic cbo_memory_read_o,
   output logic cbo_memory_device_o,
+  output logic cbo_memory_use_dcache_o,
   output logic [2:0] cbo_memory_size_o,
   output logic [63:0] cbo_memory_data_o,
   output logic [7:0] cbo_memory_strobe_o,
@@ -2304,6 +2305,7 @@ module rv_backend #(
   assign cbo_write_address_o=guest_active_q?guest_memory_address:(vector_active_q?vector_memory_address:(assist_active_q?assist_memory_address:cbo_internal_write_address_o));
   assign cbo_write_response_ready_o=guest_active_q?guest_memory_response_ready:(vector_active_q?vector_memory_response_ready:(assist_active_q?assist_memory_response_ready:cbo_internal_write_response_ready_o));
   assign cbo_memory_read_o=guest_active_q?!guest_memory_write:(vector_active_q?!vector_memory_write:(assist_active_q && !assist_memory_write));
+  assign cbo_memory_use_dcache_o=guest_active_q || vector_active_q || assist_active_q;
   assign cbo_memory_size_o=guest_active_q?guest_memory_size:(vector_active_q?vector_memory_size:(assist_active_q?3'd0:3'd3));
   assign cbo_memory_data_o=guest_active_q?guest_memory_data:(vector_active_q?vector_memory_data:(assist_active_q?assist_memory_data:64'b0));
   assign cbo_memory_strobe_o=guest_active_q?guest_memory_strobe:(vector_active_q?vector_memory_strobe:(assist_active_q?assist_memory_strobe:8'hff));

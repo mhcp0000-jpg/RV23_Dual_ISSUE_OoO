@@ -135,16 +135,21 @@ module rv23_soc_top #(
     .response_data_o(atomic_data),.response_exception_o(atomic_exception),
     .response_cause_o(atomic_cause),.axi_m(atomic_axi));
   rv_local_mem_if cbo_bus(.clk_i,.rst_ni);
+  rv_local_mem_if cbo_direct_bus(.clk_i,.rst_ni);
+  rv_local_mem_if dcache_port0(.clk_i,.rst_ni);
   rv_axi4_if #(.ID_WIDTH(4)) cbo_axi(.clk_i,.rst_ni);
   rv_axi4_if #(.ID_WIDTH(4)) cache_cbo_axi(.clk_i,.rst_ni);
   logic cbo_cache_invalidate,cbo_cache_ready;
   logic [1:0] cbo_privilege;
-  assign cbo_cache_ready=i_idle && d_idle && arb_idle && atomic_idle;
+  logic head_cache_idle,cbo_memory_use_dcache;
+  assign cbo_cache_ready=i_idle && d_idle && arb_idle && atomic_idle && head_cache_idle;
   logic cbo_memory_read,cbo_memory_device;
   assign cbo_bus.req_id=6'he;assign cbo_bus.req_write=!cbo_memory_read;
   assign cbo_bus.req_priv=rv_soc_pkg::privilege_e'(cbo_privilege);
   assign cbo_bus.req_rob_seq=0;assign cbo_bus.req_committed=1;assign cbo_bus.req_device=cbo_memory_device;
-  rv_local_to_axi_bridge u_cbo_bridge(.clk_i,.rst_ni,.local_bus(cbo_bus),.axi_m(cbo_axi));
+  rv23_head_cache_router u_head_cache_router(.clk_i,.rst_ni,.head_cache_i(cbo_memory_use_dcache),
+    .idle_o(head_cache_idle),.scalar_bus(lsu0_bus),.head_bus(cbo_bus),.cache_bus(dcache_port0),.direct_bus(cbo_direct_bus));
+  rv_local_to_axi_bridge u_cbo_bridge(.clk_i,.rst_ni,.local_bus(cbo_direct_bus),.axi_m(cbo_axi));
   rv23_axi_mux u_cache_cbo_mux(.clk_i,.rst_ni,.a_s(d_normal_axi),.b_s(cbo_axi),.out_m(cache_cbo_axi));
   rv23_axi_mux u_data_mux(.clk_i,.rst_ni,.a_s(cache_cbo_axi),.b_s(atomic_axi),.out_m(d_axi));
   rv_ooo_core #(
@@ -172,6 +177,7 @@ module rv23_soc_top #(
     .DTIM_SIZE_KB   (rv23_pkg::SRAM_KB)
   ) u_core (
     .cbo_memory_read_o(cbo_memory_read),.cbo_memory_device_o(cbo_memory_device),.cbo_memory_size_o(cbo_bus.req_size),
+    .cbo_memory_use_dcache_o(cbo_memory_use_dcache),
     .cbo_memory_data_o(cbo_bus.req_wdata),.cbo_memory_strobe_o(cbo_bus.req_wstrb),
     .cbo_memory_response_data_i(cbo_bus.rsp_rdata),
     .cbo_write_valid_o(cbo_bus.req_valid),.cbo_write_ready_i(cbo_bus.req_ready),
@@ -326,7 +332,7 @@ module rv23_soc_top #(
     .clk_i,.rst_ni,.invalidate_i(cbo_cache_invalidate && cbo_cache_ready),
     .snoop_valid_i(sram_write_snoop),.snoop_addr_i(sram_write_snoop_addr),
     .snoop_wdata_i(sram_write_snoop_data),.snoop_wstrb_i(sram_write_snoop_strb),
-    .idle_o(d_idle),.cpu(lsu0_bus),.cpu_b(d_cpu),.mem(d_outbound)
+    .idle_o(d_idle),.cpu(dcache_port0),.cpu_b(d_cpu),.mem(d_outbound)
   );
   rv_local_to_axi_bridge #(.IS_INSTRUCTION(1)) u_i_bridge (
     .clk_i,.rst_ni,.local_bus(i_outbound),.axi_m(i_axi)

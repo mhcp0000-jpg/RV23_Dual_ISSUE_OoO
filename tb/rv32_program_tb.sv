@@ -172,4 +172,25 @@ module rv32_program_tb #(
       if(!finished && htif_exit) begin finished=1;finish_test(int'(htif_code));end
     end
   end
+  // Optional native observation; disabled for ordinary ISA/benchmark runs.
+  bit vector_cache_observe;
+  int vec_cache_reads=0,vec_cache_writes=0,vec_cache_hits=0,vec_cache_data_beats=0;
+  initial vector_cache_observe=$test$plusargs("vector_cache_trace");
+  always @(posedge clk)if(vector_cache_observe && rst_n && load_done)begin
+    if(u_dut.u_core.u_backend.vector_active_q && u_dut.cbo_bus.req_valid && u_dut.cbo_bus.req_ready)begin
+      if(!u_dut.cbo_memory_use_dcache || u_dut.cbo_direct_bus.req_valid)
+        $fatal(1,"Vector data request bypassed shared D-cache");
+      if(u_dut.cbo_bus.req_write)vec_cache_writes++;
+      else begin
+        vec_cache_reads++;
+        if(u_dut.u_dcache.hit[0])vec_cache_hits++;
+      end
+    end
+    if(u_dut.u_core.u_backend.vector_active_q && u_dut.d_normal_axi.ar_valid && u_dut.d_normal_axi.ar_ready &&
+       u_dut.d_normal_axi.ar_addr>=32'h800a0000 && u_dut.d_normal_axi.ar_addr<32'h800a0080)
+      vec_cache_data_beats++;
+  end
+  final if(vector_cache_observe)
+    $display("VECTOR_CACHE reads=%0d writes=%0d hits=%0d data_read_beats=%0d",
+      vec_cache_reads,vec_cache_writes,vec_cache_hits,vec_cache_data_beats);
 endmodule

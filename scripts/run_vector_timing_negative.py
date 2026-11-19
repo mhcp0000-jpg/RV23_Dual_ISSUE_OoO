@@ -8,7 +8,7 @@ for p,h in positive['model']['inputs'].items():assert sha(ROOT/p)==h,p
 vectors=ROOT/'out/rva23/vector_timing/vectors.hex'
 assert sha(vectors)==positive['vector_sha256']
 original=ROOT/'rtl/backend/rv_vector_engine.sv';text=original.read_text(encoding='utf-8')
-anchor='if(index_q>=effective_length)state_q<=FINISH;'
+anchor='if(index_q>=effective_length)begin'
 assert text.count(anchor)==1
 mutant=folder/'rv_vector_engine.sv'
 mutant.write_text(text.replace(anchor,
