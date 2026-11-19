@@ -134,6 +134,8 @@
 
 ## 4. 남은 완료 감사
 
+- [x] `atomics.2`의 Bare 정렬·PMP/PMA 근거를 M/HS/U 900개 사례로 보강했다. LR/SC와 9개 AMO의 D 및 두 W lane, unlocked PMP 0/R/RW/RX·정렬 겹침과 대표 MMIO/high-address를 확인했다. fault 690건·정상 210건, 결과/guard 1,800개와 같은 ELF의 Sail 이벤트 76,656건이 일치했다. page/guest·walk/PMP 우선순위 조합과 bus 무요청 계측 범위는 분리하며 `atomics.2`와 열린 주제 46개는 유지한다.
+
 - [x] `atomics.1`을 [A 검토](RVA23_ATOMIC_CLAUSE_REVIEW.md)의 exclusive monitor·accepted write·실패 시 재읽기·성공 write 직렬화 논증과 연결해 닫았다. production component 270개 사례에서 162개 간섭 사례·실패 exclusive 243회, 정상 AMO와 간섭 write 합계 594회를 확인했다. 기존 whole-core 값·drain 검사를 함께 사용하며 오류 우선순위·지속 간섭 진행성·모든 core/debug 스케줄은 별도다. 열린 검토 주제는 46개다.
 
 - [x] `base.2`의 load-value 근거를 지연 store/load 실행 448개로 보강했다. 4개 store 폭·7개 load 형식의 896개 값과 대상 store의 전 바이트를 확인했고, 같은 ELF의 Sail 이벤트 21,290건이 기존 RTL 및 관찰 wrapper trace 각각과 일치했다. ELF 실행 구간에서 unknown-address/partial-overlap/store-data 대기 및 DIV와 older unresolved SQ의 겹침을 관찰했다. 두 값 변조·다섯 witness 누락을 거부한다. 전체 RVWMO·자연 정렬 외부 원자성은 별도 검토이며 `base.2`와 열린 주제 47개는 유지한다.

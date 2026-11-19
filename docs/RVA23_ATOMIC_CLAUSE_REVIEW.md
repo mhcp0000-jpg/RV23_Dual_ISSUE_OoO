@@ -69,6 +69,48 @@ read 횟수·실패 응답 횟수·실제 write 수·old·memory의 변조 대�
 interleaving, 지속 간섭 아래 진행성이나 전체 RVWMO 증명을 뜻하지 않는다.
 fault 우선순위 `atomics.2`와 constrained progress `atomics.3`은 계속 열린다.
 
+## Bare 정렬·PMP/PMA fault matrix
+
+`atomics.2`의 pre-engine 검증 근거를 `scripts/run_atomic_fault_contract.py`로
+보강한다. [privileged exception 우선순위](https://docs.riscv.org/reference/isa/priv/machine.html)는
+misaligned와 page/access fault 사이의 순서를 구현 선택으로 허용한다. 이 target의
+atomic head는 자연 정렬을 먼저 검사하고, 그 뒤 translation·PBMT·물리 PMP/PMA
+검사를 한다. 일반 misaligned LSU assist가 atomic을 분할하지 않는다.
+
+`rv23_atomic_head`의 LR은 PMP R, SC는 W, AMO는 R+W를 요구한다. PMP의
+execute 비트가 read 권한을 대신하지 않는다. Bare의 상위 물리 주소 비트는
+잘라서 SRAM에 접근하지 않고 access fault가 되며, CLINT 등 비원자 PMA는
+engine 요청 전에 거부한다. LR의 정렬/access 원인은 4/5, SC·AMO는 6/7이다.
+SC의 예약 검사보다 이 주소·권한 검사가 먼저 수행된다. 실패 SC를 store처럼
+보호 검사하는 현재 구현 정책이며 모든 구현에 같은 fault 정책을 강제하지 않는다.
+
+M/HS/U 각각 300개, 총 900개 사례를 현재 H/V SoC에서 실행했다. LR·SC와
+9개 AMO의 D/W-low/W-high에 대해 SRAM의 PMP 0/R/RW/RX 및 정렬/비정렬을
+조합했다. 우선순위가 높은 8바이트 NAPOT data entry와 나머지 주소를 허용하는
+entry를 사용한다. 모두 unlocked PMP이므로 M의 bypass와 HS/U의 권한 거부를
+구분하며, locked M·MPRV 조합까지 검증했다고 하지 않는다. LR/SC/AMOADD에는
+CLINT와 32비트 physical 범위 밖 주소도 정렬/비정렬로 추가했다.
+
+각 사례는 scratch SC로 예약을 비운 뒤 시작한다. 정상 접근 210건과 fault
+690건, 복귀 확인용 ECALL을 포함한 trap 1,590건을 확인했다. fault는 원본
+instruction PC·정확한 cause/tval·destination write 없음과 handler의 PC+4 복귀를
+검사한다. 목적지 보존/결과 및 전체 8바이트 guard 값 합계 1,800개를 독립
+byte/정수 계산과 대조해 허용된 AMO의 폭·부호 확장 및 거부된 target SRAM의
+보존을 확인했다. SC는 여기서 모두 예약 없는 경우이며 정상 실패 값은 현재
+구현의 1이다. portable software에는 비영 값만 보장된다.
+
+세 배치 각각 동일 ELF로 Sail/RTL 이벤트 합계 76,656건이 일치했다. cause·tval·
+fault write·정상 result·guard 변조 다섯 개씩, 총 15개 대조군을 거부했다.
+보고서는 `out/rva23/atomic_fault_contract/report.json`이며 `--check`가 배치
+보고서·assembly·ELF·Sail·현재 RTL/model·trace·로그·생성기 해시를 확인한다.
+
+기존 current H/V replay의 `atomic_sv39`는 Svade A/D·SUM·page/PBMT 오류를
+별도로 검사한다. 새 matrix는 Bare 범위로, page/guest-page/PTE-walk 오류와
+PMP가 겹치는 모든 조합 또는 guest metadata를 포괄하지 않는다. 특히 MMIO와
+범위 밖 주소의 실제 bus request 부재를 이 retire trace만으로 계측하지 않는다.
+해당 경로의 source gating과 기존 별도 bus 근거를 구분한다. 이 단계에서는
+`atomics.2`를 계속 열린 상태로 유지한다.
+
 ## AMO field matrix 실행
 
 `scripts/run_amo_field_contract.py`는 18형식 × aq/rl 네 조합 × alias 여섯 패턴
@@ -91,6 +133,7 @@ M-mode Bare SRAM 접근이며, W/D 자연 정렬 주소를 64바이트 line 내�
 ```text
 python scripts/run_amo_field_contract.py --check
 python scripts/run_amo_retry_matrix.py --check
+python scripts/run_atomic_fault_contract.py --check
 python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm
 ```
 

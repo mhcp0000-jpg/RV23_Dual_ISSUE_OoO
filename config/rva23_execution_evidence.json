@@ -3,6 +3,13 @@
     "requirements": [
       "A"
     ],
+    "report": "out/rva23/atomic_fault_contract/report.json",
+    "behavior": "900 native M/HS/U Bare cases: LR/SC and nine AMOs across D and both W lanes, unlocked PMP 0/R/RW/RX and aligned/misaligned priority; LR/SC/ADD additionally use non-atomic CLINT and out-of-range physical addresses. 690 precise faults and 210 normal results, 1590 probe/escape traps and 1800 destination/whole-word observations. Same ELF per mode matches 76656 Sail/RTL events; 15 corrupt trace controls. No live reservation, locked-M/MPRV, translated/guest-walk cross-product or direct MMIO bus-absence claim; atomics.2 remains open."
+  },
+  {
+    "requirements": [
+      "A"
+    ],
     "report": "out/rva23/amo_retry_matrix/report.json",
     "behavior": "270 real production-component engine/xbar/exclusive bridge/SRAM cases: nine AMOs, D and both W lanes, five interference forms, one/two interposed operations using test-only AW backpressure. Same-granule 162 cases force 243 failed exclusives and fresh-read retries; unrelated-line and read-only each 54 cases do not retry. Independent Python byte/integer oracle verifies old and final word; bench checks 108 interference guard words. Excluding initialization, exactly 594 SRAM writes (324 interference plus 270 successful AMOs), with no failed-write leakage. Five corrupt witness controls. Not whole-core issue/trap scheduling or universal liveness proof."
   },
