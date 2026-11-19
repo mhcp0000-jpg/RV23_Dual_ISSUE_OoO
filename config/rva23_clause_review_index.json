@@ -16,12 +16,30 @@
       ],
       "open_items": [
         {
-          "id": "base.1",
-          "topic": "Map ECALL/EBREAK and defined illegal instruction metadata to the base clauses."
-        },
-        {
           "id": "base.2",
           "topic": "Review instruction/data access atomicity and RVWMO rules against the actual platform paths."
+        }
+      ],
+      "resolved_items": [
+        {
+          "id": "base.1",
+          "topic": "Map ECALL/EBREAK and defined illegal instruction metadata to the base clauses.",
+          "disposition": "Base ECALL/EBREAK and defined illegal metadata mapped to decode/head completion, precise ROB/CSR trap delivery and non-retirement. A same-ELF five-mode 100-case delegation matrix checks original EPC/tval, counter deltas and preserved values, complementing the existing breakpoint GVA/return matrix. Memory atomicity and RVWMO remain under base.2.",
+          "review_document": "docs/RVA23_INTEGER_CLAUSE_REVIEW.md",
+          "source_paths": [
+            "rtl/backend/rv_decode2.sv",
+            "rtl/backend/rv_backend.sv",
+            "rtl/backend/rv_rob.sv",
+            "rtl/backend/rv_trap_controller.sv",
+            "rtl/backend/rv_csr_file.sv",
+            "rtl/backend/rv_hypervisor_csrs.sv"
+          ],
+          "checks": [
+            "run_base_trap_contract.py"
+          ],
+          "reports": [
+            "out/rva23/base_trap_contract/report.json"
+          ]
         }
       ]
     },

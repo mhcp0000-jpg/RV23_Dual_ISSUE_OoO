@@ -2,7 +2,7 @@
 
 이 문서는 `config/rva23_clause_review_index.json`에서 생성한 검토 작업 목록이다.
 RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그룹과
-48개 미완료 검토 주제를 연결한다. 이는 결함 48개라는 뜻이 아니다.
+47개 미완료 검토 주제를 연결한다. 이는 결함 47개라는 뜻이 아니다.
 또한 완전한 규격 조항 목록이나 구현·검증 완료 판정표가 아니다.
 
 각 주제를 닫을 때는 규격 조항, 실제 RTL 경로, 실행·예외·상태·순서의 근거와
@@ -16,7 +16,7 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 | 그룹 | 요구사항 | 열린 주제 | 현재 검토 |
 |---|---|---:|---|
-| base | I | 2 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
+| base | I | 1 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
 | muldiv | M | 0 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md) |
 | atomics | A, Za64rs, Ziccrse, Ziccamoa | 3 | [RVA23_ATOMIC_CLAUSE_REVIEW.md](RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | scalar_fp | F, D, Zfhmin, Zfa | 3 | [RVA23_FP_CLAUSE_REVIEW.md](RVA23_FP_CLAUSE_REVIEW.md) |
@@ -41,8 +41,13 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 ## base: RV64I base execution and EEI
 
-- [ ] `base.1` — Map ECALL/EBREAK and defined illegal instruction metadata to the base clauses.
 - [ ] `base.2` — Review instruction/data access atomicity and RVWMO rules against the actual platform paths.
+- [x] `base.1` — Map ECALL/EBREAK and defined illegal instruction metadata to the base clauses.
+
+검토 결론: Base ECALL/EBREAK and defined illegal metadata mapped to decode/head completion, precise ROB/CSR trap delivery and non-retirement. A same-ELF five-mode 100-case delegation matrix checks original EPC/tval, counter deltas and preserved values, complementing the existing breakpoint GVA/return matrix. Memory atomicity and RVWMO remain under base.2.
+
+근거: [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md)
+
 
 ## muldiv: RV64 M
 

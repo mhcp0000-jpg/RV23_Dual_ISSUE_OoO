@@ -1,5 +1,12 @@
 [
   {
+    "requirements": [
+      "I"
+    ],
+    "report": "out/rva23/base_trap_contract/report.json",
+    "behavior": "100 native five-mode base trap cases across four delegation configurations and ECALL/EBREAK/C.EBREAK/defined illegal16/32. Original EPC, cause/tval/no destination, handler routing M60/HS31/VS9, 100 non-retirement counter deltas and 200 preserved values; 200 probe/escape traps. Same ELF matches 8083 Sail/RTL events after only absolute instret-read origin normalization; both models independently check delta=1. Six malformed trace controls rejected. Not all illegal encodings, memory faults or interrupt/debug priorities."
+  },
+  {
     "requirements": ["M"],
     "report": "out/rva23/rv64_muldiv_ownership/report.json",
     "behavior": "XLEN64 production multiplier/divider component instances: 20 full/word active-or-held flush scenarios, 12 kills, eight older/equal preserves and 12 reuses with a fresh tag. Wrap boundary 250/2, equality, flush-all, request rejection during flush and four destination-invalid requests; 24 consumed results checked under backpressure. Four missing-witness controls rejected. Source review and separate RV64 OoO pipeline evidence connect to production ownership; not a complete production branch/interrupt schedule test."

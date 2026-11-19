@@ -103,6 +103,53 @@ component에서 본 active kill을 production branch/interrupt의 모든 스케�
 실행한 것처럼 확대하지 않는다. 이 source 연결과 component/native 근거로
 `muldiv.2`를 닫으며 전체 프로파일 및 물리 timing 판정은 별도다.
 
+## 기본 동기 예외의 검토 결론
+
+`base.1`은 [RV32I 환경 호출·breakpoint 조항](https://docs.riscv.org/reference/isa/unpriv/rv32.html)과
+[privileged 환경 호출·breakpoint 규칙](https://docs.riscv.org/reference/isa/priv/machine.html),
+[H 위임 규칙](https://docs.riscv.org/reference/isa/priv/hypervisor.html)을 실제 경로에 연결한다.
+ECALL은 U/VU=8, HS=9, VS=10, M=11 원인으로 예외를 만들며 EBREAK와
+C.EBREAK는 cause 3이다. EPC는 해당 명령 자신의 주소이고, 동기 예외 명령은
+retire되지 않아 `instret`를 증가시키지 않는다. illegal cause 2의 instruction
+tval 제공 및 breakpoint의 PC tval은 이 target이 선택한 정보 제공 정책이다.
+예약 공간 전체가 항상 illegal이라는 주장은 하지 않는다.
+
+`rv_decode2`는 ECALL을 serializing SYSTEM으로, EBREAK를 원본 PC를 가진
+decode 예외로 분류한다. C.EBREAK의 압축 확장 경로도 원래 16비트 instruction과
+PC를 보존한다. 정의된 illegal cleanup은 destination/FU/메모리 부작용을 없애고
+원본 instruction을 cause 2의 tval로 전달한다. ECALL은 `rv_backend`의 head
+completion에서 current privilege와 virtualization에 따라 cause를 선택하고
+기본 tval=0을 사용한다. `rv_rob`의 head 예외는 정상 retire 대신 trap 경로로
+전달되며, backend는 `rob_trap_valid` 동안 retire_fire를 억제한다. CSR의
+`minstret` 증가는 이 retire_fire 합계로 결정된다.
+
+`rv_trap_controller`는 ROB의 PC/cause/tval을 CSR에 전달하고 수락된 trap의
+vector로 redirect한다. `rv_csr_file`은 M에서 아래로 위임하지 않으며 medeleg를
+적용한다. `rv_hypervisor_csrs`는 V=1인 경우 hedeleg를 추가 적용한다.
+hedeleg의 ECALL 9/10/11 비트는 read-only zero라 VS ECALL이 VS로 재위임되지
+않는다. EPC를 다음 명령으로 바꾸는 것은 handler 소프트웨어의 책임이며,
+하드웨어가 ECALL/EBREAK의 길이를 더해 trap EPC를 만들지 않는다.
+
+새 `scripts/run_base_trap_contract.py`는 M/HS/U/VS/VU × medeleg/hedeleg의
+네 설정 × ECALL/EBREAK/C.EBREAK/illegal32(0xffffffff)/illegal16(0)의
+100개 사례를 실행한다. 대상 handler는 M 60·HS 31·VS 9건이다. 각 handler가
+cause/EPC/tval을 확인하고 EPC를 원래 길이의 다음 명령으로 설정해 복귀한다.
+복귀 후 sentinel 증가와 별도 M escape trap을 확인하며, 두 보존 레지스터의
+관찰값 200개와 probe/escape trap 200개를 독립 검사한다.
+
+각 probe 바로 앞 `instret` 읽기와 handler 첫 명령의 읽기를 비교하면 차이는
+첫 CSR 읽기의 retire에 해당하는 1이어야 한다. RTL과 Sail 각각의 100쌍에서
+이를 확인했다. RTL boot와 ELF부터 시작하는 Sail은 절대 카운터 원점이 다르므로
+이 두 CSR 읽기의 절대값만 정규화한 뒤 동일 ELF 이벤트 8,083건을 비교한다.
+차이 자체와 계산 결과는 정규화하지 않는다. cause/tval/destination/handler/
+instret/보존 값의 잘못된 trace 대조군 여섯 개를 검사기가 거부했다.
+
+현재 모델·RTL·ELF·assembly·Sail·trace·로그 해시는 `--check`로 재검사한다.
+기존 88개 breakpoint/illegal/FS-Off context-form의 GVA/MPV/SPV/SPVP·위임·
+복귀 검사를 함께 사용해 `base.1`을 닫는다. 새 100개가 모든 불법 인코딩,
+동시 외부 interrupt/debug 요청 또는 모든 memory fault 우선순위를 검사한 것은
+아니다. 메모리 원자성·RVWMO 검토 `base.2`와 전체 프로파일 판정은 계속 열린다.
+
 ## 재검사와 전체 목표
 
 - `python scripts/audit_rv64i_compute_control.py`
@@ -110,6 +157,7 @@ component에서 본 active kill을 production branch/interrupt의 모든 스케�
 - `python scripts/audit_rv64m_contract.py`
 - `python scripts/run_rv64m_encoding_edges.py --check`
 - `python scripts/run_rv64_muldiv_ownership.py --check`
+- `python scripts/run_base_trap_contract.py --check`
 - `python scripts/run_rv64i_hint_contract.py --check`
 - `python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm`
 
