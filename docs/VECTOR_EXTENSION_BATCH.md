@@ -83,3 +83,22 @@ python scripts/compare_vector_overlap_performance.py --coremark-iterations 10 --
 load/store의 bank 활용과 요청·응답 중첩이다. 사용자가 제안한 통합
 Permutation/Load/Store unit 및 hazard scoreboard, vector-vector OoO,
 128-bit vector memory issue는 이번 변경에 포함되지 않는다.
+
+### 다음 병목을 고르는 관측
+
+`python scripts/profile_vector_occupancy.py`는 생산 RTL을 구동하지 않는
+`rv23_vector_performance_tb`에서 보존된 같은 2회 CoreMark ELF를 실행한다.
+관측 실행의 전체 CoreMark 패킷이 기존 quiet 실행과 정확히 같아야 한다.
+전체 패킷에는 cycle count, instruction count와 CRC가 포함된다.
+
+출력은 `out/performance/vector_occupancy/report.json`이다. `start_time`의
+첫 명령 retire부터 `stop_time`의 첫 명령 retire 직전까지 상태별 체류 시간,
+각 상태에서 retire가 없던 시간, vector physical request→response latency와
+해당 window 전체의 D-cache hit/miss accept 수를 기록한다.
+Memory substate는 vector의 `MEM_WAIT` 안에서만 집계한다. Window 경계는
+CoreMark 내부 counter read 위치와 다르므로 window cycles를 점수 계산에
+사용하지 않는다. No-retire와 상태 체류의 겹침도 단독 stall 원인 판정은 아니다.
+
+관측 래퍼는 먼저 기존 H/V ELF로 smoke를 통과했다. 이 window에서 3,163
+cycles, vector physical 요청/응답 각각 8건과 상태별 합계를 확인했다.
+CoreMark 관측 실행은 진행 중이며 아직 상태별 병목 결론으로 사용하지 않는다.
