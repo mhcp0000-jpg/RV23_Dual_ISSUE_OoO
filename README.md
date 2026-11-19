@@ -58,6 +58,19 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 [연산기 지연 실측 근거](docs/evidence/pipeline_latency.json)
 · [측정 재현 스크립트](scripts/run_pipeline_latency.py)
 
+### 벡터 성능 개선 작업
+
+공유 D-cache와 2×64 SIMD를 연결한 뒤, 자연 정렬 메모리의 반복 주소 변환과
+정수 ALU의 완료 대기를 줄였다. 같은 ELF의 warmed 128회 진단에서 VADD는
+1,877→1,534 cycles, VLE64는 8,789→3,285 cycles, VLUXEI64는
+8,789→3,298 cycles였다. scalar ADD는 148 cycles로 동일했다.
+이 값은 짧은 진단 코드 결과이며, 아래 CoreMark 점수와 구분한다.
+동일한 10회 RVV CoreMark ELF는 **11,525,110→10,270,851 cycles**,
+**10.88% 감소 / 1.122배** 개선됐다. IPC는 0.239658→0.268925.
+CRC와 retired instruction count 2,762,088은 같다.
+[입력·ELF·실행 로그 해시에 묶인 근거](docs/evidence/vector_fastpath.json)
+[변경 내용·측정 범위·남은 구조 개선](docs/VECTOR_PIPELINE_REWORK.md)
+
 ### CoreMark 성능
 
 아래 표는 벡터 pipeline/cache 재작업 전의 RV64·LP64D **10회 RTL 실행 결과**다.

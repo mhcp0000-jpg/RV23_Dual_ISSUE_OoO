@@ -582,7 +582,14 @@ module rv_vector_engine #(
         INT_REDUCE_WAIT:if(int_result_valid_q)begin
           accumulator_q<=int_result_q;index_q<=index_q+1'b1;state_q<=ELEMENT;
         end
-        INT_DRAIN:if(!int_valid_q && !int_result_valid_q && !rf_write_q)state_q<=FINISH;
+        // If writeback is the only remaining valid, the RF consumes it
+        // on this edge. RESULT is visible after that edge, with no pending
+        // writes. Do not add FINISH/WB_DRAIN bubbles to every ALU packet.
+        INT_DRAIN:if(!int_valid_q && !int_result_valid_q)begin
+          // Reduction still owns a final accumulator write in FINISH.
+          if(reduction)state_q<=FINISH;
+          else begin vstart_q<=0;state_dirty_o<=1;state_q<=RESULT;end
+        end
         DIV_REQUEST:if(div_ready)state_q<=DIV_WAIT;
         DIV_WAIT:if(div_valid)begin index_q<=index_q+1'b1;state_q<=ELEMENT;end
         GATHER:begin index_q<=index_q+1'b1;state_q<=ELEMENT;end
@@ -613,7 +620,12 @@ module rv_vector_engine #(
             else begin index_q<=index_q+1'b1;state_q<=ELEMENT;end
           end
         end
-        FINISH:begin vstart_q<=0;state_dirty_o<=1;state_q<=WB_DRAIN;end
+        FINISH:begin
+          vstart_q<=0;state_dirty_o<=1;
+          // Reduction may enqueue its final write on this edge. Only that
+          // case (or an already queued write) needs the explicit drain.
+          state_q<=(rf_write || rf_write_q)?WB_DRAIN:RESULT;
+        end
         WB_DRAIN:if(!rf_write_q)state_q<=RESULT;
         RESULT:if(response_ready_i)state_q<=IDLE;
         default:state_q<=IDLE;

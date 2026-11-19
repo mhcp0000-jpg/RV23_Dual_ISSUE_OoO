@@ -1,7 +1,9 @@
 // Serialized guest/HLV element owner. Natural accesses are atomic bus requests;
 // naturally aligned MMIO is supported, with guest fault metadata retained. The caller owns the architectural head,
 // drains older transactions, and prevents cancellation after acceptance.
-// Every byte is translated and checked before the first physical access.
+// Naturally aligned elements within one page use one translation when the
+// whole-access PMP check succeeds. Other accesses preflight every byte before
+// the first physical access; permission failures keep their original metadata.
 // Naturally aligned elements use a single physical transfer. Split accesses
 // deliberately avoid assumptions about physical adjacency at
 // virtual page, PMP, cache-line and bank boundaries. No atomicity is promised.
@@ -185,7 +187,14 @@ module rv23_hypervisor_memory_head #(
         end else begin
           physical_q[index_q]<=translated_q;
           physical_device_q[index_q]<=translated_pbmt_q!=0 || !physical_sram;
-          if(index_q==last_byte) begin index_q<=0;state_q<=MEMORY_REQUEST;end
+          // A naturally aligned <=8-byte access cannot cross a 4 KiB page,
+          // an 8-byte bus word or these aligned PMA regions. Translation
+          // permissions/PBMT are uniform within that page. Full-width PMP
+          // authorization also rules out a partial/straddling PMP match.
+          // If it fails, retain byte preflight and precise fault priority.
+          if(index_q==last_byte || (natural_q && index_q==0 && full_pmp_allow)) begin
+            index_q<=0;state_q<=MEMORY_REQUEST;
+          end
           else begin index_q<=index_q+1'b1;state_q<=TRANSLATE;end
         end
       end

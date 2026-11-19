@@ -1,5 +1,13 @@
 # CoreMark 성능과 개선 후보
 
+이 문서의 기존 CoreMark 표는 vector pipeline/cache 재작업 전 기록이다.
+현재 반복 preflight·완료 bubble 축소와 같은 ELF 진단 결과는
+[VECTOR_PIPELINE_REWORK.md](VECTOR_PIPELINE_REWORK.md)에 별도로 기록한다.
+같은 10회 RVV ELF의 최종 비교는 **11,525,110→10,270,851 cycles**로
+10.88% 감소했다. IPC 0.239658→0.268925, CoreMark/MHz
+추정치 0.973629. CRC 및 명령 수 2,762,088은 같다.
+[이번 변경의 측정 근거](evidence/vector_fastpath.json).
+
 현재 RV64 H/V SoC에서 같은 upstream 소스·LP64D ABI·메모리 구성으로
 O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측정과
 새 RV64 측정은 서로 다른 ELF이므로 별도 표로 다룬다.
