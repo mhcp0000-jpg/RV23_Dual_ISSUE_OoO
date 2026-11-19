@@ -33,7 +33,9 @@ module rv23_vector_performance_tb;
       cycles++;retired+=$countones(core.trace_valid);
       states[int'(`V.state_q)]++;
       if(core.trace_valid==0)begin no_retire++;empty_states[int'(`V.state_q)]++;end
-      if(`V.state_q==`V.MEM_WAIT)memory_states[int'(`V.u_memory.state_q)]++;
+      // The simulator (Verilator 5.050) mis-sizes a hierarchical enum item here.
+      // The driver checks both enum declarations against these numeric bins.
+      if(int'(`V.state_q)==9)memory_states[int'(`V.u_memory.state_q)]++;
       hits+=$countones(core.u_dut.u_dcache.hit_accept);
       misses+=$countones(core.u_dut.u_dcache.miss_accept);
       if(`V.memory_valid_o && !`V.memory_ready_i)request_stalls++;
