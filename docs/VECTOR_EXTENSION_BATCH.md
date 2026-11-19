@@ -43,7 +43,10 @@ frontend/call/CSR 비용을 포함하며 독립 실행 유닛 latency가 아니�
 같은 **CoreMark 2회 ELF**의 cycles는 **1,853,468→1,815,477**로
 **2.05% 감소**했고 IPC는 **0.298061→0.304299**다. Retired instructions는
 양쪽 552,447개이며 CRC `[e9f5, e714, 1fd7, 8e3a]`가 같다.
-10회 측정은 실행 중이며 이 2회 값을 10회 결과로 대신하지 않는다.
+같은 **CoreMark 10회 ELF**에서도 **9,243,916→9,054,053 cycles**,
+**2.0539% 감소**를 확인했다. 양쪽 retired instructions는 2,762,088개이며
+CRC가 같다. IPC는 **0.298801→0.305066**, CoreMark/MHz 추정치는
+**1.081793→1.104478**이다. 물리 주파수나 공식 인증 점수는 아니다.
 완료된 진단과 회귀의 소스 해시 근거는
 [evidence snapshot](evidence/vector_extension_batch.json)에 보존한다.
 
