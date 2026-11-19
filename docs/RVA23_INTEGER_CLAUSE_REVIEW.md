@@ -36,11 +36,80 @@ RV64I는 RV32I의 설명을 상속하므로 RV64 추가 명령만으로 기본 I
 현재 MUL/DIV pipeline 지연은 별도 측정과 README에 기록하며 ISA 기능 완료와
 물리 STA/Fmax 또는 divider 성능 목표를 혼동하지 않는다.
 
+## M 인코딩과 목적지 x0의 검토 결론
+
+`muldiv.1`은 현재 RV64 full-M target의 인코딩과 x0 disposition 검토다.
+`rv_decode2`는 OP/funct7=1의 여덟 funct3를 MUL/MULH/MULHSU/MULHU 및
+DIV/DIVU/REM/REMU로, OP-32/funct7=1은 MULW와 네 DIV/REM W 형식으로
+분류한다. OP-32의 funct3=1/2/3은 현재 target에서 illegal이다. 관련 B/MOP/H/V
+override는 이 세 인코딩을 합법화하지 않는다. 다른 opcode나 향후 확장의
+reserved 공간 전체에 illegal trap을 강제한다는 뜻은 아니다.
+
+두 M decode 경로 모두 `rd!=0`일 때만 destination을 쓴다. illegal cleanup은
+FU/port·load/store/CSR/branch/fence 분류와 destination write를 없애고 cause 2와
+원본 instruction tval를 ROB 예외 경로에 전달한다. 예약 형식을 잘못 MUL/DIV에
+보내거나 rd=x0라는 이유로 예약 instruction을 NOP로 바꾸지 않는지 검토했다.
+
+`scripts/run_rv64m_encoding_edges.py`는 13형식 각각의 x0 목적지에 0/0,
+signed minimum64/-1, word minimum32/-1, all-ones/0 및 큰 비트 패턴/7을
+사용한 65개 비트랩 사례를 실행한다. 정수 divide-by-zero·overflow는 FP flag나
+arithmetic trap을 만들지 않아야 한다. 값 결과 자체는 목적지 x0라 관찰하지
+않으며 기존 296개 비영 목적지 수치 검사와 구분한다.
+
+예약 OP-32 세 형식은 rd=x0/x1/x31과 네 source-field 조합으로 36개를 실행했다.
+cause 2·정확한 PC·원본 tval·writeback 없음과 trap 후 PC+4 복귀를 확인했다.
+전체 101개 사례에서 source 두 개·ra·x31·FCSR 관찰값 505개가 보존됐으며,
+동일 ELF의 Sail/RTL 이벤트 3,910건이 일치했다. 잘못된 cause/tval·x0 write·
+source 값의 trace 대조군 네 개를 거부했다. 보고서는
+`out/rva23/rv64m_encoding_edges/report.json`이며 현재 RTL/model·ELF·Sail·
+assembly·trace·로그와 generator/helper 해시를 재검사한다.
+
+이 source 검토와 실행 근거로 `muldiv.1`을 닫는다. 모든 register/operand
+조합이나 동시 WB·인터럽트·flush 스케줄을 이 encoding 검사로 증명하지 않는다.
+
+## M issue·취소·retire 소유권의 검토 결론
+
+`rv_backend`는 multiplier 요청에 operation/word, ROB sequence와 physical
+destination valid/tag를 같은 issue 경계에서 전달한다. DIV tag pipeline도
+이 metadata를 한 묶음으로 저장하며, flush된 slot은 execute valid를 내지 않는다.
+MUL의 두 stage와 DIV의 busy/result slot은 owner metadata를 data와 함께 유지하고
+wrap-aware sequence 비교로 younger/full flush를 처리한다. ready가 낮으면
+result valid와 data·sequence·destination metadata를 유지한다.
+
+두 producer의 결과는 각각 writeback source 2/3으로 연결된다. arbiter는
+live ROB owner가 없거나 flush 범위에 들어가는 결과를 버리고, 살아 있는 결과만
+physical destination write와 ROB complete로 전달한다. ROB는 resident entry의
+valid와 sequence가 일치해야 complete를 받는다. integer PRF의 speculative
+write와 architectural mapping의 retire commit은 구분한다. rename의 committed
+mapping은 retire_fire와 해당 destination으로 갱신하며, in-order ROB retire가
+architectural 결과의 순서를 정한다.
+
+기존 standalone multiplier/divider unit bench의 flush는 0에 고정돼 있으므로
+이를 active-kill 증거로 사용하지 않았다. 새 `rv64_muldiv_ownership_tb`는 실제
+production 모듈을 XLEN64로 인스턴스화한다. MUL stage0 또는 DIV busy가 실제로
+활성인 시점과, result가 ready를 기다리는 시점에서 flush를 넣는다.
+full/word data path, sequence 250↔2 wrap, boundary equality 및 flush-all의
+20개 시나리오에서 younger 12개 취소·older/equal 8개 보존·취소 후 새 tag로
+12회 재사용을 확인했다. 결과 24개의 sequence/valid를 각각 네 대기 경계에서
+검사하고 유효 목적지가 있는 결과는 data/physical tag도 검사했다.
+destination-valid=0 요청 네 개도 포함했다. flush cycle의 새 요청은
+ready=0이어야 한다. witness 누락 대조군 네 개를 검사기가 거부했다.
+
+`scripts/run_rv64_muldiv_ownership.py --check`는 bench/RTL·model binary·build/run
+로그 해시를 재확인한다. 실제 production RV64 issue/execute/retire 연결은 기존
+`audit_rv64_ooo_integration.py`의 pipeline CSV와 64비트 결과 10개, dual
+issue/execute/retire 각 네 회 및 younger bypass 여섯 회와 함께 사용한다.
+component에서 본 active kill을 production branch/interrupt의 모든 스케줄을
+실행한 것처럼 확대하지 않는다. 이 source 연결과 component/native 근거로
+`muldiv.2`를 닫으며 전체 프로파일 및 물리 timing 판정은 별도다.
+
 ## 재검사와 전체 목표
 
 - `python scripts/audit_rv64i_compute_control.py`
 - `python scripts/audit_rv64i_memory_values.py`
 - `python scripts/audit_rv64m_contract.py`
+- `python scripts/run_rv64m_encoding_edges.py --check`
+- `python scripts/run_rv64_muldiv_ownership.py --check`
 - `python scripts/run_rv64i_hint_contract.py --check`
 - `python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm`
 

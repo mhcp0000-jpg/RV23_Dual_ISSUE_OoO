@@ -1,5 +1,15 @@
 [
   {
+    "requirements": ["M"],
+    "report": "out/rva23/rv64_muldiv_ownership/report.json",
+    "behavior": "XLEN64 production multiplier/divider component instances: 20 full/word active-or-held flush scenarios, 12 kills, eight older/equal preserves and 12 reuses with a fresh tag. Wrap boundary 250/2, equality, flush-all, request rejection during flush and four destination-invalid requests; 24 consumed results checked under backpressure. Four missing-witness controls rejected. Source review and separate RV64 OoO pipeline evidence connect to production ownership; not a complete production branch/interrupt schedule test."
+  },
+  {
+    "requirements": ["M"],
+    "report": "out/rva23/rv64m_encoding_edges/report.json",
+    "behavior": "101 native M-mode encoding edges: 65 rd=x0 cases across all 13 RV64M forms with zero, full/word signed-overflow and other operand patterns, plus 36 current-target reserved OP-32 funct3=1/2/3 traps across selected destination/source fields. Precise cause/PC/tval/no-writeback and 505 preserved source/ra/x31/FCSR observations; same Sail ELF matches 3910 events and four corrupt trace controls rejected. No x0 arithmetic result observation, all-register Cartesian product or active-flush/retirement ownership claim."
+  },
+  {
     "requirements": ["Zifencei", "I", "C"],
     "report": "out/rva23/fencei_selfmod_contract/report.json",
     "behavior": "148 native self-modifying-code cases: 74 representative ignored funct12/rd/rs1 encodings, old/new execution of 16-bit C.LI and 32-bit ADDI at every aligned halfword/word position in 64-byte lines. Exact store address/value, raw patched instruction, PC length and no destination write checked. Same Sail ELF matches 2968 events; four stale-instruction/writeback trace controls rejected. Source review separately covers LSU drain, refill kill and frontend epoch; no NOP-mutated RTL or universal concurrency proof."

@@ -134,11 +134,13 @@
 
 ## 4. 남은 완료 감사
 
+- [x] `muldiv.1`·`muldiv.2`를 [I/M 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)의 인코딩·x0·issue/tag/WB/ROB 경로와 연결해 닫았다. native x0 사례 65건·예약 word 예외 36건 및 505개 보존 값, 같은 ELF의 Sail/RTL 이벤트 3,910건이 일치했다. 새 XLEN64 unit의 active/held flush 20개에서 12개 취소·8개 보존·12회 재사용, 결과 24개와 destination-invalid 네 개를 확인했다. unit kill을 모든 production branch/interrupt 실행으로 확대하지 않으며 기존 RV64 pipeline/retire 근거와 source 검토를 함께 사용한다. 열린 검토 주제는 48개다.
+
 - [x] `fencei.1`·`fencei.2`를 [FENCE.I 검토 결론](RVA23_FENCEI_CLAUSE_REVIEW.md)의 source 경로·기존 refill 경합 근거·새 자기수정 코드 148개 사례로 닫았다. 74개 funct12/rd/rs1 sample과 16/32비트 정렬 위치에서 old/new instruction 296건을 확인했고 같은 ELF의 Sail/RTL 이벤트 2,968건이 일치했다. stale instruction/writeback 변조 네 개를 거부했다. I-fabric idle 입력은 상수이며 실제 보장은 retire-driven invalidation·refill kill·frontend epoch/flush라는 점을 명시했다. 열린 주제는 50개이며 전체 목표는 진행 중이다.
 
 - [x] `hints.1`·`hints.2`를 [HINT 검토 결론](RVA23_HINT_CLAUSE_REVIEW.md)의 허용된 구현 선택·실제 decode/head 경로·현재 실행 근거와 함께 닫았다. 구조 검사기는 종료 결론, 소스 경로, 현재 생성기와 일치하는 실행 보고서가 없는 `reviewed` 표기를 거부한다. 열린 검토 주제는 52개이며 전체 프로파일 판정은 계속 열린 상태다.
 
-- [x] RV64I와 필수 확장 58개의 검토 연결을 [별도 작업 목록](RVA23_REMAINING_REVIEW.md)에 정리했다. 22개 그룹·50개 열린 검토 주제이며 기능 결함 수를 뜻하지 않는다. 인덱스는 `config/rva23_clause_review_index.json`, 검사는 `scripts/audit_clause_review_index.py`다. 문서 내용의 충분성은 별도로 검토하며 구조 검사의 통과를 프로파일 완료로 간주하지 않는다.
+- [x] RV64I와 필수 확장 58개의 검토 연결을 [별도 작업 목록](RVA23_REMAINING_REVIEW.md)에 정리했다. 22개 그룹·48개 열린 검토 주제이며 기능 결함 수를 뜻하지 않는다. 인덱스는 `config/rva23_clause_review_index.json`, 검사는 `scripts/audit_clause_review_index.py`다. 문서 내용의 충분성은 별도로 검토하며 구조 검사의 통과를 프로파일 완료로 간주하지 않는다.
 
 Svpbmt RTL 수정 이전의 ACT4와 Linux 결과는 이전 RTL의 실행 근거다. 수정된 RTL의 재검증 결과가 나오면 현재 소스 기준의 통합 감사에 반영한다.
 

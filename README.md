@@ -87,8 +87,9 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | FP CSR alias | FCSR/FRM/FFLAGS와 여섯 CSR 명령의 1,664개 사례, 이전 값·alias 결과 6,656개 검사 및 Sail/RTL 이벤트 24,109건 일치. [FP 절별 검토](docs/RVA23_FP_CLAUSE_REVIEW.md)에 산술·boxing·상태·권한 근거도 연결 |
 | 벡터 FS/VS 권한 | 다섯 모드·host/guest FS/VS의 690개 대표 사례, 허용 234/거부 456건 및 Sail/RTL 이벤트 62,815건 일치. [V 상태 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md)에 precise trap·데이터 보존·Dirty 범위 정리 |
 | B/Zicond 조항 검토 | Zba 8·Zbb 24·Zbs 8·Zicond 2형식의 구현과 기존 독립 값 검사를 연결. [B/Zicond 검토표](docs/RVA23_BITMANIP_CLAUSE_REVIEW.md)에 word/unsigned-word 및 timing 검증 범위 구분 |
-| 남은 규격 검토 | 59개 요구사항을 22개 그룹·50개 열린 검토 주제와 연결. [작업 목록](docs/RVA23_REMAINING_REVIEW.md)은 결함 개수나 전체 검증 완료 판정이 아니며 누락·중복·문서 연결을 필수 감사에서 확인 |
+| 남은 규격 검토 | 59개 요구사항을 22개 그룹·48개 열린 검토 주제와 연결. [작업 목록](docs/RVA23_REMAINING_REVIEW.md)은 결함 개수나 전체 검증 완료 판정이 아니며 누락·중복·문서 연결을 필수 감사에서 확인 |
 | FENCE.I 코드 동기화 | 148개 자기수정 코드 사례·74개 ignored-field 조합, 같은 ELF의 Sail/RTL 이벤트 2,968건 일치. [검토 결론](docs/RVA23_FENCEI_CLAUSE_REVIEW.md)에 store drain·refill kill·frontend epoch 연결 설명 |
+| M 인코딩·소유권 | x0 목적지 65건·예약 형식 예외 36건, 같은 ELF의 Sail/RTL 이벤트 3,910건 일치. XLEN64 component의 active/held flush 20개·재사용 12회 확인. [I/M 검토](docs/RVA23_INTEGER_CLAUSE_REVIEW.md) |
 | 스칼라/벡터 FP 상태 | SEW32/64·다섯 frm·mask/vstart/vl 선택의 교차 실행 160개. 공유 flags와 destination words 640개 확인, Sail/RTL 이벤트 13,507건 일치. [V 상태·실행 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md) |
 | RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | RV64 압축 산술 범위 | 18형식의 probe 7,226개, 배치별 동일 ELF의 Sail/RTL 이벤트 62,776건 일치. 즉시값·시프트의 유효 범위와 MV/ADD의 비영 레지스터 쌍 전체, 선택 데이터 패턴 및 대조군 60개 포함 |

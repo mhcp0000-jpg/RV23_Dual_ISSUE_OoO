@@ -696,6 +696,13 @@ writeback으로 실제 입력을 복원했다. retire 1,810건 중 x0 목적지 
 
 ### RV64M 곱셈·나눗셈 의미 검토
 
+추가 encoding-edge 검사에서 x0 목적지 65건·예약 OP-32 예외 36건과
+보존 값 505개, 같은 ELF의 Sail/RTL 이벤트 3,910건을 확인했다. 새 XLEN64
+ownership component는 active/held flush 20개, 취소 12개·보존 8개·재사용
+12회를 검사한다. [I/M 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)에 source 경로와
+production RV64 issue/retire 근거를 연결해 `muldiv.1`·`muldiv.2`를 닫았다.
+모든 production 분기/인터럽트·WB 스케줄을 실행했다는 뜻은 아니다.
+
 기준은 [M 2.0의 곱셈·나눗셈 조항](https://riscv.github.io/riscv-unified-db/manual/html/isa/isa_20240411/chapters/m-st-ext.html)이다.
 `python scripts/audit_rv64m_contract.py`는 현재 H/V SoC에서 실행한
 `rv64um` ELF 13개의 retire trace를 읽고 앞선 정수 writeback으로
@@ -1132,7 +1139,7 @@ PMA 속성의 벡터 원소 읽기 4건을 확인했다. 동일 ELF의 Sail·RTL
 148개 자기수정 사례와 기존 refill 경합 근거를 함께 사용해 해당 작업 주제를 닫았다.
 
 구체적인 다음 검토 주제는 [남은 규격 검토 작업 목록](RVA23_REMAINING_REVIEW.md)에
-정리한다. 요구사항 59개·구현 그룹 22개와 열린 검토 주제 50개를 연결하며,
+정리한다. 요구사항 59개·구현 그룹 22개와 열린 검토 주제 48개를 연결하며,
 기능 결함 수 또는 전체 규격 조항 수를 뜻하지 않는다. 인덱스·생성 문서의
 일치와 요구사항 누락/중복은 필수 감사가 확인한다. 실제 조항 충족 여부는
 각 연결 문서의 소스·실행·예외·상태·순서 근거를 검토해 판정해야 한다.

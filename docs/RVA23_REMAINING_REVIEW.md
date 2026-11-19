@@ -2,7 +2,7 @@
 
 이 문서는 `config/rva23_clause_review_index.json`에서 생성한 검토 작업 목록이다.
 RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그룹과
-50개 미완료 검토 주제를 연결한다. 이는 결함 50개라는 뜻이 아니다.
+48개 미완료 검토 주제를 연결한다. 이는 결함 48개라는 뜻이 아니다.
 또한 완전한 규격 조항 목록이나 구현·검증 완료 판정표가 아니다.
 
 각 주제를 닫을 때는 규격 조항, 실제 RTL 경로, 실행·예외·상태·순서의 근거와
@@ -17,7 +17,7 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 | 그룹 | 요구사항 | 열린 주제 | 현재 검토 |
 |---|---|---:|---|
 | base | I | 2 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md), [RVA23_PROFILE_CONTRACT_REVIEW.md](RVA23_PROFILE_CONTRACT_REVIEW.md) |
-| muldiv | M | 2 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md) |
+| muldiv | M | 0 | [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md) |
 | atomics | A, Za64rs, Ziccrse, Ziccamoa | 3 | [RVA23_ATOMIC_CLAUSE_REVIEW.md](RVA23_ATOMIC_CLAUSE_REVIEW.md) |
 | scalar_fp | F, D, Zfhmin, Zfa | 3 | [RVA23_FP_CLAUSE_REVIEW.md](RVA23_FP_CLAUSE_REVIEW.md) |
 | bitmanip | B, Zicond | 2 | [RVA23_BITMANIP_CLAUSE_REVIEW.md](RVA23_BITMANIP_CLAUSE_REVIEW.md) |
@@ -46,8 +46,20 @@ RV64I와 필수 확장 58개를 포함한 59개 요구사항, 22개 구현 그�
 
 ## muldiv: RV64 M
 
-- [ ] `muldiv.1` — Complete current-target reserved encoding and zero-destination disposition.
-- [ ] `muldiv.2` — Connect multiply/divide issue, recovery and retirement ownership to the instruction contracts.
+이 작업 목록에 남은 검토 주제 없음. 연결 문서의 실제 근거와 한계를 확인한다.
+
+- [x] `muldiv.1` — Complete current-target reserved encoding and zero-destination disposition.
+
+검토 결론: Current-target OP/OP-32 M encoding partitions and rd=x0 destination suppression reviewed through decoder cleanup. Native 13-form zero-destination cases and 36 reserved-word precise traps complement the existing independent arithmetic results; active-flush ownership is reviewed separately under muldiv.2.
+
+근거: [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md)
+
+- [x] `muldiv.2` — Connect multiply/divide issue, recovery and retirement ownership to the instruction contracts.
+
+검토 결론: Issue/data/tag binding, selective/full wrap-aware flush, live-result arbitration, matching ROB completion and architectural rename commit reviewed in the production source. New XLEN64 active/held ownership component scenarios complement the existing production RV64 issue/execute/retire witnesses; no universal schedule claim.
+
+근거: [RVA23_INTEGER_CLAUSE_REVIEW.md](RVA23_INTEGER_CLAUSE_REVIEW.md)
+
 
 ## atomics: A and reservation contracts
 
