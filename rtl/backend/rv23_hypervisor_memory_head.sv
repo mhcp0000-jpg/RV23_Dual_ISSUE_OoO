@@ -9,7 +9,7 @@
 // virtual page, PMP, cache-line and bank boundaries. No atomicity is promised.
 module rv23_hypervisor_memory_head #(
   parameter int unsigned ADDRESS_WIDTH=64,
-  parameter bit HAS_MMU=1,HAS_SSNPM=1,NATURAL_ACCESS=1,COALESCE_READ=0
+  parameter bit HAS_MMU=1,HAS_SSNPM=1,NATURAL_ACCESS=1,COALESCE_READ=0,FAST_BARE=1
 )(
   input logic clk_i,rst_ni,invalidate_i,
   input logic request_valid_i,
@@ -73,6 +73,7 @@ module rv23_hypervisor_memory_head #(
   logic trans_implicit,physical_sram,physical_rom,physical_mmio;
   logic require_idempotent_q,coalesce_q,coalesced_q,coalesce_pmp_allow;
   logic [2:0] coalesce_size_q;
+  logic bare_request,bare_q;
   privilege_e privilege_q;
   logic [5:0] cause_q;
   logic trans_ready,trans_valid,trans_fault,pmp_allow;
@@ -111,7 +112,7 @@ module rv23_hypervisor_memory_head #(
   end else assign coalesce_pmp_allow=0;
   if(HAS_MMU) begin:g_translation
     rv23_translation_port u_translate(.clk_i,.rst_ni,.invalidate_i,
-      .req_valid_i(state_q==TRANSLATE),.req_ready_o(trans_ready),.req_address_i(byte_va),
+      .req_valid_i(state_q==TRANSLATE && !bare_q),.req_ready_o(trans_ready),.req_address_i(byte_va),
       .req_access_i(write_q?2'd2:(execute_q?2'd3:2'd1)),.req_privilege_i(privilege_q),
       .req_virtual_i(virtual_i),.req_sum_i(mstatus_i[18]),.req_mxr_i(mstatus_i[19]),
       .req_hs_mxr_i(hs_mxr_i),.req_pbmt_enable_i(menvcfg_i[62]),.req_guest_pbmt_enable_i(guest_pbmt_enable_i),
@@ -130,6 +131,10 @@ module rv23_hypervisor_memory_head #(
     assign ptw_valid_o=0;assign ptw_device_o=0;assign ptw_address_o=0;assign ptw_response_ready_o=0;
   end
   assign request_ready_o=state_q==IDLE;
+  // Match the translation port's host Bare condition. Virtual accesses still
+  // use its guest/G-stage checks even when VSATP/HGATP select Bare.
+  assign bare_request=FAST_BARE && (!HAS_MMU ||
+    (!virtual_i && (privilege_i==PRIV_M || satp_i[63:60]==0)));
   assign response_valid_o=state_q==RESULT;
   assign response_coalesced_o=coalesced_q;
   assign response_coalesced_size_o=coalesce_size_q;
@@ -173,6 +178,7 @@ module rv23_hypervisor_memory_head #(
       require_idempotent_q<=0;
       coalesce_q<=0;coalesced_q<=0;
       coalesce_size_q<=0;
+      bare_q<=0;
     end else case(state_q)
       IDLE:if(request_valid_i) begin
         base_q<=masked;operand_q<=operand_i;size_q<=size_i;index_q<=0;
@@ -185,11 +191,22 @@ module rv23_hypervisor_memory_head #(
           (masked & ((64'b1<<coalesce_size_i)-1))==0;
         coalesce_size_q<=coalesce_size_i;
         coalesced_q<=0;
+        bare_q<=bare_request;
         natural_q<=NATURAL_ACCESS && (address_i & ((64'b1<<size_i)-1))==0;
         fault_address_q<=masked;state_q<=TRANSLATE;
+        if(bare_request)begin
+          translated_q<=masked[31:0];translated_pbmt_q<=0;state_q<=CHECK;
+          if(masked[63:32]!=0)begin exception_q<=1;cause_q<=write_i?6'd7:6'd5;state_q<=RESULT;end
+        end
         if(size_i>3) begin exception_q<=1;cause_q<=write_i?6'd7:6'd5;state_q<=RESULT;end
       end
-      TRANSLATE:if(trans_ready) state_q<=WAIT_TRANSLATE;
+      TRANSLATE:if(bare_q)begin
+        // Split accesses still preflight every byte in the original order.
+        translated_q<=byte_va[31:0];translated_pbmt_q<=0;state_q<=CHECK;
+        if(byte_va[63:32]!=0)begin
+          exception_q<=1;cause_q<=write_q?6'd7:6'd5;fault_address_q<=byte_va;state_q<=RESULT;
+        end
+      end else if(trans_ready) state_q<=WAIT_TRANSLATE;
       WAIT_TRANSLATE:if(trans_valid) begin
         translated_q<=trans_address;state_q<=CHECK;
         translated_pbmt_q<=trans_pbmt;

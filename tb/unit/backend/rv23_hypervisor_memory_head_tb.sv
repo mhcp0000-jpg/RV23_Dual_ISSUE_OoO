@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-module rv23_hypervisor_memory_head_tb;
+module rv23_hypervisor_memory_head_tb #(parameter bit FAST_BARE=1);
   import rv_ooo_pkg::*;
   logic clk=0;always #5 clk=~clk;
   logic rst_n=0,req=0,ready,rsp,rsp_ready=0;
@@ -23,7 +23,7 @@ module rv23_hypervisor_memory_head_tb;
   byte unsigned memory[512];
   int ticks=0,accesses=0,checks=0;
   assign mr=!mrv && ticks%3!=0;
-  rv23_hypervisor_memory_head #(.HAS_MMU(0),.COALESCE_READ(1)) dut(
+  rv23_hypervisor_memory_head #(.HAS_MMU(0),.COALESCE_READ(1),.FAST_BARE(FAST_BARE)) dut(
     .clk_i(clk),.rst_ni(rst_n),.invalidate_i(1'b0),.execute_permission_i(execute_permission),.pmm_i(pmm),.hs_mxr_i(hs_mxr),
     .request_valid_i(req),.request_ready_o(ready),.address_i(address),.operand_i(operand),
     .size_i(size),.write_i(write_enable),.unsigned_i(unsign),.floating_i(floating),.privilege_i(privilege),
@@ -45,6 +45,7 @@ module rv23_hypervisor_memory_head_tb;
       if(!(ma>=32'h80000000 && ma<32'h80000200) && !(ma>=32'h02000000 && ma<32'h02000008))$fatal(1,"unexpected memory address %h",ma);
       if(memory_size!=(coalesced?coalesced_size:((address & ((64'b1<<size)-1))==0?size:0)))$fatal(1,"incorrect natural/split size");
       if(ms!==8'(((9'b1<<(1<<memory_size))-1)<<ma[2:0]))$fatal(1,"non-atomic natural strobe");
+      $display("HEAD_ACCESS write=%0d addr=%h size=%0d data=%h strobe=%h device=%0d",mw,ma,memory_size,md,ms,memory_device);
       accesses<=accesses+1;mrv<=1;
       for(int b=0;b<8;b++) begin
         if(ma[31])begin
@@ -170,7 +171,7 @@ module rv23_hypervisor_memory_head_tb;
     transact(expected);if(!coalesced || coalesced_size!=2)$fatal(1,"missing 4-byte group");
     coalesce_size=3;transact(64'(memory[256]));
     if(coalesced)$fatal(1,"8-byte opportunity crossed two PMP entries");
-    $display("PASS rv23_hypervisor_memory_head_tb checks=%0d byte_accesses=%0d",checks,accesses);$finish;
+    $display("PASS rv23_hypervisor_memory_head_tb checks=%0d requests=%0d cycles=%0d",checks,accesses,ticks);$finish;
   end
   initial begin #1000000;$fatal(1,"assist timeout");end
 endmodule
