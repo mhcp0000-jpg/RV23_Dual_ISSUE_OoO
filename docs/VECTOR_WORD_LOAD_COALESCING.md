@@ -42,8 +42,13 @@ read 권한**을 별도로 확인한다. 원소 접근은 허용돼도 8바이�
   처리되는 것을 관측했다. VSE32는 기존대로 write 4건이며 cache hit도 확인했다.
 - 실제 코어의 같은 진단 ELF 비교에서 아래 연속 load 개선을 확인했다.
   모든 128-bit 결과를 vector store → scalar load로 대조했다.
-- 같은 CoreMark 2회 ELF 측정은 진행 중이다. 전체 benchmark 개선율은
-  완료된 결과로만 추가한다.
+- 첫 8-byte 전용 후보의 같은 CoreMark 2회 ELF는 **1,815,477→1,815,477
+  cycles**, IPC 0.304299로 변화가 없었다. 전체 benchmark 개선으로 표시하지 않는다.
+- EEW8/16/32 × warm/cold의 6개 native IRQ 사례도 통과했다. 각각 16개
+  word request/response/RF write를 확인했고, handler에서 128바이트 전체를
+  검사했다. Warm은 마지막 RF=783, retire=788, trap=789; cold는
+  RF=992, retire=997, trap=998이다. Younger scalar store의 외부 반영도
+  vector retire 이후였다. 이는 유한한 directed IRQ 사례다.
 
 | 128회 warmed probe | 이전 cycles | 후보 cycles | 감소율 |
 |---|---:|---:|---:|
@@ -65,6 +70,7 @@ python scripts/run_vector_memory_engine_checks.py
 python scripts/run_hypervisor_memory_head_checks.py
 python scripts/run_hypervisor_integration.py
 python scripts/run_vector_coalesce_guest_cache.py
+python scripts/run_vector_word_irq.py
 python scripts/profile_vector_latency.py --baseline-dir out/performance/vector_coalesce_before --output-dir out/performance/vector_coalesce_latency --include-small-loads --expect-improved vle8 vle16 vle32
 python scripts/compare_vector_overlap_performance.py --coremark-iterations 2 --baseline-dir out/performance/vector_coalesce_before --output-dir out/performance/vector_coalesce --before-commit 009b013 --expected-changes rtl/backend/rv_vector_engine.sv rtl/backend/rv23_hypervisor_memory_head.sv
 ```
