@@ -134,6 +134,8 @@
 
 ## 4. 남은 완료 감사
 
+- [x] `base.2`의 load-value 근거를 지연 store/load 실행 448개로 보강했다. 4개 store 폭·7개 load 형식의 896개 값과 대상 store의 전 바이트를 확인했고, 같은 ELF의 Sail 이벤트 21,290건이 기존 RTL 및 관찰 wrapper trace 각각과 일치했다. ELF 실행 구간에서 unknown-address/partial-overlap/store-data 대기 및 DIV와 older unresolved SQ의 겹침을 관찰했다. 두 값 변조·다섯 witness 누락을 거부한다. 전체 RVWMO·자연 정렬 외부 원자성은 별도 검토이며 `base.2`와 열린 주제 47개는 유지한다.
+
 - [x] `base.1`을 [I/M 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)의 ECALL/EBREAK·정의된 illegal·precise trap·instret 경로와 연결해 닫았다. 다섯 모드·네 위임 설정의 100개 사례에서 카운터 차이 100쌍, 보존 값 200개 및 probe/escape trap 200개를 확인했다. 절대 instret 원점만 정규화한 같은 ELF의 Sail/RTL 이벤트 8,083건이 일치했다. 메모리 원자성·RVWMO `base.2`는 남아 있으며 열린 검토 주제는 47개다.
 
 - [x] `muldiv.1`·`muldiv.2`를 [I/M 검토](RVA23_INTEGER_CLAUSE_REVIEW.md)의 인코딩·x0·issue/tag/WB/ROB 경로와 연결해 닫았다. native x0 사례 65건·예약 word 예외 36건 및 505개 보존 값, 같은 ELF의 Sail/RTL 이벤트 3,910건이 일치했다. 새 XLEN64 unit의 active/held flush 20개에서 12개 취소·8개 보존·12회 재사용, 결과 24개와 destination-invalid 네 개를 확인했다. unit kill을 모든 production branch/interrupt 실행으로 확대하지 않으며 기존 RV64 pipeline/retire 근거와 source 검토를 함께 사용한다. 열린 검토 주제는 48개다.

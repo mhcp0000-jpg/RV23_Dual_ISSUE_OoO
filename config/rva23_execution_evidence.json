@@ -3,6 +3,13 @@
     "requirements": [
       "I"
     ],
+    "report": "out/rva23/delayed_store_order/report.json",
+    "behavior": "448 M-mode Bare cached-SRAM cases delay an older store address or data through DIV, covering four store widths, seven load forms, four line positions and two load offsets (duplicate offsets for LD). Independent byte expectations verify 448 load and 448 full-word guard results, observing all target store bytes. Same ELF matches 21290 Sail events on both the production H/V model and an instrumented whole-SoC wrapper. ELF-region LSQ candidate wait witnesses cover unknown address, partial overlap, store data, DIV overlap and an older unresolved SQ entry; blocked loads must not issue or forward. Two bad-result and five missing-witness controls. No complete RVWMO or all-case stall proof."
+  },
+  {
+    "requirements": [
+      "I"
+    ],
     "report": "out/rva23/base_trap_contract/report.json",
     "behavior": "100 native five-mode base trap cases across four delegation configurations and ECALL/EBREAK/C.EBREAK/defined illegal16/32. Original EPC, cause/tval/no destination, handler routing M60/HS31/VS9, 100 non-retirement counter deltas and 200 preserved values; 200 probe/escape traps. Same ELF matches 8083 Sail/RTL events after only absolute instret-read origin normalization; both models independently check delta=1. Six malformed trace controls rejected. Not all illegal encodings, memory faults or interrupt/debug priorities."
   },

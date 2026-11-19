@@ -150,6 +150,48 @@ instret/보존 값의 잘못된 trace 대조군 여섯 개를 검사기가 거�
 동시 외부 interrupt/debug 요청 또는 모든 memory fault 우선순위를 검사한 것은
 아니다. 메모리 원자성·RVWMO 검토 `base.2`와 전체 프로파일 판정은 계속 열린다.
 
+## 앞선 store가 늦어지는 경우의 load 값·대기 검사
+
+`base.2`의 [RVWMO load-value axiom](https://docs.riscv.org/reference/isa/unpriv/rvwmo.html)
+검토를 보강한다. 같은 hart의 앞선 store가 아직 외부 메모리에 쓰이지 않았어도
+후속 load에는 해당 바이트의 최신 값이 필요하다. store buffer forwarding으로
+이를 만족할 수 있으므로 이 값을 확인하는 것과 모든 접근의 외부 완료 순서를
+강제하는 것은 구분한다. 전체 RVWMO의 global order·atomicity·progress 검토를
+이 단일 hart 값 검사로 대체하지 않는다.
+
+`scripts/run_delayed_store_order.py`는 DIV 의존성으로 앞선 store의 주소 또는
+데이터 준비를 늦춘다. SB/SH/SW/SD와 LB/LH/LW/LD/LBU/LHU/LWU, line 내
+0/8/48/56 위치 및 word의 앞/뒤 load 위치를 조합한 M-mode Bare SRAM 사례
+448개를 실행한다. 8바이트 load의 두 위치 선택은 같은 주소이며 distinct
+encoding 448개를 주장하지 않는다. 초기화 후 FENCE와 warm load를 수행하지만
+지연시킨 store와 대상 load 사이에는 FENCE를 넣지 않는다.
+
+Python byte model은 명시적으로 초기화한 8바이트에 store의 하위 바이트만
+덮어 쓴 뒤 load 폭·부호 확장을 계산한다. 대상 load 448개 및 전체 word guard
+448개, 합계 896개 결과를 검사해 각 대상 store의 전 바이트와 건드리지 않은
+바이트를 관찰한다. 0으로 초기화된 SRAM을 가정하지 않는다. 같은 ELF를 Sail,
+기존 전체 H/V RTL 모델 및 관찰 wrapper 모델에서 실행해 각 RTL trace의
+Sail 이벤트 21,290건이 일치해야 한다. probe/guard 결과 변조 두 개를 거부한다.
+
+`rv23_delayed_store_order_tb`는 production `rv_lsq`의 candidate와 stall 신호를
+관찰한다. ELF 실행 이후의 유효 candidate만 집계하며 unknown-address,
+partial-overlap, store-data 대기 중에는 load request/forward/candidate-valid가
+나오면 실패한다. DIV busy와 동시에 더 오래된 unresolved SQ entry가 있는
+load 대기도 wrap-aware sequence 차이로 확인한다. 각각의 대기 witness와
+DIV 겹침 witness가 실제로 있어야 하며 누락 대조군 다섯 개를 거부한다.
+계수는 lane-cycle 누적이고 CoreMark의 원인별 stall 비율이나 개별 사례 전체의
+대기 보장을 뜻하지 않는다. 보고서는 `out/rva23/delayed_store_order/report.json`이다.
+
+현재 실행에서 unknown-address 14,172·partial-overlap 8,175·store-data 6,488
+lane-cycle을 관찰했다. unknown-address 대기와 DIV busy의 겹침 13,436건 모두
+더 오래된 unresolved SQ entry가 존재했다. 후보 lane별 누적이므로 동시 두
+lane을 하나의 elapsed cycle로 합치거나 CoreMark 성능 수치로 사용하지 않는다.
+
+이 검사는 메모리 disambiguation·partial overlap의 현재 유한 실행 근거다.
+MMIO·PMA/PMP/주소 번역·misaligned·다중 master·벡터·fault/flush 조합 및
+자연 정렬 transfer의 외부 관찰 원자성은 기존 관련 검사와 별도 검토가 필요하다.
+`base.2`는 계속 열린 상태다.
+
 ## 재검사와 전체 목표
 
 - `python scripts/audit_rv64i_compute_control.py`
@@ -158,6 +200,7 @@ instret/보존 값의 잘못된 trace 대조군 여섯 개를 검사기가 거�
 - `python scripts/run_rv64m_encoding_edges.py --check`
 - `python scripts/run_rv64_muldiv_ownership.py --check`
 - `python scripts/run_base_trap_contract.py --check`
+- `python scripts/run_delayed_store_order.py --check`
 - `python scripts/run_rv64i_hint_contract.py --check`
 - `python scripts/audit_rva23_requirements.py --with-integration-evidence --linux-variant supm --require-linux-supm`
 

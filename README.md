@@ -91,6 +91,7 @@ auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보
 | FENCE.I 코드 동기화 | 148개 자기수정 코드 사례·74개 ignored-field 조합, 같은 ELF의 Sail/RTL 이벤트 2,968건 일치. [검토 결론](docs/RVA23_FENCEI_CLAUSE_REVIEW.md)에 store drain·refill kill·frontend epoch 연결 설명 |
 | M 인코딩·소유권 | x0 목적지 65건·예약 형식 예외 36건, 같은 ELF의 Sail/RTL 이벤트 3,910건 일치. XLEN64 component의 active/held flush 20개·재사용 12회 확인. [I/M 검토](docs/RVA23_INTEGER_CLAUSE_REVIEW.md) |
 | 기본 동기 예외 | 다섯 모드·네 위임 설정의 100개 사례에서 ECALL/EBREAK/C.EBREAK/illegal16·32, EPC/tval·복귀·instret 비증가를 확인. 같은 ELF의 Sail/RTL 이벤트 8,083건 일치. [검토 결론](docs/RVA23_INTEGER_CLAUSE_REVIEW.md) |
+| 지연 store·후속 load | DIV로 store 주소/데이터를 늦춘 448개 사례·896개 값 검사. 같은 ELF의 Sail/RTL 이벤트 21,290건 일치, 실제 LSQ 대기와 더 오래된 SQ/DIV 겹침 관찰. [범위와 한계](docs/RVA23_INTEGER_CLAUSE_REVIEW.md); 전체 RVWMO 검토는 진행 중 |
 | 스칼라/벡터 FP 상태 | SEW32/64·다섯 frm·mask/vstart/vl 선택의 교차 실행 160개. 공유 flags와 destination words 640개 확인, Sail/RTL 이벤트 13,507건 일치. [V 상태·실행 검토](docs/RVA23_VECTOR_CLAUSE_REVIEW.md) |
 | RV64 압축 명령 | 기존 `rvc` ELF의 Sail/RTL 이벤트 305건 일치. 산술·제어 24형식의 retire 122건과 정수 메모리 8형식을 독립 계산하고 결과·PC·링크·메모리 변조 대조군 33개 거부 |
 | RV64 압축 산술 범위 | 18형식의 probe 7,226개, 배치별 동일 ELF의 Sail/RTL 이벤트 62,776건 일치. 즉시값·시프트의 유효 범위와 MV/ADD의 비영 레지스터 쌍 전체, 선택 데이터 패턴 및 대조군 60개 포함 |
