@@ -348,5 +348,20 @@
       "scripts/build_act4_dut.py": "533b8ee96f283fb80c2fd3ffdb51ffffe9f91d4c8458a0a3ee6a9a9bc4548174"
     }
   },
-  "performance_evidence_sha256": "a1043e90211071cc296344f7862f84ff2ae7b16039a894d6cbcebbb933de4f86"
+  "performance_evidence_sha256": "a1043e90211071cc296344f7862f84ff2ae7b16039a894d6cbcebbb933de4f86",
+  "native_functional_passed": true,
+  "native_run": {
+    "exit_code": 0,
+    "seconds": 7.035,
+    "log": "out/rva23/hypervisor_integration/simulation.log",
+    "log_sha256": "476b4780c8c60985fbb5d6d1e769be43235117f6da3e9a038b07101e702f99b8",
+    "expected_failure": null,
+    "passed": true,
+    "host_timeout_seconds": 240
+  },
+  "native_source_sha256": "33277815c1075a177d6bad030d2011897655360063eaf7486ae3a4761844031c",
+  "native_runtime_inputs": {
+    "tb/fixtures/bootrom/bootrom_host_jump64.hex": "e6160f654d53079262b3c2e74e9a477820ec3b5041326396296291fe394bf673",
+    "sw/benchmarks/coremark/rv32_tim.ld": "95a34fd6345b7cf757a5ba7219977a40a3f51fd136095e1b2d852dcff0b63dff"
+  }
 }

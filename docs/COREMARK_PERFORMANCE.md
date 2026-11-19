@@ -32,6 +32,19 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 [구조·진단](VECTOR_EXTENSION_BATCH.md) 및 [snapshot](evidence/vector_extension_batch.json).
 이후의 word-load coalescing 후보 측정과 구분한다.
 
+## 통합된 load grouping과 host Bare 경로
+
+`672f061`의 10회는 9,049,013 cycles였고, `2d123d4`의 Bare fast path까지
+적용한 같은 ELF는 **8,784,522 cycles / IPC 0.314427 / CoreMark/MHz 추정
+1.138366**이다. 명령 수 2,762,088과 CRC가 같다. Bare 단계만 **2.9229%**,
+`009b013` 이후 두 단계를 합하면 **2.9769% cycle 감소**다.
+
+성능 개선 착수 전 `9332f6c` 대비 **23.78%**, 최초 `802e2e1` 대비
+**22.92% 감소**했다. O2/O3 scalar 행은 과거 참조값이며 다시 측정했다고
+표시하지 않는다. 실제 합성 주파수나 공식 인증 점수도 아니다.
+[구현과 완료된 비교](VECTOR_BARE_FASTPATH.md) 및
+[소스·실행·독립 비교 근거](evidence/vector_bare_fastpath.json).
+
 ## 측정 조건
 
 - upstream commit: `1f483d5b8316753a742cbf5590caf5bd0a4e4777`, 알고리즘 소스 변경 없음.
