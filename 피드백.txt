@@ -1,0 +1,230 @@
+=====================================================================================
+ RV23 코어 CoreMark 사이클 분석  (RV64, GCC 15.2, 2회/10회 반복)          2026-11-19
+=====================================================================================
+
+[한 줄 결론]
+  현재 IPC 0.61 (문서와 동일). 사이클의 64%가 "디코드에 들어올 명령이 없는" 상태이고,
+  그 원인은 백엔드가 아니라 명령 공급 경로(fetch)다.
+    - taken 분기 뒤 fetch 재시작 버블 .......... 사이클의 약 40%
+    - 순차 fetch 간극(블록당 4 cycle) ........... 사이클의 약 22%
+    - 분기 예측 실패 flush 복구 ................. 사이클의 약 1.7%
+  fetch 를 고치면 다음 병목은 D-cache 쓰기 경로(쓰기 1건이 엔진+포트를 7 cycle 점유)로 옮겨간다.
+  사본 RTL 에서 7단계 변경으로 같은 ELF 의 IPC 를 0.61 -> 1.21 로 올렸다 (CRC 일치, 쓰기 완료=버스 응답 규칙 유지).
+    문서 주측정(10회) O2: 4,896,919 -> 2,446,328 cycles, IPC 0.612 -> 1.225 (CoreMark/MHz 추정 2.04 -> 4.09)
+    O3 10회 1.221, 2회(같은 ELF) 1.213, 코드 배치별 1.19~1.22 (정확성 수정 2건 반영 후 최종값, 5b 장 끝 참고)
+    Linux 6.12 부팅 재실행에서 이 사본의 결함 2건이 발견되어 수정했다 (PMP 주소, SRAM bridge 읽기 기아). 5b 장 "부팅 회귀에서 발견한 결함" 참고.
+    남은 작업: atomic/fence.i/RV32 회귀 전체, 타이밍(Fmax) 평가 (5b 장, 9장 참고)
+
+-------------------------------------------------------------------------------------
+1. 무엇을 어떻게 돌렸나
+-------------------------------------------------------------------------------------
+  - 저장소: origin/main 최신 802e2e1 로 fast-forward (39 커밋, rtl/ 변경 없음, 검증/문서만).
+  - 모델: 문서가 쓰는 RV64 H/V 모델(tb/rv32_program_tb.sv, -GXLEN=64 -GHAS_H=1 -GHAS_V=1 ...)을
+          WSL 에서 Verilator 5.050 으로 직접 빌드. 저장소 파일은 수정하지 않음.
+  - 소프트웨어: sw/benchmarks/coremark/port64 + upstream, 문서와 같은 플래그
+          (-march=rv64gcv_zba_zbb_zbs_zicond -mabi=lp64d -O2/-O3 -fno-tree-vectorize), 타이머는 mcycle/minstret.
+  - 계측: TB 사본 끝에 "읽기만 하는" 모니터를 붙여 매 사이클 retire / dispatch / 프론트엔드 /
+          LSU 상태를 RTL 신호로 분류. 모니터 유무로 사이클 수가 같음을 확인 (수동 모니터).
+  - 재현성 검증: 아래 3개가 문서 게시값과 2 cycle 이내로 일치 (CRC 모두 일치).
+        O2 10회  4,896,921 (문서 4,896,919)     O3 10회  4,902,694 (문서 4,902,692)
+        O3  2회    985,202 (문서   985,200)
+
+-------------------------------------------------------------------------------------
+2. 기준선 측정값 (CSR 측정 구간 = 문서와 같은 방식)
+-------------------------------------------------------------------------------------
+  배치 A: 문서와 같은 코드 배치 (시작 코드 뒤 2B 패딩으로 맞춤)
+        O2  2회    983,909 cycles   IPC 0.6094        O2 10회  4,896,921   IPC 0.6122
+        O3  2회    985,202          IPC 0.6164        O3 10회  4,902,694   IPC 0.6193
+  배치 B: WSL 에서 그냥 빌드한 ELF (문서 ELF 와 해시/코드 위치가 다름)
+        O2  2회  1,031,872 cycles   IPC 0.5811        O2 10회  5,135,457   IPC 0.5837
+        O3  2회  1,020,245          IPC 0.5953        O3 10회  5,076,449   IPC 0.5981
+  -> 같은 소스, 같은 명령 수(599,574)인데 코드 위치만 달라서 최대 4.9% 차이.
+
+  [코드 배치 민감도] 시작 코드 뒤에 N바이트 패딩 (O2, 2회)
+        N= 0: 1,031,872 (0.581)   N= 2: 983,909 (0.609)   N= 4: 975,612 (0.615)   N= 6: 957,479 (0.626)
+        N= 8:   945,745 (0.634)   N=10: 908,794 (0.660)   N=12: 901,715 (0.665)   N=14: 963,374 (0.622)
+        -> 14% 흔들림. fetch 블록(16B) 경계와 분기 타깃 위치에 성능이 좌우됨 = 프론트엔드가 병목이라는 또 다른 증거.
+        -> CoreMark 점수 비교는 반드시 "같은 ELF" 로 해야 한다 (AGENTS.md 의 고정 ELF 원칙과 일치).
+
+-------------------------------------------------------------------------------------
+3. 사이클 분해 (배치 A, O2, 2회, 측정 구간 983,937 cycles, 599,575 명령)
+-------------------------------------------------------------------------------------
+  [디코드/디스패치 관점: 각 사이클이 정확히 한 항목]
+        디스패치 발사 (유효) ..................... 35.7%
+        디코드에 명령 없음 - taken 분기 뒤 refetch  40.4%   (75,436 구간, 평균 5.2 cycle)
+        디코드에 명령 없음 - 순차 fetch 간극 ...... 22.0%   (101,834 구간, 평균 2.2 cycle)
+        디코드에 명령 없음 - 예측 실패 flush 복구 .  1.7%   (평균 6.8 cycle)
+        백엔드 자원 부족으로 디스패치 막힘 ......   0.2%   (ROB full / IQ full / LSQ full / 물리레지스터 / 체크포인트 모두 합쳐서)
+  [retire 관점]
+        2개 retire 17.3% | 1개 retire 26.3% | 0개 retire 56.4%
+        0개 retire 의 대부분 = "ROB head 명령이 아직 완료 안 됨" 50.8% (head 가 ALU 33.4%, load 13.1%, branch 3.8%)
+        -> 파이프가 텅 비어서(ROB 평균 4.4) 방금 들어온 명령의 전체 지연이 그대로 드러나는 증상.
+  [프론트엔드 사실]
+        fetch 요청 244,343회. 한 번에 1개만 outstanding. 순차 요청 간격 = 100% 정확히 4 cycle (측정).
+        FTB(분기 타깃 버퍼) 적중 0회 (꺼져 있음). predicted-taken 분기 76,778회 = 7.8개 명령마다 1번.
+        실제 taken 제어 이동은 8.1개 명령마다 1번 (조건분기 106,371개 중 55% taken, 점프 15,417개 전부 taken).
+        flush(예측 실패) 6,159회 (명령 97개당 1번), flush 후 첫 디스패치까지 평균 7.05 cycle.
+
+-------------------------------------------------------------------------------------
+4. 원인과 RTL 위치
+-------------------------------------------------------------------------------------
+  (1) fetch 한 블록이 4 cycle 이고 겹치지 않는다
+        rtl/soc/rv23_if_translate.sv:42   FSM  IDLE -> TRANSLATE -> ISSUE -> WAIT_DATA -> IDLE
+        rtl/soc/rv23_if_translate.sv:50   req_ready_o 는 IDLE 일 때만 -> 응답이 온 뒤 다음 사이클에야 새 요청 수락
+        => 16B 를 4 cycle 에 1번. 문서의 진단 "독립 ADDI 1.28 cycle/op" 과 같은 원인.
+        이 FSM 은 HAS_MMU=1 일 때만 삽입된다 (rtl/rv_ooo_core.sv:343-345). RV32 빌드(HAS_MMU=0)는 FSM 없이 adapter 로 직결.
+  (2) taken 분기마다 이 경로를 처음부터 다시 통과
+        rtl/frontend/rv_frontend.sv:181   request_slot_available = !outstanding_q || 응답 완료
+        분기가 나가기 직전에 순차 다음 블록 요청이 이미 outstanding -> 타깃 요청은 그 응답이 돌아와야 발사
+        -> 4 cycle fetch 경로를 다시 통과 -> 디코드 공백 5~6 cycle.
+        (실제 사례: 사이클 200069 에 predicted-taken, 200072 에 타깃 요청 발사, 200077 에 첫 명령 디코드)
+  (3) MMU 빌드에서는 FTB 가 꺼져 있다
+        rtl/rv_ooo_core.sv:279   .ENABLE_TARGET_BUFFER(!HAS_MMU)   (최초 import 때부터, 설명 주석 없음)
+        RV64 모델은 HAS_MMU=1 이라 FTB 적중 0회. RV32 기준선(HAS_MMU=0)은 FTB 가 켜져 있고 fetch 변환 FSM 도 없다 (사실).
+        RV32 캐시 구조 IPC 1.12 와 RV64 0.61 의 차이에서 이 두 가지가 차지하는 비중은 직접 분리 측정하지 않았다 (추정).
+        단, FTB 는 가상 타깃을 물리주소처럼 조회하므로(rv_frontend.sv 의 prediction_lookup_paddr) 그냥 켜면 안 되고
+        MMU 안전한 형태(VA 태그, 권한/ASID 문맥 무효화)로 재설계해야 한다.
+
+-------------------------------------------------------------------------------------
+5. What-if 실험 (사본 RTL, 저장소 미수정; 모두 CRC 일치, 같은 599,574 명령)
+-------------------------------------------------------------------------------------
+                                              배치 A cycles   IPC      배치 B cycles   IPC
+   ① 현재 RTL                                    983,909     0.6094      1,031,872    0.5811
+   ② FTB 강제 켬 (rv_ooo_core.sv:279)            865,324     0.6929        852,488    0.7033
+   ③ fetch 경로 단축 (if_translate 사본)         677,346     0.8852        676,596    0.8862
+        - bare/M-mode 에서 TRANSLATE 단계 생략, 응답 사이클에 다음 요청 수락 (요청 간격 4 -> 2 cycle, 측정)
+   ④ ② + ③                                       642,122     0.9337        644,930    0.9296
+   ④ + 분기 체크포인트 8 -> 16                    641,986     0.9339        644,525    0.9303   (효과 없음)
+  해석
+   - fetch 경로 단축(③)이 가장 큰 단일 효과 (+45%). FTB(②) 단독은 +14%.
+   - ④ 에서 taken 분기 뒤 공백은 평균 2.5 cycle 로 줄지만 여전히 사이클의 17.9%, 예측 실패 flush 복구 3.8%.
+   - ④ 에서는 "분기 체크포인트 때문에 디스패치 막힘"이 17.8% 로 보이지만, 16개로 늘려도 총 cycles 가 같다.
+     -> 원인이 아니라 대기열이 뒤로 밀리는 지점. (막힘이 ROB/LSQ 쪽으로 옮겨갈 뿐)
+   - ④ 의 IQ 12개 이상 구간에서 issue 0 이 50%: 실행 가능한 명령이 없음 (의존성, load-use).
+     LSQ "older 주소 미확정" 대기 6.9%, retire 슬롯1 메모리 명령 제한 7.9% 도 2차 후보.
+
+
+-------------------------------------------------------------------------------------
+5b. 후속 실험: IPC 사다리 (배치 A=pad_2, O2 2회, 전부 CRC 일치, 599,574 명령, 저장소 미수정)
+-------------------------------------------------------------------------------------
+   그림: RV23_coremark_ipc_ladder.png        사본/패치: out/coremark_wsl_analysis/whatif_v2/ (real_rtl_changes.patch)
+                                                                                  cycles      IPC
+   ① 현재 RTL                                                                      983,909    0.6094
+   ② fetch 변환 FSM 단축 + FTB(16) 켬  (5장의 ④)                                   642,122    0.9337
+   ③ fetch 완전 pass-through(bare 에서 변환 FSM 우회) + FTB 64                      578,377    1.0366
+   ④ + 분기 복구 때 FTB 유지, 분기 복구 redirect 의 translate halt 제거              565,360    1.0605
+   ⑤ + D-cache posted write queue (4칸, 쓰기 완료는 버스 응답 후 SB 에 전달)        518,869    1.1555
+   ⑥ + bridge: 쓰기 AW/W 즉시 발행(fall-through), B 응답 bypass                    508,462    1.1792
+   ⑦ + FTB 적중 redirect 때 다음 순차 블록 요청을 같은 cycle 에 발행               494,568    1.2123
+   ⑧ ⑦ + 정확성 수정 2건 (fetch PMP 주소 갱신, SRAM bridge 읽기/쓰기 공정 중재; 아래 "부팅 회귀에서 발견한 결함")  494,122    1.2134
+   10회 반복(문서 주측정, pad2 ELF): ⑧ 최종  O2 2,446,328 cycles IPC 1.2254 / O3 2,487,103 cycles IPC 1.2209 (문서 4,896,919 / 4,902,692)
+        (수정 전 ⑦: O2 2,445,955 / 1.2256, O3 2,487,571 / 1.2206 -> 수정이 성능에 주는 영향 0.02% 이내)
+   코드 배치별 ⑦:  pad_2 1.212 / pad_4 1.206 / pad_6 1.191 / pad_10 1.203 / pad_12 1.207 / pad_14 1.218 / 무패딩 1.219 / O3 2회 1.198
+   코드 배치별 ⑧(최종):  pad_2 1.2134 / pad_6 1.1906 / pad_14 1.2169
+   (기준선은 배치에 따라 0.58~0.67 로 흔들렸지만 개선 후 범위는 훨씬 좁다)
+
+   변경 내용과 근거 (RTL 위치)
+   (a) FTB 가 분기 예측 실패 복구마다 통째로 지워진다: rv_frontend.sv 의 FTB invalidate_i(redirect_valid_i).
+       79 명령마다 비워져 FTB 크기를 키워도 효과가 없었다(16/64/128 동일). trap/fence.i/CSR 변경(flush_all)에서만 지우면 적중 77% -> 99%.
+   (b) 분기 예측 실패 redirect 가 translate 유닛을 halt 시켜(rv_ooo_core.sv .halt_i(... || redirect_valid ...)) 복구 요청이 1 cycle 늦게 수락된다.
+       권한/satp/PMP 가 바뀌지 않는 분기 복구에는 불필요 (제거 시 -1.2% cycles).
+   (c) D-cache 쓰기: 쓰기 1건이 엔진+포트를 7 cycle 점유(cache 엔진 -> bridge(단일 outstanding) -> AXI AW/W -> SRAM bridge -> SRAM -> B).
+       SB drain 이 로드보다 우선이라 앞선 store 가 포트를 막아 list_reverse 루프(ld/sd)가 반복당 8 cycle(이상 4) 걸렸다.
+       posted write queue(port 0, 4칸): 쓰기를 즉시 받아 포트를 풀고, 엔진이 순서대로 버스에 내보낸다. 버스 응답이 와야 해당 SB 항목에 완료를 돌려주므로
+       "write-through 완료는 시스템 버스 응답 대기" 규칙은 유지된다. 같은 word 로드는 큐에 남아 있는 동안 막고, MMIO/uncached/port 1 쓰기는 큐가 빌 때까지 기다려 순서를 지킨다.
+       오류 응답 시 해당 line 무효화는 기존 동작을 유지했다.
+   (d) bridge(rv_local_to_axi_bridge): 쓰기 요청 수락 cycle 에 AW/W 를 바로 올리고, B 응답을 레지스터 없이 CPU 로 전달 -> 쓰기 1건 7 -> 5 cycle.
+   (e) FTB 적중 시 다음 순차 블록 요청이 1 cycle 늦게 나가 큐가 비던 문제: 적중 cycle 에 바로 요청 (rv_frontend 의 "적중 시 메모리 요청 억제" 가정을 바꿈).
+   참고: 쓰기를 SRAM 에 직접 반영하는 이상화 모델(상한)은 1.182 였다. posted write queue 로 그 상한을 실제 RTL 로 넘어섰다 (⑦ 의 다른 개선 포함).
+
+   효과 없던 시도 (같은 베이스 대비 cycles 변화 0~1% 이내, 또는 악화)
+       분기 체크포인트 8->16 (0.0%), retire 슬롯1 load 커밋 허용 (0.0~0.1%), 로드/스토어 포트 우선순위 교대 (0.0%),
+       cache 안 pending write 1칸 (-0.3%), 분기 태그/INT issue/ROB completion 파이프 단 제거 (-0.7~-5.9% 악화),
+       응답 cycle 에 다음 쓰기를 바로 발행(cache+bridge chain): AXI mux 가 write_busy 동안 AW 를 막아 이득 없음 (AXI 프로토콜 assertion 위반도 확인)
+   현재 남은 손실 (⑥ 기준 프로파일): 디코드 빈 사이클 11%, 분기 체크포인트로 dispatch 막힘 13.6% (증상: 늘려도 총 cycles 불변 — ROB/분기 해소 사슬 한계),
+       load-use 사슬(core_bench_list IPC 0.78), 분기 예측 실패 7.5K 회(flush->첫 dispatch 3.5 cycle).
+
+   회귀 검증 (사본 RTL, WSL Verilator)
+       rv23_memory_tb (저장소 TB, 쓰기 큐 캐시 + 빠른 bridge): PASS checks=97 (기준선과 동일)
+       rv23_cache_fault_tb: 데이터/오류/snoop/용량 검사 통과 (4,646 checks). 기준선 4,648 중 2개는 "쓰기 요청 수락 cycle 에 bus 요청이 나간다"는
+         타이밍 계약이라 쓰기 큐 설계에서 의도적으로 달라 제외했고, "쓰기 완료를 같은 cycle 에 전달" 검사는 몇 cycle 대기 허용으로 완화했다 (TB 사본 사용).
+       rv23_instruction_fetch_atomic_tb (저장소 TB, 전체 코어 + 사본 RTL): PASS offsets=16 (기준선도 PASS)
+       rv23_cbo_head_tb (빠른 bridge): PASS checks=35
+       if_translate_pa_tb (새로 작성, S-mode bare fetch 의 physical_address_o 검사): 원본 4000/4000 PASS, 수정 전 pass-through 4000/4000 불일치, 수정 후 PASS
+       tohost 반복 쓰기 스핀 ELF (OpenSBI htif_system_reset 재현): 기준선 host-finish code=0, 수정 전 사본 AXI assertion 실패, 수정 후 host-finish code=0
+       CoreMark 2/10회 전 구성 CRC 일치.
+
+   부팅 회귀에서 발견한 결함 (Linux 6.12 + OpenSBI 재실행으로 발견, 둘 다 사본에서 수정)
+       1) fetch pass-through 가 physical_address_o(pa_q) 를 갱신하지 않았다. rv_ooo_core.sv 는 이 값을 fetch PMP 검사 주소로 쓰므로 S-mode 첫 fetch(0x80200000)가
+          stale 주소(0)의 PMP region(S 에 X 없음)으로 검사되어 instruction access fault -> OpenSBI 가 sbi_trap_redirect 를 무한 반복(약 5M cycle 부터 정지).
+          M-mode 베어메탈 CoreMark 는 PMP 를 적용하지 않아 IPC 측정에서는 드러나지 않았다. 수정: bare pass-through 요청 수락 때 pa_q 에 요청 주소 기록. 사이클 변화 없음.
+          수정 후 S-mode 진입이 3.69M cycle 에 일어나고(기준선 5.57M) trap 순서(0x80201048 page fault, ecall)가 기준선과 같다.
+       2) 쓰기 큐 + bridge fall-through 로 core 의 store 가 SRAM bridge 에 빈틈 없이 도착하면, rv_axi_to_local_bridge 의 "쓰기 우선(ar_ready = IDLE && !aw_valid)" 때문에
+          읽기(host 의 tohost 읽기, I-cache refill)가 굶는다. OpenSBI 의 htif_system_reset(tohost 를 무한 반복 쓰기)에서 부팅은 끝났지만 host 가 종료를 인식하지 못했고,
+          스핀 ELF 재현에서는 I-cache AR 이 4096 cycle 정지하여 bridge 진행 timeout 이 AR 을 철회, rv_axi4_if 안정성 assertion 이 실패했다.
+          수정: SRAM bridge 가 쓰기/읽기를 번갈아 허용(prefer_read_q). 기준선 쓰기 경로는 중간에 빈틈이 있어 문제가 드러나지 않았던 잠재 문제다.
+       (참고) 부팅 첫 시도가 멈춘 것처럼 보였던 것은 RTL 이 아니라 모델을 tohost/fromhost 주소 인자 없이 빌드해 host 가 기본 주소(0x80020000)를 폴링한 내 실행 오류였다.
+       Linux 6.12 부팅 (수정 ① 만 반영한 사본): LINUX_RTL_U_RETIRE pc=0x100b0, "RV23 LINUX INIT PASS", "reboot: Power down" 까지 완주 (약 42.7M cycle, 기준선 약 51M).
+          이 시점에 결함 ② 때문에 시뮬레이션이 종료되지 않았다. 두 수정을 모두 반영한 모델은 [host-finish code=0] 까지 완주했다 (9장 상단).
+
+-------------------------------------------------------------------------------------
+6. 이론 상한 (RVC 해석 포함 실제 명령 트레이스, 레지스터 의존성만, 메모리 의존/실제 예측 오차 제외)
+-------------------------------------------------------------------------------------
+   2-wide, ROB 48, IQ 56, 이슈 포트 규칙 적용, 완벽한 fetch/예측:
+        load-use 3 / 4 / 5 cycle  ->  IPC 1.84 / 1.75 / 1.65     (retire 슬롯1 메모리 제한 반영 시 1.64)
+   위 + 실제 예측 실패 5,967회 x 페널티:
+        7 cycle -> 1.47     12 cycle -> 1.37     20 cycle -> 1.24
+   => 목표 1.2~1.3 은 백엔드 구조 한계가 아니라 프론트엔드/예측 실패 손실을 얼마나 줄이느냐의 문제.
+      ④(0.93)와 상한(~1.4) 사이 차이가 다음 단계의 몫.
+
+-------------------------------------------------------------------------------------
+7. 병목이 아닌 것 (측정으로 기각)
+-------------------------------------------------------------------------------------
+   - store 드레인이 load 를 막음: load 후보가 막힌 사이클 0.02% (167 / 983,937)
+   - 스토어 버퍼 full 0.05%,  ROB / IQ / LQ / SQ / 물리레지스터 부족 합쳐 0.3% 미만 (기준선)
+   - D-cache load 메모리 지연: 79% 가 1 cycle, 12.5% 가 2 cycle, 56+ cycle 은 49건뿐
+   - 분기 체크포인트 개수 (위 ④ 실험)
+
+-------------------------------------------------------------------------------------
+8. 다음 단계 제안 (우선순위)
+-------------------------------------------------------------------------------------
+   P1  fetch 경로 파이프라인화: 매 사이클 요청 수락, 변환/캐시 접근/응답 겹치기, 다중 outstanding,
+       redirect 시 wrong-path 요청 취소 (현재 순차 4 cycle -> 1~2 cycle)
+   P2  MMU 안전한 타깃 버퍼(L0 BTB / FTB, VA 태그) 또는 decoupled 분기 예측기
+   P3  P1,P2 이후 재측정: load-use 지연, LSQ 주소 미확정 대기, retire 슬롯1 메모리 제한, 예측 정확도
+   * 개선 후 효과는 같은 방법(모니터)으로 재측정할 수 있다.
+
+-------------------------------------------------------------------------------------
+9. 한계와 주의
+-------------------------------------------------------------------------------------
+   - 모든 변경은 사본 RTL(ifdef EXP_*)이며 저장소는 수정/커밋하지 않았다. 설계 승인이 아니라 "이 구성이면 IPC 1.2 가 나온다"는 시뮬레이션 근거다.
+   - [부팅 회귀 최종 결과] 두 수정을 모두 반영한 모델(/root/rva23_demo/rtl_wqp_fair)이 Linux 6.12 부팅을 끝까지 완주했다 (2026-11-23).
+     LINUX_RTL_S_ENTRY pc=0x80200000 -> LINUX_RTL_U_RETIRE pc=0x100b0 -> "RV23 LINUX INIT PASS" -> "reboot: Power down" -> [host-finish code=0], EXIT 0.
+     PASS rv_act4_program_tb commits=23,911,168 (기준선 23,559,639; HTIF 폴링/타이머 대기 명령 수가 타이밍에 따라 달라 같을 필요는 없음).
+     종료 cycle 약 43.3M (기준선 약 51.9M, 약 16% 감소; 시뮬 종료 시각 442ms vs 521ms). 로그: whatif_v2/fair_boot.log
+     이 부팅은 M/S/U 전환, Sv39 MMU, PMP, 타이머 인터럽트, HTIF 콘솔, 사본의 FTB/pass-through/쓰기 큐/bridge 변경이 함께 실행된 것에 대한 통과이며,
+     RV32 회귀, fence.i/atomic 전용 테스트, Sail 비교, 타이밍(Fmax)을 대신하지 않는다.
+   - 성능 측정은 bare M-mode 베어메탈 CoreMark(O2/O3 스칼라) 뿐이다. pass-through fetch 는 bare 주소(M-mode 또는 satp bare)에서만 켜지고, MMU 켠 상태에서는 기존 변환 FSM 을 쓴다.
+     FTB 는 MMU 빌드에서도 켜 두었다(가상 주소 기준 조회, flush_all 때만 무효화). 이 가정은 Linux 부팅(S-mode, MMU)의 실행 결과로만 확인했다.
+   - 안 돌린 것: RV32 기준선 회귀(run_all_rv32_checks/audit_rv32_release), fence.i·atomic·MMU·PMP 전용 방향성 테스트, Sail 비교, 쓰기 큐/FTB 경합 전용 테스트.
+     pass-through 사본은 기존 if_translate 의 프로토콜 assertion 을 꺼 두었다. 쓰기 큐/bridge/SRAM bridge 변경은 RV32 빌드(HAS_MMU=0)가 같은 모듈을 쓰는 한 RV32 에도 영향을 주므로 적용 시 RV32 회귀가 필요하다.
+   - 부팅 회귀에서 결함이 2건 나왔듯이, 사본의 정확성은 M-mode CoreMark 만으로 확인되지 않는다. 위 결함 외에 S/U-mode, 인터럽트, atomic 경합에서 드러날 문제가 더 있을 수 있다.
+   - 쓰기 큐는 port 0 만 쓴다(port 1 은 PTW 와 공유하는 단일 outstanding 중재기를 통과). 큐 4칸, 같은 word 로드 차단은 보수적이다.
+   - 타이밍(Fmax) 영향 미평가: pass-through fetch, bridge fall-through/B bypass, FTB-hit 요청 발행은 조합 경로를 늘린다. 합성/STA 는 하지 않았다.
+   - 이 결과로 RVA23 준수나 타이밍/합성 sign-off 를 주장하지 않는다.
+   - 이론 상한(6장)은 레지스터 의존성만 반영해 낙관적이다. 실제 1.21 은 그 상한(1.37~1.47)의 약 85% 이다.
+   - 사이클 분해의 구간 분류(taken / 순차 / flush)는 직전 3 cycle 의 신호로 정한 규칙이며, 겹치는 원인은 한 항목에만 배정된다.
+   - 벡터(RVV) 빌드는 이번 분석 대상이 아니다.
+
+-------------------------------------------------------------------------------------
+10. 재현 파일  (out/coremark_wsl_analysis/)
+-------------------------------------------------------------------------------------
+   build_cm_model.py / make_prof_tb.py   WSL Verilator 모델 + 모니터 생성 (저장소 미수정)
+   build_elf.sh / build_pad.sh           CoreMark ELF 빌드 (문서와 같은 플래그)
+   analyze.py / frontend_runs.py / breakdown.py / ideal_ipc2.py   분석 스크립트
+   rv_ooo_core_exp.sv / rv23_if_translate_exp.sv / rv_ooo_pkg_exp.sv   what-if 사본 (ifdef EXP_*)
+   whatif_v2/  후속 사본(rv_frontend_exp, rv23_if_translate_pt, rv23_cache_*, rv_sram_1r1w_ideal, lsu_cluster_exp), 빌드 스크립트, 모니터 생성기(make_prof_tb4/5),
+               real_rtl_changes.patch (규칙 준수 쪽 변경의 diff, 저장소에는 적용하지 않음), RV23_coremark_ipc_ladder.png
+               rv_axi_to_local_bridge_fair.sv (SRAM bridge 공정 중재), if_translate_pa_tb.sv (PMP 주소 검사 TB), spin/ (tohost 스핀 ELF 소스), run_tb.sh,
+               build_model_wqp_fair.py / run_tr.sh (Linux 부팅 모델 빌드/실행; tohost fromhost 인자 80042a68 80042a60 필수), build_wqpfair.sh (CoreMark 최종 모델)
+   breakdown.json, coremark_cycle_analysis.png
