@@ -36,10 +36,10 @@ module rv23_rv64_ooo_tb;
     if ($bits(core.u_dut.d_axi.w_data)!=64 || $bits(core.u_dut.i_axi.r_data)!=64 ||
         $bits(core.u_dut.u_system.sram_axi.r_data)!=64 ||
         core.u_dut.u_system.u_sram.SIZE_KB!=1024 ||
-        $bits(core.u_dut.u_icache.data_bank0)!=131072 ||
-        $bits(core.u_dut.u_icache.data_bank1)!=131072 ||
-        $bits(core.u_dut.u_dcache.data_bank0)!=131072 ||
-        $bits(core.u_dut.u_dcache.data_bank1)!=131072)
+        $bits(core.u_dut.u_cached_core.u_icache.data_bank0)!=131072 ||
+        $bits(core.u_dut.u_cached_core.u_icache.data_bank1)!=131072 ||
+        $bits(core.u_dut.u_cached_core.u_dcache.data_bank0)!=131072 ||
+        $bits(core.u_dut.u_cached_core.u_dcache.data_bank1)!=131072)
       $fatal(1,"Unexpected SRAM, AXI or L1 geometry");
     next_retire=div_pc;
     fd=$fopen(filename,"w");
@@ -54,58 +54,58 @@ module rv23_rv64_ooo_tb;
       sram_reads++;
     end
     if (instruction_pair_pending) begin
-      if (!(&core.u_dut.u_icache.response_valid_q)) $fatal(1,"Missing next-cycle I-cache bank pair");
+      if (!(&core.u_dut.u_cached_core.u_icache.response_valid_q)) $fatal(1,"Missing next-cycle I-cache bank pair");
       instruction_pairs++;
     end
-    instruction_pair_pending = (&core.u_dut.u_icache.hit_accept) &&
-      (&core.u_dut.u_icache.bank_read_en) &&
-      (core.u_dut.u_icache.req_addr[0][31:4] == core.u_dut.u_icache.req_addr[1][31:4]);
+    instruction_pair_pending = (&core.u_dut.u_cached_core.u_icache.hit_accept) &&
+      (&core.u_dut.u_cached_core.u_icache.bank_read_en) &&
+      (core.u_dut.u_cached_core.u_icache.req_addr[0][31:4] == core.u_dut.u_cached_core.u_icache.req_addr[1][31:4]);
     if (data_pair_pending) begin
-      if (!(&core.u_dut.u_dcache.response_valid_q)) $fatal(1,"Missing next-cycle D-cache bank pair");
+      if (!(&core.u_dut.u_cached_core.u_dcache.response_valid_q)) $fatal(1,"Missing next-cycle D-cache bank pair");
       data_pairs++;
       $display("RV64 D BANK PAIR accept=%0d response=%0d addr=%08h/%08h data=%016h/%016h",
         cycles-1, cycles, data_pair_addresses[0], data_pair_addresses[1],
-        core.u_dut.u_dcache.response_data_q[0], core.u_dut.u_dcache.response_data_q[1]);
+        core.u_dut.u_cached_core.u_dcache.response_data_q[0], core.u_dut.u_cached_core.u_dcache.response_data_q[1]);
     end
-    data_pair_pending = (&core.u_dut.u_dcache.hit_accept) && (&core.u_dut.u_dcache.bank_read_en) &&
-      core.u_dut.u_dcache.req_addr[0][31:4] == BANK_BASE[31:4] &&
-      core.u_dut.u_dcache.req_addr[1][31:4] == BANK_BASE[31:4];
-    if (data_pair_pending) data_pair_addresses=core.u_dut.u_dcache.req_addr;
-    if (!core.u_dut.u_core.u_backend.flush_valid) begin
-      for (int c=0;c<2;c++) if (core.u_dut.u_core.u_backend.cand_grant[c] &&
-          in_region(core.u_dut.u_core.u_backend.cand_pc[c])) begin
+    data_pair_pending = (&core.u_dut.u_cached_core.u_dcache.hit_accept) && (&core.u_dut.u_cached_core.u_dcache.bank_read_en) &&
+      core.u_dut.u_cached_core.u_dcache.req_addr[0][31:4] == BANK_BASE[31:4] &&
+      core.u_dut.u_cached_core.u_dcache.req_addr[1][31:4] == BANK_BASE[31:4];
+    if (data_pair_pending) data_pair_addresses=core.u_dut.u_cached_core.u_dcache.req_addr;
+    if (!core.u_dut.u_cached_core.u_core.u_backend.flush_valid) begin
+      for (int c=0;c<2;c++) if (core.u_dut.u_cached_core.u_core.u_backend.cand_grant[c] &&
+          in_region(core.u_dut.u_cached_core.u_core.u_backend.cand_pc[c])) begin
         logic [63:0] pc;
-        pc=core.u_dut.u_core.u_backend.cand_pc[c];
-        measured_sequences[core.u_dut.u_core.u_backend.cand_sequence[c]]=1;
-        sequence_pc[core.u_dut.u_core.u_backend.cand_sequence[c]]=pc;
+        pc=core.u_dut.u_cached_core.u_core.u_backend.cand_pc[c];
+        measured_sequences[core.u_dut.u_cached_core.u_core.u_backend.cand_sequence[c]]=1;
+        sequence_pc[core.u_dut.u_cached_core.u_core.u_backend.cand_sequence[c]]=pc;
         issued++;
         $fdisplay(fd,"%0d,issue,%h,%0d,%0d",cycles,pc,
-          core.u_dut.u_core.u_backend.cand_sequence[c],core.u_dut.u_core.u_backend.cand_grant_port[c]);
+          core.u_dut.u_cached_core.u_core.u_backend.cand_sequence[c],core.u_dut.u_cached_core.u_core.u_backend.cand_grant_port[c]);
         if (pc==div_pc) div_issue=cycles;
         if (pc==dep_pc) dep_issue=cycles;
         if (in_young(pc)) begin
           if (first_young_issue==0) first_young_issue=cycles;
-          if (dep_issue==0 && core.u_dut.u_core.u_backend.u_div.busy_q) young_bypass++;
+          if (dep_issue==0 && core.u_dut.u_cached_core.u_core.u_backend.u_div.busy_q) young_bypass++;
         end
       end
-      if (&core.u_dut.u_core.u_backend.cand_grant &&
-          core.u_dut.u_core.u_backend.cand_fu[0]==FU_INT &&
-          core.u_dut.u_core.u_backend.cand_fu[1]==FU_INT &&
-          in_young(core.u_dut.u_core.u_backend.cand_pc[0]) &&
-          in_young(core.u_dut.u_core.u_backend.cand_pc[1])) dual_issue++;
+      if (&core.u_dut.u_cached_core.u_core.u_backend.cand_grant &&
+          core.u_dut.u_cached_core.u_core.u_backend.cand_fu[0]==FU_INT &&
+          core.u_dut.u_cached_core.u_core.u_backend.cand_fu[1]==FU_INT &&
+          in_young(core.u_dut.u_cached_core.u_core.u_backend.cand_pc[0]) &&
+          in_young(core.u_dut.u_cached_core.u_core.u_backend.cand_pc[1])) dual_issue++;
     end
-    for (int lane=0;lane<2;lane++) if (core.u_dut.u_core.u_backend.int_issue_take[lane] &&
-        measured_sequences[core.u_dut.u_core.u_backend.int_issue_q[lane].sequence_id])
+    for (int lane=0;lane<2;lane++) if (core.u_dut.u_cached_core.u_core.u_backend.int_issue_take[lane] &&
+        measured_sequences[core.u_dut.u_cached_core.u_core.u_backend.int_issue_q[lane].sequence_id])
       $fdisplay(fd,"%0d,execute,%h,%0d,%0d",cycles,
-        sequence_pc[core.u_dut.u_core.u_backend.int_issue_q[lane].sequence_id],
-        core.u_dut.u_core.u_backend.int_issue_q[lane].sequence_id,lane);
-    if (&core.u_dut.u_core.u_backend.int_issue_take &&
-        measured_sequences[core.u_dut.u_core.u_backend.int_issue_q[0].sequence_id] &&
-        measured_sequences[core.u_dut.u_core.u_backend.int_issue_q[1].sequence_id]) dual_execute++;
+        sequence_pc[core.u_dut.u_cached_core.u_core.u_backend.int_issue_q[lane].sequence_id],
+        core.u_dut.u_cached_core.u_core.u_backend.int_issue_q[lane].sequence_id,lane);
+    if (&core.u_dut.u_cached_core.u_core.u_backend.int_issue_take &&
+        measured_sequences[core.u_dut.u_cached_core.u_core.u_backend.int_issue_q[0].sequence_id] &&
+        measured_sequences[core.u_dut.u_cached_core.u_core.u_backend.int_issue_q[1].sequence_id]) dual_execute++;
     if (&core.trace_valid && in_region(core.trace_pc[0]) && in_region(core.trace_pc[1])) dual_retire++;
     for (int lane=0;lane<2;lane++) if (core.trace_valid[lane] && in_region(core.trace_pc[lane])) begin
       logic [ROB_SEQ_WIDTH-1:0] retired_sequence;
-      retired_sequence=core.u_dut.u_core.u_backend.retire_sequence[lane];
+      retired_sequence=core.u_dut.u_cached_core.u_core.u_backend.retire_sequence[lane];
       if (core.trace_trap[lane] || core.trace_pc[lane]!=next_retire ||
           !measured_sequences[retired_sequence] || sequence_pc[retired_sequence]!=next_retire)
         $fatal(1,"Out-of-order architectural retirement pc=%h expected=%h",core.trace_pc[lane],next_retire);

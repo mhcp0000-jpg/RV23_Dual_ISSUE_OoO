@@ -14,13 +14,13 @@ module rv23_vector_branch_order_tb;
   end
   always @(posedge core.clk) if(core.rst_n && core.load_done) begin
     for(int i=0;i<6;i++) begin
-      if(core.u_dut.u_core.u_backend.dispatch_fire)
+      if(core.u_dut.u_cached_core.u_core.u_backend.dispatch_fire)
         for(int lane=0;lane<2;lane++)
-          if(core.u_dut.u_core.u_backend.dec_valid[lane] &&
-             core.u_dut.u_core.u_backend.dec_pc[lane]==wrong_pc[i]) dispatched[i]=1;
-      if(core.u_dut.u_core.u_backend.flush_valid && dispatched[i]) recovered[i]=1;
-      if(core.u_dut.u_core.u_backend.vector_start &&
-         core.u_dut.u_core.u_backend.rob_head_pc==wrong_pc[i])
+          if(core.u_dut.u_cached_core.u_core.u_backend.dec_valid[lane] &&
+             core.u_dut.u_cached_core.u_core.u_backend.dec_pc[lane]==wrong_pc[i]) dispatched[i]=1;
+      if(core.u_dut.u_cached_core.u_core.u_backend.flush_valid && dispatched[i]) recovered[i]=1;
+      if(core.u_dut.u_cached_core.u_core.u_backend.vector_start &&
+         core.u_dut.u_cached_core.u_core.u_backend.rob_head_pc==wrong_pc[i])
         $fatal(1,"Wrong-path vector executed");
       for(int lane=0;lane<2;lane++)
         if(core.trace_valid[lane] && core.trace_pc[lane]==wrong_pc[i])

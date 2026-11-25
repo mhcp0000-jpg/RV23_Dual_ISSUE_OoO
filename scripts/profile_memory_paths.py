@@ -47,7 +47,7 @@ source=source.replace(needle,'''    $display("DUAL_HIT_PROBE_BEGIN");
 path=folder/(name+'.sv');path.write_text(source)
 files=[p for p in (ROOT/'rtl/filelist.f').read_text().splitlines()
     if not p.startswith(('rtl/backend/','rtl/frontend/')) and p not in
-    ['rtl/rv_ooo_core.sv','rtl/soc/rv23_soc_top.sv']]
+    ['rtl/rv_ooo_core.sv','rtl/soc/rv23_core.sv','rtl/soc/rv23_soc_top.sv']]
 files=[(source_root/p).relative_to(ROOT).as_posix() for p in files]+[path.relative_to(ROOT).as_posix()]
 with Simulator() as sim:
     model=sim.build(name,name,files)

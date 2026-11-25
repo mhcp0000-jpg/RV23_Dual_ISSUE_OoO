@@ -39,20 +39,20 @@ module rv32_program_tb #(
   longint unsigned perf_i_engine=0,perf_d_write=0,perf_d_fill=0,perf_dual_d=0,perf_if_wait=0;
   longint unsigned perf_snoops=0,perf_i_discard=0,perf_d_discard=0;
   always @(posedge clk) if(rst_n && load_done) begin
-    perf_i_hit+=$countones(u_dut.u_icache.hit_accept);
-    perf_i_miss+=$countones(u_dut.u_icache.miss_accept);
-    perf_d_hit+=$countones(u_dut.u_dcache.hit_accept);
-    perf_d_miss+=$countones(u_dut.u_dcache.miss_accept);
-    if(u_dut.u_icache.state_q!=2'd0) perf_i_engine++;
-    if(u_dut.u_dcache.state_q!=2'd0) begin
-      if(u_dut.u_dcache.write_q) perf_d_write++;
+    perf_i_hit+=$countones(u_dut.u_cached_core.u_icache.hit_accept);
+    perf_i_miss+=$countones(u_dut.u_cached_core.u_icache.miss_accept);
+    perf_d_hit+=$countones(u_dut.u_cached_core.u_dcache.hit_accept);
+    perf_d_miss+=$countones(u_dut.u_cached_core.u_dcache.miss_accept);
+    if(u_dut.u_cached_core.u_icache.state_q!=2'd0) perf_i_engine++;
+    if(u_dut.u_cached_core.u_dcache.state_q!=2'd0) begin
+      if(u_dut.u_cached_core.u_dcache.write_q) perf_d_write++;
       else perf_d_fill++;
     end
-    if(&u_dut.u_dcache.hit_accept) perf_dual_d++;
-    if(u_dut.imem_req_valid && !u_dut.imem_req_ready) perf_if_wait++;
+    if(&u_dut.u_cached_core.u_dcache.hit_accept) perf_dual_d++;
+    if(u_dut.u_cached_core.imem_req_valid && !u_dut.u_cached_core.imem_req_ready) perf_if_wait++;
     if(u_dut.sram_write_snoop) perf_snoops++;
-    if(u_dut.u_icache.invalidate_i) perf_i_discard+=$countones(u_dut.u_icache.valid_q);
-    if(u_dut.u_dcache.invalidate_i) perf_d_discard+=$countones(u_dut.u_dcache.valid_q);
+    if(u_dut.u_cached_core.u_icache.invalidate_i) perf_i_discard+=$countones(u_dut.u_cached_core.u_icache.valid_q);
+    if(u_dut.u_cached_core.u_dcache.invalidate_i) perf_d_discard+=$countones(u_dut.u_cached_core.u_dcache.valid_q);
   end
   // Opt-in integration diagnostics; never changes arbitration or handshakes.
   always @(negedge clk) if(rst_n && $test$plusargs("bus_debug") &&
@@ -103,24 +103,24 @@ module rv32_program_tb #(
     .trace_cause_i(trace_cause),.trace_tval_i(trace_tval),
     .trace_mem_valid_i(trace_mem_valid),.trace_mem_addr_i(trace_mem_addr),
     .trace_mem_wdata_i(trace_mem_wdata),
-    .csr_commit_valid_i(u_dut.u_core.u_backend.csr_commit &&
-      u_dut.u_core.u_backend.u_csr_file.csr_pending_q),
-    .csr_commit_write_i(u_dut.u_core.u_backend.u_csr_file.csr_pending_write_q),
-    .csr_commit_addr_i(u_dut.u_core.u_backend.u_csr_file.csr_pending_addr_q),
-    .csr_commit_wdata_i(u_dut.u_core.u_backend.u_csr_file.csr_pending_wdata_q));
+    .csr_commit_valid_i(u_dut.u_cached_core.u_core.u_backend.csr_commit &&
+      u_dut.u_cached_core.u_core.u_backend.u_csr_file.csr_pending_q),
+    .csr_commit_write_i(u_dut.u_cached_core.u_core.u_backend.u_csr_file.csr_pending_write_q),
+    .csr_commit_addr_i(u_dut.u_cached_core.u_core.u_backend.u_csr_file.csr_pending_addr_q),
+    .csr_commit_wdata_i(u_dut.u_cached_core.u_core.u_backend.u_csr_file.csr_pending_wdata_q));
   always_comb begin
     trace_mem_valid='0;trace_mem_addr='0;trace_mem_wdata='0;
     for(int lane=0;lane<2;lane++) if(trace_valid[lane]) begin
-      if(u_dut.u_core.u_backend.retire_is_load[lane]) begin
+      if(u_dut.u_cached_core.u_core.u_backend.retire_is_load[lane]) begin
         trace_mem_valid[lane]=1;
-        trace_mem_addr[lane]=u_dut.u_core.u_backend.u_lsu_cluster.u_lsq.lq_address_q[
-          u_dut.u_core.u_backend.retire_lq_index[lane]];
-      end else if(u_dut.u_core.u_backend.retire_is_store[lane]) begin
+        trace_mem_addr[lane]=u_dut.u_cached_core.u_core.u_backend.u_lsu_cluster.u_lsq.lq_address_q[
+          u_dut.u_cached_core.u_core.u_backend.retire_lq_index[lane]];
+      end else if(u_dut.u_cached_core.u_core.u_backend.retire_is_store[lane]) begin
         trace_mem_valid[lane]=1;
-        trace_mem_addr[lane]=u_dut.u_core.u_backend.u_lsu_cluster.u_lsq.sq_address_q[
-          u_dut.u_core.u_backend.retire_sq_index[lane]];
-        trace_mem_wdata[lane]=u_dut.u_core.u_backend.u_lsu_cluster.u_lsq.sq_data_q[
-          u_dut.u_core.u_backend.retire_sq_index[lane]];
+        trace_mem_addr[lane]=u_dut.u_cached_core.u_core.u_backend.u_lsu_cluster.u_lsq.sq_address_q[
+          u_dut.u_cached_core.u_core.u_backend.retire_sq_index[lane]];
+        trace_mem_wdata[lane]=u_dut.u_cached_core.u_core.u_backend.u_lsu_cluster.u_lsq.sq_data_q[
+          u_dut.u_cached_core.u_core.u_backend.retire_sq_index[lane]];
       end
     end
   end
@@ -160,7 +160,7 @@ module rv32_program_tb #(
     repeat(4) @(negedge clk);rst_n=1;
     repeat(timeout_cycles) @(posedge clk);
     $fatal(1,"ELF watchdog commits=%0d PC=%h ROB=%0d IQ=%0d",commits,trace_pc,
-      u_dut.u_core.u_backend.rob_count,u_dut.u_core.u_backend.iq_count);
+      u_dut.u_cached_core.u_core.u_backend.rob_count,u_dut.u_cached_core.u_core.u_backend.iq_count);
   end
   initial begin
     wait(rst_n);
@@ -177,17 +177,17 @@ module rv32_program_tb #(
   int vec_cache_reads=0,vec_cache_writes=0,vec_cache_hits=0,vec_cache_data_beats=0;
   initial vector_cache_observe=$test$plusargs("vector_cache_trace");
   always @(posedge clk)if(vector_cache_observe && rst_n && load_done)begin
-    if(u_dut.u_core.u_backend.vector_active_q && u_dut.cbo_bus.req_valid && u_dut.cbo_bus.req_ready)begin
-      if(!u_dut.cbo_memory_use_dcache || u_dut.cbo_direct_bus.req_valid)
+    if(u_dut.u_cached_core.u_core.u_backend.vector_active_q && u_dut.u_cached_core.cbo_bus.req_valid && u_dut.u_cached_core.cbo_bus.req_ready)begin
+      if(!u_dut.u_cached_core.cbo_memory_use_dcache || u_dut.u_cached_core.cbo_direct_bus.req_valid)
         $fatal(1,"Vector data request bypassed shared D-cache");
-      if(u_dut.cbo_bus.req_write)vec_cache_writes++;
+      if(u_dut.u_cached_core.cbo_bus.req_write)vec_cache_writes++;
       else begin
         vec_cache_reads++;
-        if(u_dut.u_dcache.hit[0])vec_cache_hits++;
+        if(u_dut.u_cached_core.u_dcache.hit[0])vec_cache_hits++;
       end
     end
-    if(u_dut.u_core.u_backend.vector_active_q && u_dut.d_normal_axi.ar_valid && u_dut.d_normal_axi.ar_ready &&
-       u_dut.d_normal_axi.ar_addr>=32'h800a0000 && u_dut.d_normal_axi.ar_addr<32'h800a0080)
+    if(u_dut.u_cached_core.u_core.u_backend.vector_active_q && u_dut.u_cached_core.d_normal_axi.ar_valid && u_dut.u_cached_core.d_normal_axi.ar_ready &&
+       u_dut.u_cached_core.d_normal_axi.ar_addr>=32'h800a0000 && u_dut.u_cached_core.d_normal_axi.ar_addr<32'h800a0080)
       vec_cache_data_beats++;
   end
   final if(vector_cache_observe)

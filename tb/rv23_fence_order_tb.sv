@@ -24,7 +24,7 @@ module rv23_fence_order_tb;
     core.u_host.write_register64(ZERO_BLOCK, DEBUG_VALUE);
   end
 
-  `define BACKEND core.u_dut.u_core.u_backend
+  `define BACKEND core.u_dut.u_cached_core.u_core.u_backend
   always @(posedge core.clk) if (core.rst_n && core.load_done) begin
     cycle++;
     if (core.u_dut.sram_write_snoop &&

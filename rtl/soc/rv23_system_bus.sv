@@ -28,7 +28,6 @@ module rv23_system_bus #(
   rv_axi4_if #(.ID_WIDTH(6)) rom_axi (.clk_i,.rst_ni);
   rv_axi4_if #(.ID_WIDTH(6)) error_axi (.clk_i,.rst_ni);
   rv_local_mem_if sram_local (.clk_i,.rst_ni);
-  rv_local_mem_if clint_local (.clk_i,.rst_ni);
 
   rv_axi_xbar u_main_xbar (
     .clk_i,.rst_ni,.m0_s(i_axi_s),.m1_s(d_axi_s),.m2_s(debug_axi_s),
@@ -45,13 +44,8 @@ module rv23_system_bus #(
     .clk_i,.rst_ni,.bus(sram_local),.write_snoop_o,.write_snoop_addr_o,
     .write_snoop_data_o,.write_snoop_strb_o
   );
-  rv_axi_to_local_bridge #(.AXI_ID_WIDTH(6),
-    .TARGET_BASE_ADDR(CLINT_BASE_ADDR),.TARGET_SIZE_KB(CLINT_SIZE_KB),
-    .TARGET_IS_DEVICE(1)) u_clint_bridge (
-    .clk_i,.rst_ni,.axi_s(clint_axi),.local_bus(clint_local)
-  );
-  rv_clint #(.CLOCK_HZ(CLOCK_HZ),.TIMEBASE_HZ(TIMEBASE_HZ)) u_clint (
-    .clk_i,.rst_ni,.bus(clint_local),.msip_o,.mtip_o,.mtime_o
+  rv_clint_axi #(.AXI_ID_WIDTH(6),.CLOCK_HZ(CLOCK_HZ),.TIMEBASE_HZ(TIMEBASE_HZ)) u_clint (
+    .clk_i,.rst_ni,.axi_s(clint_axi),.msip_o,.mtip_o,.mtime_o
   );
   rv_plic #(.AXI_ID_WIDTH(6),.NUM_SOURCES(PLIC_NUM_SOURCES),.HAS_SMODE(HAS_SMODE)) u_plic (
     .clk_i,.rst_ni,.axi_s(plic_axi),.source_i(external_irq_i),

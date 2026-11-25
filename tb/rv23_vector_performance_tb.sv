@@ -5,7 +5,7 @@ module rv23_vector_performance_tb;
     .HAS_D(1),.HAS_ZFHMIN(1),.HAS_ZFA(1),.HAS_ZAWRS(1),.HAS_ZIMOP(1),
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
-`define V core.u_dut.u_core.u_backend.g_vector_head.u_head
+`define V core.u_dut.u_cached_core.u_core.u_backend.g_vector_head.u_head
   logic [63:0] start_pc,stop_pc;
   bit active=0,started=0,stopped=0,pending=0;
   longint unsigned cycles=0,retired=0,no_retire=0,requests=0,responses=0;
@@ -36,8 +36,8 @@ module rv23_vector_performance_tb;
       // The simulator (Verilator 5.050) mis-sizes a hierarchical enum item here.
       // The driver checks both enum declarations against these numeric bins.
       if(int'(`V.state_q)==9)memory_states[int'(`V.u_memory.state_q)]++;
-      hits+=$countones(core.u_dut.u_dcache.hit_accept);
-      misses+=$countones(core.u_dut.u_dcache.miss_accept);
+      hits+=$countones(core.u_dut.u_cached_core.u_dcache.hit_accept);
+      misses+=$countones(core.u_dut.u_cached_core.u_dcache.miss_accept);
       if(`V.memory_valid_o && !`V.memory_ready_i)request_stalls++;
       if(pending && !`V.memory_response_valid_i)response_wait++;
       if(`V.memory_response_valid_i && `V.memory_response_ready_o)begin

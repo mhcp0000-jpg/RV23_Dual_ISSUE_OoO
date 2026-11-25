@@ -101,3 +101,24 @@ hardware breakpoint는 아직 구현하지 않았다. OpenOCD 연결 가능하�
 용량과 associativity는 miss rate, 접근 지연, 면적을 측정한 뒤 결정한다.
 현재 miss/write-through engine은 단일이며, hit bandwidth와 외부 쓰기 처리량은 구분한다.
 cycle 병목과 같은 ELF의 실측 비교는 [CACHE_CYCLE_ANALYSIS](CACHE_CYCLE_ANALYSIS.md)를 따른다.
+
+## 코어 wrapper와 인터럽트 장치
+
+`rv23_core`는 CPU, 32 KiB I-cache, 32 KiB D-cache, 페이지 워크와 캐시
+중재, AXI bridge를 묶는다. 명령 포트 `i_axi_m`와 데이터 포트
+`d_axi_m`를 시스템 AXI4 버스에 연결한다. 두 포트의 주소 폭은 32비트,
+데이터 폭은 64비트, ID 폭은 4비트다. 데이터 포트의 LR/SC 및 AMO를 위해
+메모리 쪽 AXI 경로가 exclusive transaction을 지원해야 한다.
+부팅 이후 `core_run_i`는 high로 유지한다.
+
+`rv23_soc_top`은 이 wrapper를 `u_cached_core`로 인스턴스화한다.
+`rv23_system_bus`의 `rv_plic`와 `rv_clint_axi`는 각각 AXI slave로 연결된다.
+CLINT의 MSIP/MTIP/MTIME과 PLIC의 MEIP/SEIP를 코어의 대응 입력으로 보낸다.
+SRAM 쓰기 snoop은 다른 master를 포함해 캐시 가능한 메모리가 수락한 쓰기의
+주소, 데이터, byte enable을 코어에 전달해 캐시와 LR/SC 예약 상태를 갱신한다.
+
+외부 IRQ 7개를 연결하려면 TOP에 `.PLIC_NUM_SOURCES(8)`을 주고
+`external_irq_i[7:1]`에 배선한다. `rv_plic`를 직접 쓸 때는
+`.NUM_SOURCES(8)`이다. 두 값 모두 예약 ID 0을 포함하므로 설정 범위
+2–32는 외부 입력 1–31개에 해당한다. Linux Device Tree의
+`riscv,ndev`도 실제 외부 IRQ 개수에 맞춘다.

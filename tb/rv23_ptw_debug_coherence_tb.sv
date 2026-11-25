@@ -12,23 +12,23 @@ module rv23_ptw_debug_coherence_tb;
   bit pte_pending=0;
 
   always @(posedge core.clk) if (core.rst_n && core.load_done) begin
-    if (core.u_dut.ptw_bus.req_valid && core.u_dut.ptw_bus.req_ready &&
-        core.u_dut.ptw_bus.req_addr==PTE_ADDR) begin
+    if (core.u_dut.u_cached_core.ptw_bus.req_valid && core.u_dut.u_cached_core.ptw_bus.req_ready &&
+        core.u_dut.u_cached_core.ptw_bus.req_addr==PTE_ADDR) begin
       if (pte_pending) $fatal(1,"Overlapping PTE ownership");
       pte_pending=1;
     end
     // The share arbiter captures the PTW request before presenting it to the
     // cache. Count the downstream handshake with the captured PTW owner.
-    if (core.u_dut.u_dcache.hit_accept[1] &&
-        core.u_dut.u_dcache.req_addr[1]==PTE_ADDR &&
-        core.u_dut.g_ptw_port.u_share.owner_q) pte_hits++;
-    if (pte_pending && core.u_dut.ptw_bus.rsp_valid && core.u_dut.ptw_bus.rsp_ready) begin
-      if (core.u_dut.ptw_bus.rsp_rdata!==(updates[0]?PTE_B:PTE_A))
-        $fatal(1,"Stale PTE response after update %0d: %h",updates,core.u_dut.ptw_bus.rsp_rdata);
+    if (core.u_dut.u_cached_core.u_dcache.hit_accept[1] &&
+        core.u_dut.u_cached_core.u_dcache.req_addr[1]==PTE_ADDR &&
+        core.u_dut.u_cached_core.g_ptw_port.u_share.owner_q) pte_hits++;
+    if (pte_pending && core.u_dut.u_cached_core.ptw_bus.rsp_valid && core.u_dut.u_cached_core.ptw_bus.rsp_ready) begin
+      if (core.u_dut.u_cached_core.ptw_bus.rsp_rdata!==(updates[0]?PTE_B:PTE_A))
+        $fatal(1,"Stale PTE response after update %0d: %h",updates,core.u_dut.u_cached_core.ptw_bus.rsp_rdata);
       pte_pending=0; pte_responses++;
     end
     if (core.u_dut.sram_write_snoop && core.u_dut.sram_write_snoop_addr==PTE_ADDR &&
-        core.u_dut.u_dcache.snoop_resident) resident_snoops++;
+        core.u_dut.u_cached_core.u_dcache.snoop_resident) resident_snoops++;
   end
 
   initial begin
@@ -47,8 +47,8 @@ module rv23_ptw_debug_coherence_tb;
         running_updates++;
       end
       // The update must exercise a resident line, not an empty-cache refill.
-      if (!core.u_dut.u_dcache.valid_q[PTE_ADDR[14:6]] ||
-          core.u_dut.u_dcache.tags[PTE_ADDR[14:6]]!=PTE_ADDR[31:15])
+      if (!core.u_dut.u_cached_core.u_dcache.valid_q[PTE_ADDR[14:6]] ||
+          core.u_dut.u_cached_core.u_dcache.tags[PTE_ADDR[14:6]]!=PTE_ADDR[31:15])
         $fatal(1,"Missing resident PTE before debug write phase %0d",phase);
       if (phase[0]) core.u_host.write_register64(PTE_ADDR,PTE_B);
       else core.u_host.write_register32(PTE_ADDR,PTE_A[31:0]);

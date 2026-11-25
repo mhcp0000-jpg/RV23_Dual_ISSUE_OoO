@@ -77,19 +77,19 @@ def main():
       linux_last_retire=linux_cycles;
       linux_last_pc=trace_pc[lane];
       if (!linux_entry_seen && trace_pc[lane]==64'h80200000 &&
-          u_dut.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_S) begin
+          u_dut.u_cached_core.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_S) begin
         linux_entry_seen=1;
         $display("\\nLINUX_RTL_S_ENTRY pc=%h",trace_pc[lane]);
         $fflush();
       end
       if (linux_entry_seen && !linux_user_seen &&
-          u_dut.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U) begin
+          u_dut.u_cached_core.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U) begin
         linux_user_seen=1;
         $display("\\nLINUX_RTL_U_RETIRE pc=%h",trace_pc[lane]);
         $fflush();
       end
       if (linux_entry_seen && !linux_user_vector_seen &&
-          u_dut.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U &&
+          u_dut.u_cached_core.u_core.u_backend.current_privilege==rv_ooo_pkg::PRIV_U &&
           trace_instr[lane][6:0]==7'h57 && trace_instr[lane][14:12]!=3'b111) begin
         linux_user_vector_seen=1;
         $display("\\nLINUX_RTL_U_VECTOR_RETIRE pc=%h instruction=%h",trace_pc[lane],trace_instr[lane]);
@@ -99,7 +99,7 @@ def main():
     if (linux_watch && linux_cycles%1000000==0) begin
       $display("\\nLINUX_RTL_WATCH cycles=%0d commits=%0d last_pc=%h idle_cycles=%0d priv=%0d",
                linux_cycles,commits,linux_last_pc,linux_cycles-linux_last_retire,
-               u_dut.u_core.u_backend.current_privilege);
+               u_dut.u_cached_core.u_core.u_backend.current_privilege);
       $fflush();
     end
   end

@@ -47,7 +47,11 @@ SystemVerilog와 `SYNTHESIS` 정의를 사용한다. 기본 XLEN=64에서 V/H/D/
 클록은 `clk_i`이며 별도 SDC/XDC 등의 제약이 필요하다. `CLOCK_HZ` 파라미터는 타이밍 제약이 아니다.
 1 MiB SRAM과 캐시의 SRAM/BRAM 매핑을 확인한다. TOP의 `debug_axi_s`는 SV interface이므로
 툴이 TOP interface 포트를 지원하지 않으면 일반 신호 포트로 펼친 wrapper가 필요하다.
-코어만 합성할 때는 [`rv_ooo_core`](rtl/rv_ooo_core.sv)를 사용한다.
+CPU와 L1 캐시를 하나의 IP로 합성할 때는 [`rv23_core`](rtl/soc/rv23_core.sv)를
+사용한다. 시스템 AXI4에 명령·데이터 포트를 연결하고, 버스의
+[`rv_plic`](rtl/soc/rv_plic.sv)와 [`rv_clint_axi`](rtl/soc/rv_clint.sv)의
+인터럽트·타이머 출력을 연결한다. `rv23_soc_top.PLIC_NUM_SOURCES`는 예약 ID 0을
+포함하므로 기본값 32는 외부 IRQ 31개에 해당한다.
 
 ### 파이프라인과 연산기
 

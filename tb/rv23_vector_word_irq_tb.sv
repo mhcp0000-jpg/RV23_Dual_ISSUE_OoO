@@ -4,8 +4,8 @@ module rv23_vector_word_irq_tb;
     .HAS_D(1),.HAS_ZFHMIN(1),.HAS_ZFA(1),.HAS_ZAWRS(1),.HAS_ZIMOP(1),
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
-`define B core.u_dut.u_core.u_backend
-`define V core.u_dut.u_core.u_backend.g_vector_head.u_head
+`define B core.u_dut.u_cached_core.u_core.u_backend
+`define V core.u_dut.u_cached_core.u_core.u_backend.g_vector_head.u_head
   logic [63:0] irq_pc;
   int cycle=0,first=0,pending=0,last_rf=0,retired=0,trapped=0,scalar_write=0;
   int reads=0,responses=0,writes=0,refills=0,pending_reads=0;
@@ -40,8 +40,8 @@ module rv23_vector_word_irq_tb;
           $fatal(1,"Expected a registered packed word write");
         writes++;last_rf=cycle;
       end
-      if(core.u_dut.d_normal_axi.ar_valid && core.u_dut.d_normal_axi.ar_ready &&
-         core.u_dut.d_normal_axi.ar_addr>=32'h800a0000 && core.u_dut.d_normal_axi.ar_addr<32'h800a0080)
+      if(core.u_dut.u_cached_core.d_normal_axi.ar_valid && core.u_dut.u_cached_core.d_normal_axi.ar_ready &&
+         core.u_dut.u_cached_core.d_normal_axi.ar_addr>=32'h800a0000 && core.u_dut.u_cached_core.d_normal_axi.ar_addr<32'h800a0080)
         refills++;
       if(`B.csr_interrupt_pending && pending==0)begin
         if(reads==0 || writes>=expected_reads)$fatal(1,"IRQ missed active word-load interval");

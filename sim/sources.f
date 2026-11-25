@@ -65,6 +65,7 @@ rtl/soc/rv23_head_cache_router.sv
 rtl/soc/rv23_if_adapter.sv
 rtl/soc/rv23_sram.sv
 rtl/soc/rv23_system_bus.sv
+rtl/soc/rv23_core.sv
 rtl/soc/rv23_soc_top.sv
 rtl/soc/rv23_page_walker.sv
 rtl/soc/rv23_mmu.sv

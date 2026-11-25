@@ -4,7 +4,7 @@ module rv23_vector_scalar_overlap_tb;
     .HAS_D(1),.HAS_ZFHMIN(1),.HAS_ZFA(1),.HAS_ZAWRS(1),.HAS_ZIMOP(1),
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
-`define B core.u_dut.u_core.u_backend
+`define B core.u_dut.u_cached_core.u_core.u_backend
   int int_overlap=0,fp_overlap=0,fp_coretire=0,busy_start=0,branch_keep=0;
   always @(posedge core.clk)if(core.rst_n && core.load_done)begin
     if(`B.vector_active_q)begin

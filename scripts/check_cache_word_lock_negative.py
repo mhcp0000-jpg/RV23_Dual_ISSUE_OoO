@@ -2,7 +2,7 @@
 from sim_runner import ROOT,Simulator,dump
 files=[p for p in (ROOT/'rtl/filelist.f').read_text().splitlines()
     if not p.startswith(('rtl/backend/','rtl/frontend/')) and p not in
-    ['rtl/rv_ooo_core.sv','rtl/soc/rv23_soc_top.sv']]
+    ['rtl/rv_ooo_core.sv','rtl/soc/rv23_core.sv','rtl/soc/rv23_soc_top.sv']]
 files=[('out/performance/banked_stage1/rv23_cache.sv' if p=='rtl/soc/rv23_cache.sv' else p) for p in files]
 files+=['tb/rv23_memory_tb.sv']
 with Simulator() as sim:

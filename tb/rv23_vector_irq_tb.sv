@@ -10,14 +10,14 @@ module rv23_vector_irq_tb;
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
 
-  wire vector_active = core.u_dut.u_core.u_backend.vector_active_q;
-  wire vector_write = vector_active && core.u_dut.u_core.u_backend.vector_memory_valid &&
-    core.u_dut.u_core.u_backend.vector_memory_write && core.u_dut.u_core.u_backend.cbo_write_ready_i;
-  wire [31:0] vector_address = core.u_dut.u_core.u_backend.vector_memory_address;
-  wire irq_pending = core.u_dut.u_core.u_backend.csr_interrupt_pending;
-  wire irq_accept = core.u_dut.u_core.u_backend.csr_trap_valid &&
-    core.u_dut.u_core.u_backend.csr_trap_ready &&
-    core.u_dut.u_core.u_backend.csr_trap_is_interrupt;
+  wire vector_active = core.u_dut.u_cached_core.u_core.u_backend.vector_active_q;
+  wire vector_write = vector_active && core.u_dut.u_cached_core.u_core.u_backend.vector_memory_valid &&
+    core.u_dut.u_cached_core.u_core.u_backend.vector_memory_write && core.u_dut.u_cached_core.u_core.u_backend.cbo_write_ready_i;
+  wire [31:0] vector_address = core.u_dut.u_cached_core.u_core.u_backend.vector_memory_address;
+  wire irq_pending = core.u_dut.u_cached_core.u_core.u_backend.csr_interrupt_pending;
+  wire irq_accept = core.u_dut.u_cached_core.u_core.u_backend.csr_trap_valid &&
+    core.u_dut.u_cached_core.u_core.u_backend.csr_trap_ready &&
+    core.u_dut.u_cached_core.u_core.u_backend.csr_trap_is_interrupt;
   int unsigned cycle = 0, writes = 0;
   int unsigned first_write = 0, pending = 0, pending_bytes = 0, last_write = 0;
   int unsigned retired = 0, trap = 0, scalar_write = 0;
@@ -74,7 +74,7 @@ module rv23_vector_irq_tb;
     end
     if (irq_accept) begin
       if (trap != 0 || pending == 0 || retired == 0 || retired >= cycle || vector_active ||
-          core.u_dut.u_core.u_backend.csr_trap_cause != 6'd11)
+          core.u_dut.u_cached_core.u_core.u_backend.csr_trap_cause != 6'd11)
         $fatal(1,"External interrupt delivered at an imprecise boundary");
       trap = cycle;
     end

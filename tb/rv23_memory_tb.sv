@@ -33,7 +33,9 @@ module rv23_memory_tb;
   logic [63:0] snoop_data;
   logic [7:0] snoop_strb;
   logic [63:0] mtime_value;
-  logic [31:1] irq;
+  localparam int PLIC_IDS = 8;
+  localparam int TEST_IRQ = PLIC_IDS-1;
+  logic [PLIC_IDS-1:1] irq;
   logic invalidate_i,if_valid,if_ready,if_rsp_valid,if_rsp_ready;
   logic [31:0] if_addr;
   logic [3:0] if_id,if_epoch,if_rid,if_repoch;
@@ -132,7 +134,7 @@ module rv23_memory_tb;
   rv_local_to_axi_bridge #(.IS_INSTRUCTION(1)) ib (
     .clk_i,.rst_ni,.local_bus(i_mem),.axi_m(i_axi));
   rv_local_to_axi_bridge hb (.clk_i,.rst_ni,.local_bus(debug_local),.axi_m(debug_axi));
-  rv23_system_bus sys (.clk_i,.rst_ni,.external_irq_i(irq),
+  rv23_system_bus #(.PLIC_NUM_SOURCES(PLIC_IDS)) sys (.clk_i,.rst_ni,.external_irq_i(irq),
     .i_axi_s(i_axi),.d_axi_s(d_axi),.debug_axi_s(debug_axi),
     .write_snoop_o(snoop),.write_snoop_addr_o(snoop_addr),.msip_o(msip),.mtip_o(mtip),.meip_o(meip),
     .write_snoop_data_o(snoop_data),.write_snoop_strb_o(snoop_strb),
@@ -414,16 +416,16 @@ module rv23_memory_tb;
     if(!mtip) $fatal(1,"CLINT timer not wired");
     access_mem(0,1,32'h0200_4004,64'hffff_ffff_0000_0000,8'hf0,2,0,value);
     if(mtip) $fatal(1,"CLINT timer deassert");
-    // PLIC source 1: priority, enable, threshold, pending, claim, complete.
-    access_mem(0,1,32'h0c00_0004,64'h0000_0003_0000_0000,8'hf0,2,0,value);
-    access_mem(0,1,32'h0c00_2000,2,8'h0f,2,0,value);
+    // Exercise the highest implemented ID of a non-default PLIC instance.
+    access_mem(0,1,32'h0c00_0000+4*TEST_IRQ,64'h0000_0003_0000_0000,8'hf0,2,0,value);
+    access_mem(0,1,32'h0c00_2000,64'd1<<TEST_IRQ,8'h0f,2,0,value);
     access_mem(0,1,32'h0c20_0000,0,8'h0f,2,0,value);
-    @(negedge clk_i);irq[1]=1;repeat(6) @(negedge clk_i);
+    @(negedge clk_i);irq[TEST_IRQ]=1;repeat(6) @(negedge clk_i);
     if(!meip) $fatal(1,"PLIC external interrupt not wired");
     access_mem(0,0,32'h0c20_0004,0,0,2,0,value);
-    if(value[63:32]!==1) $fatal(1,"PLIC claim");
-    @(negedge clk_i);irq[1]=0;repeat(5) @(negedge clk_i);
-    access_mem(0,1,32'h0c20_0004,64'h0000_0001_0000_0000,8'hf0,2,0,value);
+    if(value[63:32]!==32'(TEST_IRQ)) $fatal(1,"PLIC claim");
+    @(negedge clk_i);irq[TEST_IRQ]=0;repeat(5) @(negedge clk_i);
+    access_mem(0,1,32'h0c20_0004,64'(TEST_IRQ)<<32,8'hf0,2,0,value);
     if(meip) $fatal(1,"PLIC complete");
     // Reset invalidates cache metadata without clearing the shared SRAM.
     @(negedge clk_i);rst_ni=0;repeat(3) @(negedge clk_i);rst_ni=1;

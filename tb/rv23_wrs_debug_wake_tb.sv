@@ -9,9 +9,9 @@ module rv23_wrs_debug_wake_tb;
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
 
-  wire waiting = core.u_dut.u_core.u_backend.u_wrs.request_valid_i;
-  wire complete = core.u_dut.u_core.u_backend.wrs_complete;
-  wire reserved = core.u_dut.u_atomic.reservation_valid_o;
+  wire waiting = core.u_dut.u_cached_core.u_core.u_backend.u_wrs.request_valid_i;
+  wire complete = core.u_dut.u_cached_core.u_core.u_backend.wrs_complete;
+  wire reserved = core.u_dut.u_cached_core.u_atomic.reservation_valid_o;
   wire snoop = core.u_dut.sram_write_snoop;
   wire [31:0] snoop_address = core.u_dut.sram_write_snoop_addr;
   int same_line_wakes=0, unrelated_writes=0;

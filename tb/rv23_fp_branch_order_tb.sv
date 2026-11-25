@@ -9,7 +9,7 @@ module rv23_fp_branch_order_tb;
   logic [SEQ_W-1:0] wrong_seq[8];
   logic [7:0] dispatched='0, accepted='0, completed='0, recovered='0, active='0;
   logic slow_killed=0, check_idle=0;
-`define B core.u_dut.u_core.u_backend
+`define B core.u_dut.u_cached_core.u_core.u_backend
   function automatic bit younger(input logic [SEQ_W-1:0] lhs,rhs);
     logic [SEQ_W-1:0] delta;
     delta=lhs-rhs;

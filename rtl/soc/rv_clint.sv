@@ -182,3 +182,34 @@ module rv_clint #(
   end
 
 endmodule
+
+// AXI attachment for the local CLINT register block.
+module rv_clint_axi #(
+  parameter logic [31:0] BASE_ADDR = rv_soc_pkg::CLINT_BASE_ADDR,
+  parameter int unsigned SIZE_KB = rv_soc_pkg::CLINT_SIZE_KB,
+  parameter int unsigned AXI_ID_WIDTH = 6,
+  parameter int unsigned CLOCK_HZ = 100_000_000,
+  parameter int unsigned TIMEBASE_HZ = rv_soc_pkg::TIMEBASE_HZ
+) (
+  input logic clk_i, rst_ni,
+  rv_axi4_if.slave axi_s,
+  output logic msip_o, mtip_o,
+  output logic [63:0] mtime_o
+);
+  rv_local_mem_if clint_local (.clk_i, .rst_ni);
+
+  rv_axi_to_local_bridge #(
+    .AXI_ID_WIDTH(AXI_ID_WIDTH),
+    .TARGET_BASE_ADDR(BASE_ADDR), .TARGET_SIZE_KB(SIZE_KB),
+    .TARGET_IS_DEVICE(1)
+  ) u_bridge (
+    .clk_i, .rst_ni, .axi_s, .local_bus(clint_local)
+  );
+
+  rv_clint #(
+    .BASE_ADDR(BASE_ADDR), .SIZE_KB(SIZE_KB),
+    .CLOCK_HZ(CLOCK_HZ), .TIMEBASE_HZ(TIMEBASE_HZ)
+  ) u_registers (
+    .clk_i, .rst_ni, .bus(clint_local), .msip_o, .mtip_o, .mtime_o
+  );
+endmodule

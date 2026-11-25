@@ -55,7 +55,7 @@ def check(sim):
     if not args.boot_only and not args.cache_only:
         memory_sources=[s for s in sources if not s.startswith('rtl/backend/') and
             not s.startswith('rtl/frontend/') and s not in
-            ['rtl/rv_ooo_core.sv','rtl/soc/rv23_soc_top.sv']]
+            ['rtl/rv_ooo_core.sv','rtl/soc/rv23_core.sv','rtl/soc/rv23_soc_top.sv']]
         simulate('rv23_memory_tb',memory_sources+['tb/rv23_memory_tb.sv'])
     if not args.memory_only and not args.boot_only:
         simulate('rv23_cache_fault_tb',

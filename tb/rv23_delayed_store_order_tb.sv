@@ -5,8 +5,8 @@ module rv23_delayed_store_order_tb;
     .HAS_D(1),.HAS_ZFHMIN(1),.HAS_ZFA(1),.HAS_ZAWRS(1),.HAS_ZIMOP(1),
     .HAS_ZCMOP(1),.HAS_ZCB(1),.HAS_SVINVAL(1),.HAS_SSNPM(1),.HAS_CBO(1),
     .HAS_A(1),.HAS_B(1),.HAS_ZICOND(1),.HAS_SMODE(1),.HAS_MMU(1)) core();
-  `define LSU core.u_dut.u_core.u_backend.u_lsu_cluster.u_lsq
-  `define DIV core.u_dut.u_core.u_backend.u_div
+  `define LSU core.u_dut.u_cached_core.u_core.u_backend.u_lsu_cluster.u_lsq
+  `define DIV core.u_dut.u_cached_core.u_core.u_backend.u_div
   bit program_started=0;
   longint unsigned unknown_cycles=0,partial_cycles=0,data_cycles=0,div_overlap=0,older_sq_div=0;
   always @(posedge core.clk) if(core.rst_n && core.load_done) begin

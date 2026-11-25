@@ -290,7 +290,7 @@
     },
     {
       "path": "rtl/soc/rv_clint.sv",
-      "sha256": "a6da038d049466c32882ad1468048fa460808570e52e281fa5b7f5b00b2d5b33",
+      "sha256": "efe3c3b045bfd60076946a4c6a6090e86f9e6e6a29a1fc54ed6711eb0ea1a75c",
       "origin": "modified"
     },
     {
@@ -335,12 +335,17 @@
     },
     {
       "path": "rtl/soc/rv23_system_bus.sv",
-      "sha256": "c7a20b64cd3fb7a80a4a4cae6d93dae872ca8a08c04ccb4acfa0b3746a8933d4",
+      "sha256": "b3ffab0e588d2e66a485fe8970be373c55b17556e1ad0848ccef24b80a95a7c6",
+      "origin": "new"
+    },
+    {
+      "path": "rtl/soc/rv23_core.sv",
+      "sha256": "37a31be41e12971d8cf1d0ff8a514f6d80522bbc38e3ccf62e0ff9f3c6ec5a6e",
       "origin": "new"
     },
     {
       "path": "rtl/soc/rv23_soc_top.sv",
-      "sha256": "a4f576ab35cfe5315b63feac3d9957553f5fd914d112dd09777809c907a05831",
+      "sha256": "2797af17ed268bda39ac1fc300c47f5d9dda654ef54b4b774426103f6c0b2e79",
       "origin": "new"
     },
     {

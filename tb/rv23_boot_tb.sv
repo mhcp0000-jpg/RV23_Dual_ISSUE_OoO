@@ -19,7 +19,7 @@ module rv23_boot_tb;
     for(int n=0;n<2;n++) if(tv[n]) begin
       if(tt[n]) $fatal(1,"Unexpected boot trap PC=%h instruction=%h",pc[n],instruction[n]);
     end
-    if(dut.fence_i) fences<=fences+1;
+    if(dut.u_cached_core.fence_i) fences<=fences+1;
   end
   initial begin
     dbg.aw_id=0;dbg.aw_addr=0;dbg.aw_len=0;dbg.aw_size=3;dbg.aw_burst=1;
@@ -38,7 +38,7 @@ module rv23_boot_tb;
     repeat(10) begin
       @(negedge clk_i);
       if(tv!=0 || !halted) $fatal(1,"Core did not remain drained under halt trace=%b halted=%b core=%b arb=%b icache=%b dcache=%b IFstate=%0d",
-        tv,halted,dut.core_drained,dut.arb_idle,dut.i_idle,dut.d_idle,dut.u_if_adapter.active_q);
+        tv,halted,dut.u_cached_core.core_drained,dut.u_cached_core.arb_idle,dut.u_cached_core.i_idle,dut.u_cached_core.d_idle,dut.u_cached_core.u_if_adapter.active_q);
     end
     begin
       int count_before_resume;
