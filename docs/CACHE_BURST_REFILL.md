@@ -51,6 +51,27 @@ EEW8/16/32 × full/short VL × cold/warm의 12개 native vector PLIC 경계도
 핸들러의 모든 active byte 확인을 포함한다. 128바이트 cold load의
 관측 리필 주소 요청 수는 2회이며 warm load는 0회다.
 
-동일한 저장 ELF의 2회/10회 CoreMark 비교는 실행 중이며, 완료 후 별도
-source-bound snapshot에 기록한다. 코드 변경의 국소 효과를 전체 CoreMark
-개선율로 대신 표시하지 않는다.
+## 같은 ELF의 CoreMark
+
+2회 ELF SHA-256은
+`ac07f4ffa2b4e087b79893bf43427a53ad9a398fb15b47610c4b00caa0cd1597`이며,
+다시 컴파일하지 않고 저장된 ELF를 실행했다. `7e9388b`와 같은 RTL의
+완료된 baseline과 비교해 **1,761,562→1,759,805 cycles (0.09974% 감소)**,
+IPC **0.313612→0.313925**다. 명령 수 552,447과 CRC는 같다.
+
+국소 리필 시험의 약 31%를 전체 CoreMark 개선율로 해석하지 않는다.
+이 프로그램은 데이터가 작고 캐시 히트 비중이 높아 burst의 효과가 제한된다.
+다음 성능 후보는 hit 이후에도 반복되는 vector element/head 제어와
+완료 대기, 독립 ALU/메모리 작업의 중첩이다. 아직 구현/측정한 결과가 아니다.
+
+같은 저장 **10회** ELF의 SHA-256은
+`59c583cf167435f458d4186d2083fdeb4917f56e5ff71c30e8a3dd03990742e1`이며,
+2회와 같이 재컴파일하지 않았다. **8,784,522→8,783,204 cycles
+(0.01500% 감소)**, IPC **0.314427→0.314474**다. 명령 수 2,762,088과
+CRC가 같다. 개선 폭이 작아 CoreMark 관점에서는 이 변경이 주요 가속이
+아니다.
+
+[소스·실행 snapshot](evidence/cache_burst_refill.json)은 모델·ELF·실행
+로그와 SHA-256을 연결한다.
+`python scripts/audit_cache_burst_results.py --require-coremark`는 두 실행이
+모두 완료돼야 성공하며, ELF·모델·원시 로그·소스의 해시를 검사한다.

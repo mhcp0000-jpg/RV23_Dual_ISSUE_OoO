@@ -45,6 +45,15 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 [구현과 완료된 비교](VECTOR_BARE_FASTPATH.md) 및
 [소스·실행·독립 비교 근거](evidence/vector_bare_fastpath.json).
 
+## AXI burst 리필 후속 변경
+
+같은 저장 RVV **2회** ELF는 1,761,562→**1,759,805 cycles**,
+IPC **0.313925**, **0.09974% cycle 감소**다. 같은 **10회** ELF는
+8,784,522→**8,783,204 cycles**, IPC **0.314474**, **0.01500% cycle
+감소**다. 명령 수와 CRC가 두 경우 모두 같다. 32 cold-line 국소 시험의
+31.15% 감소와 전체 CoreMark 결과를 구분한다.
+[구조와 측정 범위](CACHE_BURST_REFILL.md).
+
 ## 측정 조건
 
 - upstream commit: `1f483d5b8316753a742cbf5590caf5bd0a4e4777`, 알고리즘 소스 변경 없음.
