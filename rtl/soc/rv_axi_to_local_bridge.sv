@@ -9,6 +9,7 @@ module rv_axi_to_local_bridge #(
   parameter bit TARGET_IS_DEVICE          = 1'b0,
   parameter bit ENABLE_EXCLUSIVE          = 1'b0,
   parameter bit FAIR_READ_WRITE           = 1'b0,
+  parameter bit FAST_SINGLE_WRITE         = 1'b0,
   parameter bit SECOND_TARGET_ENABLE      = 1'b0,
   parameter logic [ADDR_WIDTH-1:0] SECOND_TARGET_BASE_ADDR = '0,
   parameter int unsigned SECOND_TARGET_SIZE_KB = 1,
@@ -36,6 +37,7 @@ module rv_axi_to_local_bridge #(
 
   inbound_state_e state_q;
   logic prefer_read_q;
+  logic fast_write_q;
   logic [AXI_ID_WIDTH-1:0] axi_id_q;
   logic [ADDR_WIDTH-1:0] address_q;
   logic [7:0] burst_len_q;
@@ -143,6 +145,17 @@ module rv_axi_to_local_bridge #(
     return increment << size;
   endfunction
 
+  // Keep failed exclusives and malformed/multi-beat writes on their original
+  // paths. For a valid single beat we may issue SRAM on the W handshake
+  // and return B as soon as the SRAM confirms the store.
+  wire fast_write_data = FAST_SINGLE_WRITE && state_q==IN_WRITE_DATA &&
+    transaction_valid_q && !exclusive_q && burst_len_q==0 &&
+    axi_s.w_valid && axi_s.w_last;
+  wire fast_write_response = state_q==IN_WRITE_LOCAL_WAIT &&
+    fast_write_q && local_bus.rsp_valid;
+  wire [1:0] fast_write_code = local_bus.rsp_replay!=MEM_REPLAY_NONE ?
+    AXI_RESP_SLVERR : merge_response(write_response_q,local_bus.rsp_resp);
+
   always_comb begin
     // An uninterrupted store stream must leave a grant for a waiting read.
     axi_s.aw_ready = (state_q == IN_IDLE) &&
@@ -151,26 +164,26 @@ module rv_axi_to_local_bridge #(
       (!axi_s.aw_valid || (FAIR_READ_WRITE && prefer_read_q));
     axi_s.w_ready  = (state_q == IN_WRITE_DATA);
     axi_s.b_id     = axi_id_q;
-    axi_s.b_resp   = write_response_q;
-    axi_s.b_valid  = (state_q == IN_WRITE_RESP);
+    axi_s.b_resp   = fast_write_response ? fast_write_code : write_response_q;
+    axi_s.b_valid  = fast_write_response || (state_q == IN_WRITE_RESP);
     axi_s.r_id     = axi_id_q;
     axi_s.r_data   = read_data_q;
     axi_s.r_resp   = read_response_q;
     axi_s.r_last   = read_last_q;
     axi_s.r_valid  = (state_q == IN_READ_SEND);
 
-    local_bus.req_valid     = (state_q == IN_WRITE_LOCAL_REQ) ||
+    local_bus.req_valid     = fast_write_data || (state_q == IN_WRITE_LOCAL_REQ) ||
                               (state_q == IN_READ_LOCAL_REQ);
     local_bus.req_id        = {{(LOCAL_ID_WIDTH-AXI_ID_WIDTH){1'b0}},
                                axi_id_q};
     local_bus.req_addr      = address_q;
-    local_bus.req_write     = (state_q == IN_WRITE_LOCAL_REQ);
+    local_bus.req_write     = fast_write_data || (state_q == IN_WRITE_LOCAL_REQ);
     local_bus.req_size      = size_q;
-    local_bus.req_wdata     = write_data_q;
-    local_bus.req_wstrb     = write_strb_q;
+    local_bus.req_wdata     = fast_write_data ? axi_s.w_data : write_data_q;
+    local_bus.req_wstrb     = fast_write_data ? axi_s.w_strb : write_strb_q;
     local_bus.req_priv      = axi_privilege(prot_q);
     local_bus.req_rob_seq   = '0;
-    local_bus.req_committed = (state_q == IN_WRITE_LOCAL_REQ);
+    local_bus.req_committed = local_bus.req_write;
     local_bus.req_device    = target_is_device(address_q);
     local_bus.rsp_ready     = (state_q == IN_WRITE_LOCAL_WAIT) ||
                               (state_q == IN_READ_LOCAL_WAIT);
@@ -180,6 +193,7 @@ module rv_axi_to_local_bridge #(
     if (!rst_ni) begin
       state_q                  <= IN_IDLE;
       prefer_read_q            <= 1'b0;
+      fast_write_q             <= 1'b0;
       axi_id_q                 <= '0;
       address_q                <= '0;
       burst_len_q              <= '0;
@@ -268,6 +282,7 @@ module rv_axi_to_local_bridge #(
 
         IN_WRITE_DATA: begin
           if (axi_s.w_valid && axi_s.w_ready) begin
+            fast_write_q   <= fast_write_data;
             write_data_q   <= axi_s.w_data;
             write_strb_q   <= axi_s.w_strb;
             write_last_q   <= axi_s.w_last;
@@ -290,7 +305,8 @@ module rv_axi_to_local_bridge #(
               write_response_q <= AXI_RESP_SLVERR;
               state_q <= IN_WRITE_RESP;
             end else begin
-              state_q <= IN_WRITE_LOCAL_REQ;
+              state_q <= fast_write_data && local_bus.req_ready ?
+                IN_WRITE_LOCAL_WAIT : IN_WRITE_LOCAL_REQ;
             end
           end
         end
@@ -314,7 +330,8 @@ module rv_axi_to_local_bridge #(
                                     local_bus.rsp_resp);
 
             if (write_last_q || (beat_index_q == burst_len_q)) begin
-              state_q <= IN_WRITE_RESP;
+              // Capture the response if B is backpressured.
+              state_q <= fast_write_response && axi_s.b_ready ? IN_IDLE : IN_WRITE_RESP;
             end else begin
               beat_index_q <= beat_index_q + 1'b1;
               address_q <= address_q + beat_increment(size_q);

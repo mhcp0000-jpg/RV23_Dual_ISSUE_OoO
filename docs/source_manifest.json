@@ -260,12 +260,12 @@
     },
     {
       "path": "rtl/soc/rv_local_to_axi_bridge.sv",
-      "sha256": "79b87082643a9ea49eedce4e88941d0b04854cd4d182439d0563389670eea721",
+      "sha256": "9bdf799812184b192602fedd8dabd7074ac353aa721bc3fd5c084c343022b9a4",
       "origin": "modified"
     },
     {
       "path": "rtl/soc/rv_axi_to_local_bridge.sv",
-      "sha256": "8ccbc8ce3cbcd3218978e4c5727345ae4cebedeedd8652cd77057f04374a4669",
+      "sha256": "1a42fa5d91aafec08831c4a5f4c7f617176dc2c28c3bb32ac2ad33cda6102689",
       "origin": "modified"
     },
     {
@@ -335,7 +335,7 @@
     },
     {
       "path": "rtl/soc/rv23_system_bus.sv",
-      "sha256": "2be0d159c8a25d61768541f62f7eb65a654798ccdb2f33c484cfbd780bae608a",
+      "sha256": "c7a20b64cd3fb7a80a4a4cae6d93dae872ca8a08c04ccb4acfa0b3746a8933d4",
       "origin": "new"
     },
     {

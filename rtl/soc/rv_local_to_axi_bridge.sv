@@ -135,11 +135,13 @@ module rv_local_to_axi_bridge #(
     axi_m.aw_valid = launch_write || (((state_q == BR_WRITE_SEND) ||
                       (state_q == BR_DRAIN_WRITE_SEND)) && !aw_sent_q);
 
-    axi_m.w_data   = launch_write ? local_bus.req_wdata : write_data_q;
-    axi_m.w_strb   = launch_write ? local_bus.req_wstrb : write_strb_q;
+    // The write mux and crossbar grant W only after AW. Use the registered
+    // payload here to break the path from a SRAM snoop back to its own write.
+    axi_m.w_data   = write_data_q;
+    axi_m.w_strb   = write_strb_q;
     axi_m.w_last   = 1'b1;
-    axi_m.w_valid  = launch_write || (((state_q == BR_WRITE_SEND) ||
-                      (state_q == BR_DRAIN_WRITE_SEND)) && !w_sent_q);
+    axi_m.w_valid  = ((state_q == BR_WRITE_SEND) ||
+                      (state_q == BR_DRAIN_WRITE_SEND)) && !w_sent_q;
     axi_m.b_ready  = (state_q == BR_WRITE_RESP) ||
                      (state_q == BR_DRAIN_WRITE_RESP);
 
@@ -228,8 +230,7 @@ module rv_local_to_axi_bridge #(
               state_q         <= BR_IDLE;
             end else if (local_bus.req_write) begin
               aw_sent_q <= launch_write && aw_fire;
-              w_sent_q <= launch_write && w_fire;
-              state_q <= launch_write && aw_fire && w_fire ? BR_WRITE_RESP : BR_WRITE_SEND;
+              state_q <= BR_WRITE_SEND;
             end else if (fill_eligible) begin
               state_q <= BR_FILL_ADDR;
               fill_valid_q <= '0;
