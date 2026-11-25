@@ -32,6 +32,10 @@ translation wrapper 단계를 건너뛴다. 같은 burst 기준선보다 저장 
 CoreMark ELF 2회는 **6.81%**, 10회는 **6.832% 적은 cycles**를 사용했다.
 [구현과 측정 근거](docs/FETCH_BARE_FASTPATH.md)
 
+성공 fetch 응답을 받는 edge에 다음 요청을 함께 수락해 cycle을 추가로
+줄였다. fast-path 단계 대비 RVV CoreMark 2회 **3.631%**, 10회 **3.688%**
+감소했다. [turnover 측정과 남은 fetch 작업](docs/FETCH_RESPONSE_TURNOVER.md)
+
 전체 시스템 합성 TOP은 [`rv23_soc_top`](rtl/soc/rv23_soc_top.sv)이며,
 저장소 루트를 작업 디렉터리로 [rtl/filelist.f](rtl/filelist.f)를 읽는다.
 SystemVerilog와 `SYNTHESIS` 정의를 사용한다. 기본 XLEN=64에서 V/H/D/S/MMU가 켜진다.

@@ -48,13 +48,17 @@ module rv23_if_translate #(
   logic implicit_q,trans_implicit,trans_fault,trans_ready,trans_rsp_valid,device_q;
   logic [1:0] trans_pbmt;
   logic bare_request;
+  logic response_turnover_ready;
   // Bare M-mode and satp.MODE=0 fetches already have a physical address.
   // Skip the translation-port RESPONSE and wrapper TRANSLATE cycles, while
   // retaining the full-width physical-address fault check below.
   assign bare_request=!virtual_i &&
     ((privilege_i==2'd3) || (satp_i[63:60]==4'd0));
-  assign req_ready_o=rst_ni && !halt_i && state_q==IDLE &&
-    (bare_request || trans_ready);
+  assign response_turnover_ready=state_q==WAIT_DATA && bus_rsp_valid_i &&
+    bus_rsp_ready_o && bus_rsp_id_i==id_q && bus_rsp_resp_i==2'b00;
+  assign req_ready_o=rst_ni && !halt_i &&
+    (((state_q==IDLE) || response_turnover_ready) &&
+     (bare_request || trans_ready));
   assign idle_o=state_q==IDLE;
   assign physical_address_o=pa_q;
   assign rsp_valid_o=rst_ni && (state_q==FAULT || (state_q==WAIT_DATA && bus_rsp_valid_i));
@@ -98,7 +102,17 @@ module rv23_if_translate #(
         state_q<=trans_fault ? FAULT:ISSUE;
       end
       ISSUE:if(bus_ready_i) state_q<=WAIT_DATA;
-      WAIT_DATA:if(bus_rsp_valid_i && rsp_ready_i) state_q<=IDLE;
+      WAIT_DATA:if(bus_rsp_valid_i && rsp_ready_i) begin
+        if(req_valid_i && req_ready_o) begin
+          id_q<=req_id_i;epoch_q<=req_epoch_i;
+          guest_q<=0;implicit_q<=0;device_q<=0;cause_q<=0;
+          if(bare_request) begin
+            pa_q<=PADDR_WIDTH'(req_address_i);
+            if((req_address_i>>PADDR_WIDTH)!=0) begin cause_q<=6'd1;state_q<=FAULT;end
+            else state_q<=ISSUE;
+          end else state_q<=TRANSLATE;
+        end else state_q<=IDLE;
+      end
       FAULT:if(rsp_ready_i) state_q<=IDLE;
       default:state_q<=IDLE;
     endcase

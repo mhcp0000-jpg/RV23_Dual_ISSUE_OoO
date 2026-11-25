@@ -40,6 +40,20 @@ module rv23_if_translate_tb;
     start(64'h80002000,4'h3,4'hc);wait(bus_valid);@(negedge clk);bus_ready=1;@(negedge clk);bus_ready=0;
     returned_id=3;returned_epoch=4'hb;bus_response=1;#1;
     if(rsp_epoch!=4'hb)$fatal(1,"stale external epoch hidden");consume();
+    // Consume a successful fetch response and accept the next bare block on
+    // that same edge; the following request must already be in ISSUE.
+    start(64'h80004000,4'h6,4'h2);wait(bus_valid);
+    @(negedge clk);bus_ready=1;@(negedge clk);bus_ready=0;
+    returned_id=6;returned_epoch=2;bus_response=1;response_ready=1;
+    address=64'h80004010;id=4'h7;epoch=4'h2;request=1;#1;
+    if(!response || !ready || !bus_rsp_ready)$fatal(1,"Fetch response turnover not ready");
+    @(posedge clk);#1;
+    if(response || !bus_valid || bus_address!=32'h80004010 || bus_id!=7)
+      $fatal(1,"Next fetch was not issued on response turnover");
+    @(negedge clk);request=0;response_ready=0;bus_ready=1;@(negedge clk);bus_ready=0;
+    returned_id=7;returned_epoch=2;bus_response=1;#1;
+    if(!response || rsp_id!=7)$fatal(1,"Turnover response identity");
+    consume();
     // A non-bare virtual request must still pass through translation and
     // cannot issue a physical bus request before translation completes.
     force dut.virtual_i=1'b1;
@@ -49,5 +63,5 @@ module rv23_if_translate_tb;
     release dut.virtual_i;
     $display("PASS rv23_if_translate_tb checks=%0d actual/stale response identity and local fault ownership",checks);$finish;
   end
-  initial begin #100000;$fatal(1,"IF translation protocol timeout");end
+  initial begin #100000;$fatal(1,"IF translation protocol timeout state=%0d req=%b ready=%b bus=%b rsp=%b busrsp=%b",dut.state_q,request,ready,bus_valid,response,bus_rsp_ready);end
 endmodule
