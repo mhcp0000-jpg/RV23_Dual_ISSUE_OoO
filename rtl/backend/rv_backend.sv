@@ -85,6 +85,7 @@ module rv_backend #(
   input logic [1:0][63:0] fetch_guest_address_i='0,
   input logic [1:0] fetch_implicit_guest_access_i='0,
   output logic redirect_valid_o, output logic [XLEN-1:0] redirect_pc_o,
+  output logic architectural_flush_o,
   output logic [1:0] dmem_req_valid_o, input logic [1:0] dmem_req_ready_i,
   output logic [1:0][5:0] dmem_req_id_o,
   output logic [1:0] dmem_req_write_o,
@@ -414,6 +415,7 @@ module rv_backend #(
 
   // Recovery/retirement signals are declared early because rename owns RRAT.
   logic flush_valid, flush_all;
+  assign architectural_flush_o=flush_valid && flush_all;
   logic [ROB_SEQ_WIDTH-1:0] flush_sequence;
   logic cp_restore_valid, cp_release_valid;
   logic [CP_WIDTH-1:0] cp_restore_id, cp_release_id;

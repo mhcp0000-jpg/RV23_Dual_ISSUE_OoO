@@ -61,6 +61,7 @@ def main():
     parser.add_argument('--variants', choices=VARIANTS, nargs='+', default=list(VARIANTS))
     parser.add_argument('--reuse-elf-report', type=Path,
                         help='Path to prior report.json; reuse its adjacent ELF after checking the hash')
+    parser.add_argument('--no-trace', action='store_true', help='Skip the commit CSV for fixed ELF timing comparisons')
     parser.add_argument('--resume', action='store_true', help='Reuse only content-matching completed runs')
     args = parser.parse_args()
     assert all(n >= 2 for n in args.iterations)
@@ -78,13 +79,17 @@ def main():
     result = dict(passed=False, certified_score=False, model=model, inputs=inputs,
         driver_sha256=sha(__file__), compiler_sha256=sha(GCC / 'riscv-none-elf-gcc.exe'),
         upstream_commit=provenance['commit'], cases=[])
+    report_path = FOLDER / 'report.json'
     previous = {}
     fixed = {}
     if args.reuse_elf_report:
         reference = args.reuse_elf_report.resolve()
+        if reference == report_path.resolve():
+            parser.error('The reference report must be outside the output folder')
+        if args.resume:
+            parser.error('--reuse-elf-report and --resume are separate run modes')
         for row in json.loads(reference.read_bytes())['cases']:
             fixed[row['variant'], row['iterations']] = row
-    report_path = FOLDER / 'report.json'
     if args.resume and report_path.exists():
         old = json.loads(report_path.read_bytes())
         assert old['model'] == model and old['inputs'] == inputs
@@ -125,6 +130,7 @@ def main():
                     continue
                 if args.reuse_elf_report:
                     reference_case = fixed[variant, iterations]
+                    assert reference_case['run']['passed']
                     payload = (reference.parent / folder.name / 'coremark.elf').read_bytes()
                     assert hashlib.sha256(payload).hexdigest() == reference_case['elf_sha256']
                     elf.write_bytes(payload)
@@ -136,7 +142,7 @@ def main():
                 text = subprocess.check_output([str(GCC / 'riscv-none-elf-objdump.exe'), '-d', elf.relative_to(ROOT).as_posix()], text=True)
                 disassembly.write_text(text, encoding='utf-8')
                 static_vector = re.findall(r'^\s*[\da-f]+:\s+[\da-f]+\s+(v\S+)', text, re.M)
-                trace = folder / 'commit.csv' if iterations == min(args.iterations) else None
+                trace = folder / 'commit.csv' if not args.no_trace and iterations == min(args.iterations) else None
                 run, log = sim.run([ROOT / model['binary'], f'+elf={elf.relative_to(ROOT).as_posix()}',
                     *(['+trace_file=' + trace.relative_to(ROOT).as_posix()] if trace else []), '+quiet_commit',
                     f'+timeout_cycles={iterations * 10000000}', '+expected_exit_code=0'], folder / 'simulation.log', max(1800, iterations * 500))
