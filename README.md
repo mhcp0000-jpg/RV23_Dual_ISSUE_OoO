@@ -28,9 +28,9 @@
 [구현과 측정 범위](docs/CACHE_BURST_REFILL.md)
 
 Bare M-mode/`satp.MODE=0` 명령 fetch는 이미 물리 주소이므로 불필요한
-translation wrapper 단계를 건너뛴다. 고정 2회 RVV CoreMark ELF는 같은
-burst 기준선보다 **6.81% 적은 cycles**를 사용했다. 동일 ELF 10회 확인은
-실행 중이다. [구현과 측정 조건](docs/FETCH_BARE_FASTPATH.md)
+translation wrapper 단계를 건너뛴다. 같은 burst 기준선보다 저장 RVV
+CoreMark ELF 2회는 **6.81%**, 10회는 **6.832% 적은 cycles**를 사용했다.
+[구현과 측정 근거](docs/FETCH_BARE_FASTPATH.md)
 
 전체 시스템 합성 TOP은 [`rv23_soc_top`](rtl/soc/rv23_soc_top.sv)이며,
 저장소 루트를 작업 디렉터리로 [rtl/filelist.f](rtl/filelist.f)를 읽는다.

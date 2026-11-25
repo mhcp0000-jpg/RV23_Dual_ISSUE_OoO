@@ -15,9 +15,12 @@ access fault(원인 1)로 반환한다. MMU가 켜진 S/U/guest 요청은 기존
 - bare fetch path: 1,639,889 cycles, IPC 0.336881.
 - cycle 감소 6.814%; 명령 수 552,447, CRC `[e9f5,e714,1fd7,8e3a]` 동일.
 
-이는 동일한 고정 ELF와 동일한 burst RTL 기준선 간의 Verilator cycle
-비교다. 합성 Fmax나 공식 CoreMark 점수가 아니다. 10회 동일 ELF는
-실행 중이며, 결과 보고서에 완료되기 전까지 개선 확정 근거로 쓰지 않는다.
+같은 10회 RVV ELF는 **8,783,204→8,183,137 cycles
+(6.832% 감소)**, IPC **0.314474→0.337534**다. 명령 수 2,762,088과
+CRC `[e9f5,e714,1fd7,8e3a]`가 동일하다. 2회와 10회 모두 저장 ELF를
+그대로 사용했다. 합성 Fmax나 공식 CoreMark 점수가 아니다.
+
+[원시 실행 및 모델·ELF 해시](evidence/fetch_bare_fastpath.json).
 
 검증: `run_if_translation_checks.py`의 실제 응답 ID/epoch, stale epoch,
 상위 물리 주소 fault와 bare fast-path 시점 확인; XLEN64 H/V native
