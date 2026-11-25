@@ -13,7 +13,7 @@ from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 
 
 BENCH = 'sw/benchmarks/coremark/'
-FOLDER = ROOT / 'out/performance/rv64_coremark'
+DEFAULT_OUTPUT = 'out/performance/rv64_coremark'
 VARIANTS = {'o2_scalar': ['-O2', '-fno-tree-vectorize'],
             'o3_scalar': ['-O3', '-fno-tree-vectorize'],
             'o3_rvv': ['-O3', '-ftree-vectorize', '-fvect-cost-model=dynamic', '-mrvv-vector-bits=zvl']}
@@ -58,12 +58,16 @@ def analyze_trace(trace, elf):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--iterations', type=int, nargs='+', default=[2, 10])
+    parser.add_argument('--output-dir', type=Path, default=Path(DEFAULT_OUTPUT))
     parser.add_argument('--variants', choices=VARIANTS, nargs='+', default=list(VARIANTS))
     parser.add_argument('--reuse-elf-report', type=Path,
                         help='Path to prior report.json; reuse its adjacent ELF after checking the hash')
     parser.add_argument('--no-trace', action='store_true', help='Skip the commit CSV for fixed ELF timing comparisons')
     parser.add_argument('--resume', action='store_true', help='Reuse only content-matching completed runs')
     args = parser.parse_args()
+    FOLDER = (ROOT / args.output_dir).resolve()
+    if not FOLDER.is_relative_to(ROOT):
+        parser.error('--output-dir must be inside this worktree')
     assert all(n >= 2 for n in args.iterations)
     FOLDER.mkdir(parents=True, exist_ok=True)
     provenance = json.loads((ROOT / BENCH / 'upstream/PROVENANCE.json').read_bytes())
