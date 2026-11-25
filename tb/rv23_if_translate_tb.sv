@@ -4,7 +4,7 @@ module rv23_if_translate_tb;
   logic rst_n=0,request=0,ready,response,response_ready=0,bus_valid,bus_ready=0,bus_response=0,bus_rsp_ready;
   logic [63:0] address=0;
   logic [3:0] id=0,epoch=0,rsp_id,rsp_epoch,bus_id,bus_epoch,returned_id=0,returned_epoch=0;
-  logic [31:0] bus_address;
+  logic [31:0] bus_address,physical_address;
   logic [127:0] data=0,rsp_data;
   logic [1:0] resp=0,rsp_resp;
   logic [5:0] cause;
@@ -14,6 +14,7 @@ module rv23_if_translate_tb;
     .privilege_i(2'd3),.virtual_i(1'b0),.mxr_i(1'b0),.hs_mxr_i(1'b0),.pbmt_enable_i(1'b0),.guest_pbmt_enable_i(1'b0),
     .satp_i(64'b0),.vsatp_i(64'b0),.hgatp_i(64'b0),.rsp_valid_o(response),.rsp_ready_i(response_ready),
     .rsp_id_o(rsp_id),.rsp_epoch_o(rsp_epoch),.rsp_data_o(rsp_data),.rsp_resp_o(rsp_resp),.rsp_cause_o(cause),
+    .physical_address_o(physical_address),
     .bus_valid_o(bus_valid),.bus_ready_i(bus_ready),.bus_address_o(bus_address),.bus_id_o(bus_id),.bus_epoch_o(bus_epoch),
     .bus_rsp_valid_i(bus_response),.bus_rsp_ready_o(bus_rsp_ready),.bus_rsp_id_i(returned_id),.bus_rsp_epoch_i(returned_epoch),
     .bus_rsp_data_i(data),.bus_rsp_resp_i(resp),.mem_ready_i(1'b0),.mem_response_valid_i(1'b0),.mem_response_data_i(64'b0),.mem_response_error_i(1'b0));
@@ -45,12 +46,14 @@ module rv23_if_translate_tb;
     start(64'h80004000,4'h6,4'h2);wait(bus_valid);
     @(negedge clk);bus_ready=1;@(negedge clk);bus_ready=0;
     returned_id=6;returned_epoch=2;bus_response=1;response_ready=1;
-    address=64'h80004010;id=4'h7;epoch=4'h2;request=1;#1;
-    if(!response || !ready || !bus_rsp_ready)$fatal(1,"Fetch response turnover not ready");
+    address=64'h80004010;id=4'h7;epoch=4'h2;request=1;bus_ready=1;#1;
+    if(!response || !ready || !bus_rsp_ready || !bus_valid ||
+       bus_address!=32'h80004010 || bus_id!=7 || physical_address!=32'h80004000)
+      $fatal(1,"Direct issue or old response PMP address was lost");
     @(posedge clk);#1;
-    if(response || !bus_valid || bus_address!=32'h80004010 || bus_id!=7)
-      $fatal(1,"Next fetch was not issued on response turnover");
-    @(negedge clk);request=0;response_ready=0;bus_ready=1;@(negedge clk);bus_ready=0;
+    if(bus_valid || physical_address!=32'h80004010)
+      $fatal(1,"Direct issue duplicated or failed to capture its PMP address");
+    @(negedge clk);request=0;response_ready=0;bus_ready=0;
     returned_id=7;returned_epoch=2;bus_response=1;#1;
     if(!response || rsp_id!=7)$fatal(1,"Turnover response identity");
     consume();

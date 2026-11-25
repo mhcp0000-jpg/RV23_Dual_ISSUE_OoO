@@ -3,7 +3,9 @@ import argparse
 import bisect
 import collections
 import csv
+import hashlib
 import json
+from pathlib import Path
 import re
 import subprocess
 
@@ -56,6 +58,9 @@ def analyze_trace(trace, elf):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--iterations', type=int, nargs='+', default=[2, 10])
+    parser.add_argument('--variants', choices=VARIANTS, nargs='+', default=list(VARIANTS))
+    parser.add_argument('--reuse-elf-report', type=Path,
+                        help='Path to prior report.json; reuse its adjacent ELF after checking the hash')
     parser.add_argument('--resume', action='store_true', help='Reuse only content-matching completed runs')
     args = parser.parse_args()
     assert all(n >= 2 for n in args.iterations)
@@ -74,6 +79,11 @@ def main():
         driver_sha256=sha(__file__), compiler_sha256=sha(GCC / 'riscv-none-elf-gcc.exe'),
         upstream_commit=provenance['commit'], cases=[])
     previous = {}
+    fixed = {}
+    if args.reuse_elf_report:
+        reference = args.reuse_elf_report.resolve()
+        for row in json.loads(reference.read_bytes())['cases']:
+            fixed[row['variant'], row['iterations']] = row
     report_path = FOLDER / 'report.json'
     if args.resume and report_path.exists():
         old = json.loads(report_path.read_bytes())
@@ -86,7 +96,8 @@ def main():
             previous[row['variant'], row['iterations']] = row
     with Simulator() as sim:
         for iterations in args.iterations:
-            for variant, options in VARIANTS.items():
+            for variant in args.variants:
+                options = VARIANTS[variant]
                 folder = FOLDER / f'{variant}_{iterations}'
                 folder.mkdir(parents=True, exist_ok=True)
                 elf, disassembly = folder / 'coremark.elf', folder / 'disassembly.txt'
@@ -112,7 +123,15 @@ def main():
                     dump(report_path, result)
                     print('REUSED', variant, iterations, cached['cycles'], flush=True)
                     continue
-                build, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', *flags, '-o', elf], folder / 'compile.log', 120)
+                if args.reuse_elf_report:
+                    reference_case = fixed[variant, iterations]
+                    payload = (reference.parent / folder.name / 'coremark.elf').read_bytes()
+                    assert hashlib.sha256(payload).hexdigest() == reference_case['elf_sha256']
+                    elf.write_bytes(payload)
+                    build = dict(reused_elf=True, reference_report_sha256=sha(reference))
+                    flags = reference_case['flags']
+                else:
+                    build, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', *flags, '-o', elf], folder / 'compile.log', 120)
                 digest = sha(elf)
                 text = subprocess.check_output([str(GCC / 'riscv-none-elf-objdump.exe'), '-d', elf.relative_to(ROOT).as_posix()], text=True)
                 disassembly.write_text(text, encoding='utf-8')
@@ -128,6 +147,8 @@ def main():
                 assert len(packet) == 12 and packet[1] == iterations
                 assert packet[6:10] == [0xe9f5, 0xe714, 0x1fd7, 0x8e3a] and packet[11] & 0x17 == 1, packet
                 cycles, instructions = packet[2] + (packet[3] << 32), packet[4] + (packet[5] << 32)
+                if args.reuse_elf_report:
+                    assert instructions == reference_case['instructions']
                 row = dict(variant=variant, iterations=iterations, driver_sha256=result['driver_sha256'], cycles=cycles, instructions=instructions,
                     ipc=instructions / cycles, coremark_per_mhz_estimate=iterations * 1000000 / cycles,
                     packet=packet, elf_sha256=digest, flags=flags, compile=build, run=run,
