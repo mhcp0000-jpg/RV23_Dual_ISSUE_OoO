@@ -49,6 +49,7 @@ module rv_backend #(
 ) (
   output logic cbo_memory_read_o,
   output logic cbo_memory_device_o,
+  output logic cbo_memory_use_dcache_o,
   output logic [2:0] cbo_memory_size_o,
   output logic [63:0] cbo_memory_data_o,
   output logic [7:0] cbo_memory_strobe_o,
@@ -84,6 +85,7 @@ module rv_backend #(
   input logic [1:0][63:0] fetch_guest_address_i='0,
   input logic [1:0] fetch_implicit_guest_access_i='0,
   output logic redirect_valid_o, output logic [XLEN-1:0] redirect_pc_o,
+  output logic architectural_flush_o,
   output logic [1:0] dmem_req_valid_o, input logic [1:0] dmem_req_ready_i,
   output logic [1:0][5:0] dmem_req_id_o,
   output logic [1:0] dmem_req_write_o,
@@ -413,6 +415,7 @@ module rv_backend #(
 
   // Recovery/retirement signals are declared early because rename owns RRAT.
   logic flush_valid, flush_all;
+  assign architectural_flush_o=flush_valid && flush_all;
   logic [ROB_SEQ_WIDTH-1:0] flush_sequence;
   logic cp_restore_valid, cp_release_valid;
   logic [CP_WIDTH-1:0] cp_restore_id, cp_release_id;
@@ -1116,7 +1119,11 @@ module rv_backend #(
     int_read_addr[6]=retire_dst_phys[0];
     int_read_addr[7]=head_is_csr_instruction ? rob_head_src0_phys :
                                                retire_dst_phys[1];
-    fp_read_addr[6]=retire_dst_phys[0]; fp_read_addr[7]=head_is_vector?rob_head_src0_phys:
+    fp_read_addr[6]=retire_dst_phys[0];
+    // After acceptance the vector owner holds its scalar FP operand.
+    // Release this port for a younger FP result retiring in lane 1.
+    fp_read_addr[7]=(head_is_vector && !vector_active_q &&
+      vector_head_decode.scalar_source_fp[0])?rob_head_src0_phys:
       ((assist_eligible || assist_active_q || (head_is_guest_memory && guest_fp && guest_store))?rob_head_src1_phys:retire_dst_phys[1]);
   end
 
@@ -2304,6 +2311,7 @@ module rv_backend #(
   assign cbo_write_address_o=guest_active_q?guest_memory_address:(vector_active_q?vector_memory_address:(assist_active_q?assist_memory_address:cbo_internal_write_address_o));
   assign cbo_write_response_ready_o=guest_active_q?guest_memory_response_ready:(vector_active_q?vector_memory_response_ready:(assist_active_q?assist_memory_response_ready:cbo_internal_write_response_ready_o));
   assign cbo_memory_read_o=guest_active_q?!guest_memory_write:(vector_active_q?!vector_memory_write:(assist_active_q && !assist_memory_write));
+  assign cbo_memory_use_dcache_o=guest_active_q || vector_active_q || assist_active_q;
   assign cbo_memory_size_o=guest_active_q?guest_memory_size:(vector_active_q?vector_memory_size:(assist_active_q?3'd0:3'd3));
   assign cbo_memory_data_o=guest_active_q?guest_memory_data:(vector_active_q?vector_memory_data:(assist_active_q?assist_memory_data:64'b0));
   assign cbo_memory_strobe_o=guest_active_q?guest_memory_strobe:(vector_active_q?vector_memory_strobe:(assist_active_q?assist_memory_strobe:8'hff));
@@ -2394,7 +2402,10 @@ module rv_backend #(
     else if(vector_start && vector_request_ready)vector_active_q<=1;
   end
   if(HAS_V)begin:g_vector_head
-    assign vector_start=head_special_request && head_is_vector && !vector_active_q && lsu_memory_idle &&
+    // Non-memory vector execution can overlap accepted scalar traffic.
+    // Queued MMIO alone is idle; memory vectors retain the drain boundary.
+    assign vector_start=head_special_request && head_is_vector && !vector_active_q &&
+      (!vector_head_decode.memory || lsu_memory_idle) &&
       (!vector_head_decode.scalar_source_used[0] ||
         (vector_head_decode.scalar_source_fp[0]?fp_read_ready[7]:int_read_ready[ATOMIC_READ_BASE])) &&
       (!vector_head_decode.scalar_source_used[1] || int_read_ready[ATOMIC_READ_BASE+1]);
@@ -3057,11 +3068,13 @@ module rv_backend #(
   logic system_wake_valid_q;
   reg_class_e system_wake_class_q;
   logic [PHYS_TAG_WIDTH-1:0] system_wake_phys_q;
+  logic [XLEN-1:0] system_wake_data_q;
   always_ff @(posedge clk_i) begin
     if (!rst_ni) begin
       system_wake_valid_q <= 1'b0;
       system_wake_class_q <= REG_NONE;
       system_wake_phys_q <= '0;
+      system_wake_data_q <= '0;
     end else begin
       system_wake_valid_q <= wb_source_valid[SYSTEM_SOURCE] &&
         wb_source_ready[SYSTEM_SOURCE] && wb_source_live[SYSTEM_SOURCE] &&
@@ -3070,6 +3083,7 @@ module rv_backend #(
         (wb_source_dst_class[SYSTEM_SOURCE] != REG_NONE);
       system_wake_class_q <= wb_source_dst_class[SYSTEM_SOURCE];
       system_wake_phys_q <= wb_source_dst_phys[SYSTEM_SOURCE];
+      system_wake_data_q <= wb_source_data[SYSTEM_SOURCE];
     end
   end
 
@@ -3112,7 +3126,10 @@ module rv_backend #(
     direct_wake_valid[DIRECT_BYPASS_PORTS] = system_wake_valid_q;
     direct_wake_class[DIRECT_BYPASS_PORTS] = system_wake_class_q;
     direct_wake_phys[DIRECT_BYPASS_PORTS]  = system_wake_phys_q;
-    direct_wake_data[DIRECT_BYPASS_PORTS]  = '0;
+    // Head results can now have waiting scalar consumers. IQ operand
+    // caches need the real value, even though PRF bypass reads may use
+    // the already-written physical register on this delayed wake cycle.
+    direct_wake_data[DIRECT_BYPASS_PORTS]  = system_wake_data_q;
   end
 
 `ifndef SYNTHESIS

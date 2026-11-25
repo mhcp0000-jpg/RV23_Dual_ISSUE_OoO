@@ -1,7 +1,8 @@
 // One vector element's integer/fixed-point math. Vector register ownership,
 // masks, restart, permutations and instruction legality belong to the engine.
 module rv_vector_integer_alu #(
-  parameter int unsigned WIDTH=32
+  parameter int unsigned WIDTH=32,
+  parameter bit EXTERNAL_DIVIDE=0
 )(
   input rv_vector_decode_pkg::vector_integer_operation_e operation_i,
   input logic [63:0] operand_a_i,operand_b_i,accumulator_i,
@@ -111,10 +112,10 @@ module rv_vector_integer_alu #(
         value=($signed(product)>>>(WIDTH-1))+$signed(128'(increment(product,WIDTH-1,rounding_i)));
         clip_signed=1;
       end
-      VI_VDIVU:value=b==0?$signed(MASK):$signed(a/b);
-      VI_VDIV:value=sb==0?$signed(MASK):sa/sb;
-      VI_VREMU:value=b==0?$signed(a):$signed(a%b);
-      VI_VREM:value=sb==0?sa:sa%sb;
+      VI_VDIVU:if(!EXTERNAL_DIVIDE)value=b==0?$signed(MASK):$signed(a/b);
+      VI_VDIV:if(!EXTERNAL_DIVIDE)value=sb==0?$signed(MASK):sa/sb;
+      VI_VREMU:if(!EXTERNAL_DIVIDE)value=b==0?$signed(a):$signed(a%b);
+      VI_VREM:if(!EXTERNAL_DIVIDE)value=sb==0?sa:sa%sb;
       VI_VMUL,VI_VWMULU:begin product=a*b;value=$signed(product);widen=operation_i==VI_VWMULU;end
       VI_VMULHU:begin product=a*b;value=$signed(product>>WIDTH);end
       VI_VMULHSU:begin product=128'(sa*$signed(b));value=$signed(product)>>WIDTH;end

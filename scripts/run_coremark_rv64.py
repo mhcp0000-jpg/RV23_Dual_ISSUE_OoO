@@ -3,7 +3,9 @@ import argparse
 import bisect
 import collections
 import csv
+import hashlib
 import json
+from pathlib import Path
 import re
 import subprocess
 
@@ -11,7 +13,7 @@ from sim_runner import GCC, ROOT, Simulator, dump, sha, source_inputs
 
 
 BENCH = 'sw/benchmarks/coremark/'
-FOLDER = ROOT / 'out/performance/rv64_coremark'
+DEFAULT_OUTPUT = 'out/performance/rv64_coremark'
 VARIANTS = {'o2_scalar': ['-O2', '-fno-tree-vectorize'],
             'o3_scalar': ['-O3', '-fno-tree-vectorize'],
             'o3_rvv': ['-O3', '-ftree-vectorize', '-fvect-cost-model=dynamic', '-mrvv-vector-bits=zvl']}
@@ -56,8 +58,16 @@ def analyze_trace(trace, elf):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--iterations', type=int, nargs='+', default=[2, 10])
+    parser.add_argument('--output-dir', type=Path, default=Path(DEFAULT_OUTPUT))
+    parser.add_argument('--variants', choices=VARIANTS, nargs='+', default=list(VARIANTS))
+    parser.add_argument('--reuse-elf-report', type=Path,
+                        help='Path to prior report.json; reuse its adjacent ELF after checking the hash')
+    parser.add_argument('--no-trace', action='store_true', help='Skip the commit CSV for fixed ELF timing comparisons')
     parser.add_argument('--resume', action='store_true', help='Reuse only content-matching completed runs')
     args = parser.parse_args()
+    FOLDER = (ROOT / args.output_dir).resolve()
+    if not FOLDER.is_relative_to(ROOT):
+        parser.error('--output-dir must be inside this worktree')
     assert all(n >= 2 for n in args.iterations)
     FOLDER.mkdir(parents=True, exist_ok=True)
     provenance = json.loads((ROOT / BENCH / 'upstream/PROVENANCE.json').read_bytes())
@@ -73,8 +83,17 @@ def main():
     result = dict(passed=False, certified_score=False, model=model, inputs=inputs,
         driver_sha256=sha(__file__), compiler_sha256=sha(GCC / 'riscv-none-elf-gcc.exe'),
         upstream_commit=provenance['commit'], cases=[])
-    previous = {}
     report_path = FOLDER / 'report.json'
+    previous = {}
+    fixed = {}
+    if args.reuse_elf_report:
+        reference = args.reuse_elf_report.resolve()
+        if reference == report_path.resolve():
+            parser.error('The reference report must be outside the output folder')
+        if args.resume:
+            parser.error('--reuse-elf-report and --resume are separate run modes')
+        for row in json.loads(reference.read_bytes())['cases']:
+            fixed[row['variant'], row['iterations']] = row
     if args.resume and report_path.exists():
         old = json.loads(report_path.read_bytes())
         assert old['model'] == model and old['inputs'] == inputs
@@ -86,7 +105,8 @@ def main():
             previous[row['variant'], row['iterations']] = row
     with Simulator() as sim:
         for iterations in args.iterations:
-            for variant, options in VARIANTS.items():
+            for variant in args.variants:
+                options = VARIANTS[variant]
                 folder = FOLDER / f'{variant}_{iterations}'
                 folder.mkdir(parents=True, exist_ok=True)
                 elf, disassembly = folder / 'coremark.elf', folder / 'disassembly.txt'
@@ -112,12 +132,21 @@ def main():
                     dump(report_path, result)
                     print('REUSED', variant, iterations, cached['cycles'], flush=True)
                     continue
-                build, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', *flags, '-o', elf], folder / 'compile.log', 120)
+                if args.reuse_elf_report:
+                    reference_case = fixed[variant, iterations]
+                    assert reference_case['run']['passed']
+                    payload = (reference.parent / folder.name / 'coremark.elf').read_bytes()
+                    assert hashlib.sha256(payload).hexdigest() == reference_case['elf_sha256']
+                    elf.write_bytes(payload)
+                    build = dict(reused_elf=True, reference_report_sha256=sha(reference))
+                    flags = reference_case['flags']
+                else:
+                    build, _ = sim.run([GCC / 'riscv-none-elf-gcc.exe', *flags, '-o', elf], folder / 'compile.log', 120)
                 digest = sha(elf)
                 text = subprocess.check_output([str(GCC / 'riscv-none-elf-objdump.exe'), '-d', elf.relative_to(ROOT).as_posix()], text=True)
                 disassembly.write_text(text, encoding='utf-8')
                 static_vector = re.findall(r'^\s*[\da-f]+:\s+[\da-f]+\s+(v\S+)', text, re.M)
-                trace = folder / 'commit.csv' if iterations == min(args.iterations) else None
+                trace = folder / 'commit.csv' if not args.no_trace and iterations == min(args.iterations) else None
                 run, log = sim.run([ROOT / model['binary'], f'+elf={elf.relative_to(ROOT).as_posix()}',
                     *(['+trace_file=' + trace.relative_to(ROOT).as_posix()] if trace else []), '+quiet_commit',
                     f'+timeout_cycles={iterations * 10000000}', '+expected_exit_code=0'], folder / 'simulation.log', max(1800, iterations * 500))
@@ -128,6 +157,8 @@ def main():
                 assert len(packet) == 12 and packet[1] == iterations
                 assert packet[6:10] == [0xe9f5, 0xe714, 0x1fd7, 0x8e3a] and packet[11] & 0x17 == 1, packet
                 cycles, instructions = packet[2] + (packet[3] << 32), packet[4] + (packet[5] << 32)
+                if args.reuse_elf_report:
+                    assert instructions == reference_case['instructions']
                 row = dict(variant=variant, iterations=iterations, driver_sha256=result['driver_sha256'], cycles=cycles, instructions=instructions,
                     ipc=instructions / cycles, coremark_per_mhz_estimate=iterations * 1000000 / cycles,
                     packet=packet, elf_sha256=digest, flags=flags, compile=build, run=run,

@@ -179,6 +179,7 @@ def recheck_integration(linux_variant, require_linux_supm):
         ('audit_profile_contracts.py', [], 'out/rva23/contract_evidence.json'),
         ('run_fence_order.py', ['--check'], 'out/rva23/fence_order/report.json'),
         ('audit_scalar_vector_order.py', [], 'out/rva23/scalar_vector_order_audit.json'),
+        ('audit_vector_scalar_overlap.py', [], 'out/rva23/vector_scalar_overlap_audit.json'),
         ('audit_rv64m_contract.py', [], 'out/rva23/rv64m_contract_audit.json'),
         ('audit_rv64b_contract.py', [], 'out/rva23/rv64b_contract_audit.json'),
         ('audit_rv64c_contract.py', [], 'out/rva23/rv64c_contract_audit.json'),

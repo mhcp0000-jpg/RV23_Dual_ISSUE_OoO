@@ -37,7 +37,8 @@ module rv23_system_bus #(
   );
   rv_axi_to_local_bridge #(.AXI_ID_WIDTH(6),
     .TARGET_BASE_ADDR(rv23_pkg::SRAM_BASE),.TARGET_SIZE_KB(rv23_pkg::SRAM_KB),
-    .TARGET_IS_DEVICE(0),.ENABLE_EXCLUSIVE(1)) u_sram_bridge (
+    .TARGET_IS_DEVICE(0),.ENABLE_EXCLUSIVE(1),.FAIR_READ_WRITE(1),
+    .FAST_SINGLE_WRITE(1)) u_sram_bridge (
     .clk_i,.rst_ni,.axi_s(sram_axi),.local_bus(sram_local)
   );
   rv23_sram #(.INIT_FILE(SRAM_INIT_FILE)) u_sram (

@@ -1,5 +1,13 @@
 # CoreMark 성능과 개선 후보
 
+이 문서의 기존 CoreMark 표는 vector pipeline/cache 재작업 전 기록이다.
+현재 반복 preflight·완료 bubble 축소와 같은 ELF 진단 결과는
+[VECTOR_PIPELINE_REWORK.md](VECTOR_PIPELINE_REWORK.md)에 별도로 기록한다.
+같은 10회 RVV ELF의 최종 비교는 **11,525,110→10,270,851 cycles**로
+10.88% 감소했다. IPC 0.239658→0.268925, CoreMark/MHz
+추정치 0.973629. CRC 및 명령 수 2,762,088은 같다.
+[이번 변경의 측정 근거](evidence/vector_fastpath.json).
+
 현재 RV64 H/V SoC에서 같은 upstream 소스·LP64D ABI·메모리 구성으로
 O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측정과
 새 RV64 측정은 서로 다른 ELF이므로 별도 표로 다룬다.
@@ -7,6 +15,44 @@ O2 스칼라, O3 스칼라, O3 자동 벡터화를 측정한다. 기존 RV32 측
 이 결과는 짧은 RTL 실행의 CoreMark/MHz 추정치다. EEMBC의 최소 실행
 시간과 검증 절차를 완료한 공식 점수가 아니다.
 [공식 실행·보고 규칙](https://github.com/eembc/coremark/blob/1f483d5b8316753a742cbf5590caf5bd0a4e4777/README.md)
+
+## 후속 non-memory vector/scalar 중첩
+
+같은 10회 RVV ELF는 **10,270,851→9,243,916 cycles**, 추가
+**10.00% 감소**했다. IPC **0.298801**, CoreMark/MHz 추정
+**1.081793**다. CRC와 명령 수는 같다.
+[현재 구조·회귀·성능](VECTOR_SCALAR_OVERLAP.md) 및 [snapshot](evidence/vector_scalar_overlap.json).
+
+## 후속 확장 batch와 memory issue
+
+`009b013` RTL에서 같은 10회 ELF는 **9,243,916→9,054,053 cycles**,
+추가 **2.05% 감소**를 확인했다. 명령 수 2,762,088과 CRC가 같고 IPC는
+**0.305066**, CoreMark/MHz 추정치는 **1.104478**이다. 같은 2회 ELF도
+1,853,468→1,815,477 cycles로 2.05% 감소했다.
+[구조·진단](VECTOR_EXTENSION_BATCH.md) 및 [snapshot](evidence/vector_extension_batch.json).
+이후의 word-load coalescing 후보 측정과 구분한다.
+
+## 통합된 load grouping과 host Bare 경로
+
+`672f061`의 10회는 9,049,013 cycles였고, `2d123d4`의 Bare fast path까지
+적용한 같은 ELF는 **8,784,522 cycles / IPC 0.314427 / CoreMark/MHz 추정
+1.138366**이다. 명령 수 2,762,088과 CRC가 같다. Bare 단계만 **2.9229%**,
+`009b013` 이후 두 단계를 합하면 **2.9769% cycle 감소**다.
+
+성능 개선 착수 전 `9332f6c` 대비 **23.78%**, 최초 `802e2e1` 대비
+**22.92% 감소**했다. O2/O3 scalar 행은 과거 참조값이며 다시 측정했다고
+표시하지 않는다. 실제 합성 주파수나 공식 인증 점수도 아니다.
+[구현과 완료된 비교](VECTOR_BARE_FASTPATH.md) 및
+[소스·실행·독립 비교 근거](evidence/vector_bare_fastpath.json).
+
+## AXI burst 리필 후속 변경
+
+같은 저장 RVV **2회** ELF는 1,761,562→**1,759,805 cycles**,
+IPC **0.313925**, **0.09974% cycle 감소**다. 같은 **10회** ELF는
+8,784,522→**8,783,204 cycles**, IPC **0.314474**, **0.01500% cycle
+감소**다. 명령 수와 CRC가 두 경우 모두 같다. 32 cold-line 국소 시험의
+31.15% 감소와 전체 CoreMark 결과를 구분한다.
+[구조와 측정 범위](CACHE_BURST_REFILL.md).
 
 ## 측정 조건
 
@@ -127,7 +173,7 @@ completion을 통과한 지속 load 처리량은 별개다. 이 결과만으로 
 | load-use와 분기 | 리스트 추적과 CRC에는 의존성·분기가 있다 | forwarding/응답-to-use 경로와 branch recovery 검토 | retire 공백이 집중된 함수·PC, load-use/redirect 실제 계측; gap을 원인으로 단정하지 않음 |
 | miss 처리 | 64B refill을 AXI64 single-beat 여덟 번으로 요청, 제한된 outstanding | 실제 burst refill, 이후 다중 miss/독립 요청 중첩 | 같은 ELF의 cold/steady cycles, AR/R beat, 오류·backpressure·snoop/refill 경합 |
 | 벡터 메모리 | 벡터는 별도 메모리 head 경로에서 원소별 접근 | L1의 두 뱅크를 이용한 벡터 공급, 정렬된 접근 결합 | 실제 벡터 load/store 대기·전송 수; 마스크·PMA·부분 fault/vstart 보존 |
-| 벡터 실행 중첩 | 벡터 명령이 serial barrier이며 뒤의 scalar dispatch를 막는다 | 독립 scalar/vector 실행 중첩, 이후 벡터 의존성·rename/scheduling | 유용 작업당 cycles; precise trap·분기 취소·메모리 순서 검증 선행 |
+| 벡터 실행 중첩 | Memory vector는 serial barrier를 유지하고 non-memory vector/scalar 중첩은 구현했다. Vector owner 자체는 순차 실행한다 | Vector-vector 의존성·rename/scheduling, 통합 data movement unit과 memory issue 개선 | 유용 작업당 cycles; precise trap·분기 취소·메모리 순서 검증 선행 |
 | compiler | auto-vectorizer의 cost model과 현재 원소 순차 엔진의 비용이 다를 수 있다 | O2/O3/RVV 실측 후 LTO·loop/code 배치 등을 별도 비교 | 모든 옵션 공개, CRC 일치; static V와 실제 실행된 V를 구분 |
 | divider, 별도 workload | 현재 radix-2의 64/32회 반복, 모듈 일반 지연 65/33 cycles | radix-4 및 선행 0·작은 피연산자·2의 거듭제곱 빠른 경로 검토 | signed/W·0 나누기·overflow·flush·backpressure, cycle과 합성 Fmax/PPA 함께 비교; 현재 RTL에는 미적용 |
 

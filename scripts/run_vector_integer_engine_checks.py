@@ -119,6 +119,58 @@ for policy in ['tu,mu', 'tu,ma', 'ta,mu', 'ta,ma']:
     op('vmseq.vi v7,v8,0')
     mask_words(7, (initial & ~0x54) | 0x04, initial)
 
+# LMUL8 supplies eight consecutive 128-bit batches at every SEW.
+for size in range(4):
+    width=8<<size;length=128>>size
+    op('vsetvl a2,a0,a1',a=length,b=(size<<3)|3,expected=length)
+    op('vmv.v.i v16,2');op('vmv.v.i v24,3');op('vadd.vv v8,v16,v24')
+    for index in sorted({0,1,(64//width)-1,64//width,(128//width)-1,128//width,length//2,length-1}):
+        op('vslidedown.vx v0,v8,a0',a=index)
+        op('vmv.x.s a1,v0',expected=5)
+
+# Packed extension: all legal width/factor combinations, fractional/group
+# boundaries, arbitrary source sign bits, masks, vstart and undisturbed tails.
+for size in range(1,4):
+    width=8<<size
+    for factor in range(1,size+1):
+        source_size=size-factor;source_width=8<<source_size
+        for exponent in [-2,-1,0,1,3]:
+            source_exp=exponent-factor
+            length=(128<<exponent)//width if exponent>=0 else (128>>(-exponent))//width
+            if source_exp < -3 or exponent<size-3 or length==0:continue
+            for signed in [False,True]:
+                for masked in [False,True]:
+                    op('vsetvl a2,a0,a1',a=length,b=(source_size<<3)|(source_exp&7),expected=length)
+                    op('vid.v v16');op('vxor.vx v16,v16,a0',a=1<<(source_width-1))
+                    op('vsetvl a2,a0,a1',a=length,b=(size<<3)|(exponent&7),expected=length)
+                    op('vmv.v.i v8,15');op('vid.v v24');op('vand.vi v24,v24,1');op('vmseq.vi v0,v24,0')
+                    vl=length-1;start=1 if length>1 else 0
+                    op('vsetvl a2,a0,a1',a=vl,b=(size<<3)|(exponent&7),expected=vl)
+                    csr(0x009,0);csr(0x008,start)
+                    name='vsext' if signed else 'vzext'
+                    op(f'{name}.vf{1<<factor} v8,v16'+(',v0.t' if masked else ''),sat=0)
+                    op('vsetvl a2,a0,a1',a=length,b=(size<<3)|(exponent&7),expected=length)
+                    samples=sorted({i for i in [0,1,2,3,128//width-1,128//width,128//width+1,length//2,length-2,length-1] if 0<=i<length})
+                    for i in samples:
+                        value=15
+                        if start<=i<vl and (not masked or i%2==0):
+                            value=i^(1<<(source_width-1))
+                            if signed:value-=1<<source_width
+                        op('vslidedown.vx v24,v8,a0',a=i)
+                        op('vmv.x.s a1,v24',expected=value)
+# Legal widening alias: source is the upper register of the destination group.
+for signed in [False,True]:
+    op('vsetivli a2,8,e16,m1,tu,mu',expected=8)
+    op('vid.v v9');op('vxor.vx v9,v9,a0',a=0x8000)
+    op('vsetivli a2,8,e32,m2,tu,mu',expected=8)
+    op(('vsext' if signed else 'vzext')+'.vf2 v8,v9')
+    for i in range(8):
+        op('vslidedown.vx v24,v8,a0',a=i)
+        op('vmv.x.s a1,v24',expected=(i-0x8000 if signed else i+0x8000))
+
+op('vsetivli a2,1,e64,mf2,tu,mu',expected=0)
+op('vzext.vf2 v8,v16',exception=True)
+
 source=folder/'program.S';source.write_text('.text\n.option norvc\n'+'\n'.join(row[1] for row in program)+'\n')
 with Simulator() as sim:
     obj=folder/'program.o';binary=folder/'program.bin'
@@ -134,10 +186,15 @@ with Simulator() as sim:
         x['path'] for x in vendor['files'] if x['path'].endswith('.v')]+[
         'rtl/backend/'+name+'.sv' for name in ['rv_fp_format','rv_fp_convert','rv_fp_round_to_int',
         'rv_fp_immediate','rv_fp_cvtmod','rv_fpu_rva23','rv_vector_fp_integer','rv_vector_fp_estimate',
-        'rv_vector_fp_lane','rv_vector_integer_alu','rv_vector_config','rv_vector_register_file','rv_vector_engine']]+[
+        'rv_divider','rv_vector_divider','rv_vector_fp_lane','rv_vector_integer_alu','rv_vector_simd_alu','rv_vector_config','rv_vector_register_file','rv_vector_engine']]+[
         'rtl/backend/rv_pmp.sv','rtl/soc/rv23_pointer_mask.sv','rtl/backend/rv23_hypervisor_memory_head.sv',
         'tb/unit/backend/rv_vector_integer_engine_tb.sv']
-    model=sim.build('rva23_vector_integer_engine','rv_vector_integer_engine_tb',files)
+    cache=folder/'model.json'
+    model=json.loads(cache.read_bytes()) if cache.exists() else None
+    from sim_runner import source_inputs
+    if not model or model['inputs']!=source_inputs(files) or sha(ROOT/model['binary'])!=model['binary_sha256']:
+        model=sim.build('rva23_vector_integer_engine','rv_vector_integer_engine_tb',files)
+        dump(cache,model)
     model['run']=sim.simulate(model,[f'+vectors={vectors.relative_to(ROOT).as_posix()}']);model['passed']=True
     dump(folder/'report.json',{'passed':True,'scope':'Integer instruction stream through development vector owner; memory/native integration has separate evidence',
         'instructions':len(program),'model':model,'source_sha256':sha(source),'vectors_sha256':sha(vectors),

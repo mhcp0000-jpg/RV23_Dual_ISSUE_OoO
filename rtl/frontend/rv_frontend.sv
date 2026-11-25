@@ -4,11 +4,14 @@ module rv_frontend #(
   parameter int unsigned FETCH_BYTES   = 16,
   parameter int unsigned TARGET_BUFFER_ENTRIES = 16,
   parameter bit ENABLE_TARGET_BUFFER=1,
+  parameter bit TARGET_BUFFER_LOOKAHEAD=0,
   parameter logic [XLEN-1:0] RESET_VECTOR = 'h8000_0000
 ) (
   input  logic                                  clk_i,
   input  logic                                  rst_ni,
   input  logic                                  redirect_valid_i,
+  input  logic                                  target_buffer_enable_i=1'b1,
+  input  logic                                  target_buffer_invalidate_i=1'b0,
   input  logic [XLEN-1:0]                       redirect_pc_i,
   input  logic                                  predictor_resolve_valid_i,
   input  logic [XLEN-1:0]                       predictor_resolve_pc_i,
@@ -69,6 +72,8 @@ module rv_frontend #(
   logic [PADDR_WIDTH-1:0] redirect_paddr;
   logic [PADDR_WIDTH-1:0] redirect_block_addr;
   logic [PADDR_WIDTH-1:0] redirect_block_successor;
+  logic [PADDR_WIDTH-1:0] redirect_block_second_successor;
+  logic [PADDR_WIDTH-1:0] redirect_request_addr;
   logic [PADDR_WIDTH-1:0] request_successor;
   logic [PADDR_WIDTH-1:0] next_request_addr_q;
   logic [3:0] epoch_q;
@@ -148,9 +153,14 @@ module rv_frontend #(
   // selection. Never turn a late one-bit hit into the input carry of an
   // address adder. This is modulo PADDR_WIDTH, including address wrap.
   assign redirect_block_successor = redirect_block_addr + FETCH_BYTES_VALUE;
+  assign redirect_block_second_successor = redirect_block_addr + (FETCH_BYTES_VALUE << 1);
+  assign redirect_request_addr = (TARGET_BUFFER_LOOKAHEAD && redirect_uses_target_buffer) ?
+    redirect_block_successor : redirect_block_addr;
   assign request_successor = (request_hold_q && !frontend_redirect_valid) ?
     (request_hold_addr_q + FETCH_BYTES_VALUE) :
-    (frontend_redirect_valid ? redirect_block_successor :
+    (frontend_redirect_valid ?
+      ((TARGET_BUFFER_LOOKAHEAD && redirect_uses_target_buffer) ?
+        redirect_block_second_successor : redirect_block_successor) :
       (next_request_addr_q + FETCH_BYTES_VALUE));
   assign response_id_matches = outstanding_q &&
                                (imem_rsp_id_i == outstanding_id_q);
@@ -179,7 +189,8 @@ module rv_frontend #(
   assign response_completes_for_request = imem_rsp_valid_i &&
     response_id_matches && (!response_is_current || (imem_rsp_resp_i == 2'b00));
   assign request_slot_available = !outstanding_q || response_completes_for_request;
-  assign redirect_uses_target_buffer = ENABLE_TARGET_BUFFER && predicted_redirect_fire &&
+  assign redirect_uses_target_buffer = ENABLE_TARGET_BUFFER && target_buffer_enable_i &&
+                                       !target_buffer_invalidate_i && predicted_redirect_fire &&
                                        target_buffer_lookup_hit &&
                                        !redirect_valid_i;
   // A redirect target may issue on the redirect cycle when the old request
@@ -188,7 +199,7 @@ module rv_frontend #(
                                    ((!fault_stop_q && !queue_fault_visible) ||
                                     frontend_redirect_valid) &&
                                    request_capacity_available &&
-                                   (!frontend_redirect_valid ||
+                                   (TARGET_BUFFER_LOOKAHEAD || !frontend_redirect_valid ||
                                     !redirect_uses_target_buffer);
   // Once a request is visible, local ready/valid follows the same rule as AXI:
   // valid and its payload remain stable until accepted.  A redirect is the
@@ -197,7 +208,7 @@ module rv_frontend #(
                             request_candidate_valid;
   assign imem_req_addr_o = (request_hold_q && !frontend_redirect_valid) ?
     request_hold_addr_q :
-    (frontend_redirect_valid ? redirect_block_addr : next_request_addr_q);
+    (frontend_redirect_valid ? redirect_request_addr : next_request_addr_q);
   assign imem_req_id_o = (request_hold_q && !frontend_redirect_valid) ?
     request_hold_id_q : next_id_q;
   assign imem_req_epoch_o = (request_hold_q && !frontend_redirect_valid) ?
@@ -235,7 +246,8 @@ module rv_frontend #(
   // still populate the target buffer) while the redirect target is installed.
   assign imem_rsp_ready_o = response_is_current ?
     (frontend_redirect_valid ? 1'b1 : queue_fill_ready) : 1'b1;
-  assign target_buffer_fill_valid = response_fire && response_is_current &&
+  assign target_buffer_fill_valid = target_buffer_enable_i && !target_buffer_invalidate_i &&
+                                    response_fire && response_is_current &&
                                     (imem_rsp_resp_i == 2'b00);
 
   assign fetch_valid_o[0] = redirect_valid_i ? 1'b0 : queue_valid[0];
@@ -305,7 +317,8 @@ module rv_frontend #(
     .PADDR_WIDTH(PADDR_WIDTH), .FETCH_BYTES(FETCH_BYTES),
     .ENTRIES(TARGET_BUFFER_ENTRIES), .LOOKUP_PORTS(2)
   ) u_target_buffer (
-    .clk_i, .rst_ni, .invalidate_i(redirect_valid_i),
+    .clk_i, .rst_ni, .invalidate_i(target_buffer_invalidate_i ||
+                                  (!TARGET_BUFFER_LOOKAHEAD && redirect_valid_i)),
     .lookup_valid_i(queue_valid),
     .lookup_addr_i(target_buffer_lookup_addr),
     .lookup_select_i(target_buffer_lookup_select),
@@ -458,9 +471,12 @@ module rv_frontend #(
 
   property p_target_hit_suppresses_memory_request;
     @(posedge clk_i) disable iff (!rst_ni)
-      redirect_uses_target_buffer |-> !imem_req_valid_o;
+      redirect_uses_target_buffer && !TARGET_BUFFER_LOOKAHEAD |-> !imem_req_valid_o;
   endproperty
   assert property (p_target_hit_suppresses_memory_request);
+  assert property (@(posedge clk_i) disable iff (!rst_ni)
+    redirect_uses_target_buffer && TARGET_BUFFER_LOOKAHEAD && request_fire |->
+      imem_req_addr_o == redirect_block_successor);
 
   property p_stale_response_never_fills_frontend_state;
     @(posedge clk_i) disable iff (!rst_ni)

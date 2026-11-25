@@ -47,7 +47,25 @@ module rv23_if_translate #(
   logic [63:0] guest_q,trans_guest,trans_tval;
   logic implicit_q,trans_implicit,trans_fault,trans_ready,trans_rsp_valid,device_q;
   logic [1:0] trans_pbmt;
-  assign req_ready_o=rst_ni && !halt_i && state_q==IDLE && trans_ready;
+  logic bare_request;
+  logic response_turnover_ready,accept_request,direct_issue,bare_address_valid;
+  // Bare M-mode and satp.MODE=0 fetches already have a physical address.
+  // Skip the translation-port RESPONSE and wrapper TRANSLATE cycles, while
+  // retaining the full-width physical-address fault check below.
+  assign bare_request=!virtual_i &&
+    ((privilege_i==2'd3) || (satp_i[63:60]==4'd0));
+  assign response_turnover_ready=state_q==WAIT_DATA && bus_rsp_valid_i &&
+    bus_rsp_ready_o && bus_rsp_id_i==id_q && bus_rsp_resp_i==2'b00;
+  assign req_ready_o=rst_ni && !halt_i &&
+    (((state_q==IDLE) || response_turnover_ready) &&
+     (bare_request || trans_ready));
+  assign accept_request=req_valid_i && req_ready_o;
+  assign bare_address_valid=(req_address_i>>PADDR_WIDTH)==0;
+  // Bypass the ISSUE register for a newly accepted Bare request. If the
+  // adapter stalls, capture its payload and finish through the normal ISSUE
+  // state. The response and its PMP address still belong to the old request
+  // until the accepting edge.
+  assign direct_issue=accept_request && bare_request && bare_address_valid;
   assign idle_o=state_q==IDLE;
   assign physical_address_o=pa_q;
   assign rsp_valid_o=rst_ni && (state_q==FAULT || (state_q==WAIT_DATA && bus_rsp_valid_i));
@@ -57,11 +75,15 @@ module rv23_if_translate #(
   assign rsp_resp_o=state_q==FAULT ? 2'b10:bus_rsp_resp_i;
   assign rsp_cause_o=state_q==FAULT ? cause_q:6'd1;
   assign rsp_guest_address_o=guest_q;assign rsp_implicit_guest_access_o=implicit_q;
-  assign bus_valid_o=rst_ni && state_q==ISSUE;
-  assign bus_address_o=pa_q;assign bus_id_o=id_q;assign bus_epoch_o=epoch_q;assign bus_device_o=device_q;
+  assign bus_valid_o=direct_issue || (rst_ni && state_q==ISSUE);
+  assign bus_address_o=direct_issue ? PADDR_WIDTH'(req_address_i):pa_q;
+  assign bus_id_o=direct_issue ? req_id_i:id_q;
+  assign bus_epoch_o=direct_issue ? req_epoch_i:epoch_q;
+  assign bus_device_o=!direct_issue && device_q;
   assign bus_rsp_ready_o=state_q==WAIT_DATA && rsp_ready_i;
   rv23_translation_port #(.PADDR_WIDTH(PADDR_WIDTH)) u_tlb (
-    .clk_i,.rst_ni,.invalidate_i,.req_valid_i(req_valid_i && req_ready_o),.req_ready_o(trans_ready),
+    .clk_i,.rst_ni,.invalidate_i,
+    .req_valid_i(req_valid_i && req_ready_o && !bare_request),.req_ready_o(trans_ready),
     .req_address_i,.req_access_i(2'd0),.req_privilege_i(privilege_i),.req_virtual_i(virtual_i),
     .req_sum_i(1'b0),.req_mxr_i(mxr_i),.req_hs_mxr_i(hs_mxr_i),.req_pbmt_enable_i(pbmt_enable_i),
     .req_guest_pbmt_enable_i(guest_pbmt_enable_i),.satp_i,.vsatp_i,.hgatp_i,
@@ -73,8 +95,17 @@ module rv23_if_translate #(
   always_ff @(posedge clk_i) begin
     if(!rst_ni) begin
       state_q<=IDLE;id_q<=0;epoch_q<=0;pa_q<=0;cause_q<=0;guest_q<=0;implicit_q<=0;device_q<=0;
+    end else if(accept_request) begin
+        id_q<=req_id_i;epoch_q<=req_epoch_i;
+        guest_q<=0;implicit_q<=0;device_q<=0;cause_q<=0;
+        if(bare_request) begin
+          pa_q<=PADDR_WIDTH'(req_address_i);
+          if(!bare_address_valid) begin
+            cause_q<=6'd1;
+            state_q<=FAULT;
+          end else state_q<=bus_ready_i ? WAIT_DATA:ISSUE;
+        end else state_q<=TRANSLATE;
     end else case(state_q)
-      IDLE:if(req_valid_i && req_ready_o) begin id_q<=req_id_i;epoch_q<=req_epoch_i;state_q<=TRANSLATE;end
       TRANSLATE:if(trans_rsp_valid) begin
         pa_q<=trans_pa;cause_q<=trans_cause;guest_q<=trans_guest;implicit_q<=trans_implicit;device_q<=trans_pbmt!=0;
         state_q<=trans_fault ? FAULT:ISSUE;

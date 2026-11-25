@@ -8,6 +8,7 @@ rtl/backend/rv_hypervisor_stateen.sv
 rtl/backend/rv_hypervisor_csrs.sv
 rtl/backend/rv_vector_estimate_tables_pkg.sv
 rtl/backend/rv_vector_integer_alu.sv
+rtl/backend/rv_vector_simd_alu.sv
 rtl/backend/rv_vector_config.sv
 rtl/backend/rv_vector_register_file.sv
 rtl/backend/rv_vector_fp_integer.sv
@@ -34,6 +35,7 @@ rtl/backend/rv_int_alu.sv
 rtl/backend/rv_branch_unit.sv
 rtl/backend/rv_multiplier.sv
 rtl/backend/rv_divider.sv
+rtl/backend/rv_vector_divider.sv
 rtl/backend/rv_fpu.sv
 rtl/backend/rv_writeback_arbiter.sv
 rtl/backend/rv_branch_recovery.sv
@@ -59,6 +61,7 @@ rtl/soc/rv_hostif.sv
 rtl/soc/rv_plic.sv
 rtl/soc/rv23_cache.sv
 rtl/soc/rv23_lsu_arbiter.sv
+rtl/soc/rv23_head_cache_router.sv
 rtl/soc/rv23_if_adapter.sv
 rtl/soc/rv23_sram.sv
 rtl/soc/rv23_system_bus.sv

@@ -49,6 +49,7 @@ module rv_ooo_core #(
 ) (
   output logic cbo_memory_read_o,
   output logic cbo_memory_device_o,
+  output logic cbo_memory_use_dcache_o,
   output logic [2:0] cbo_memory_size_o,
   output logic [63:0] cbo_memory_data_o,
   output logic [7:0] cbo_memory_strobe_o,
@@ -167,6 +168,7 @@ module rv_ooo_core #(
   logic translation_invalidate,if_translation_idle,ptw_idle,backend_debug_drained;
 
   logic                          redirect_valid;
+  logic                          architectural_flush, machine_fetch;
   logic [XLEN-1:0]               redirect_pc;
   logic                          bp_resolve_valid;
   logic [XLEN-1:0]               bp_resolve_pc, bp_resolve_target;
@@ -202,6 +204,7 @@ module rv_ooo_core #(
                                   ifu_pmp_fault_address;
   privilege_e [IFU_PMP_PORTS-1:0] ifu_pmp_privilege;
 
+  assign machine_fetch=current_privilege==2'd3 && !current_virtual;
   assign translation_invalidate=fence_i_o || (trace_valid_o[0] && !trace_trap_o[0] &&
     (((trace_instr_o[0] & 32'hfe007fff)==32'h12000073) ||
      (HAS_SVINVAL && ((trace_instr_o[0] & 32'hfe007fff)==32'h16000073 ||
@@ -276,12 +279,17 @@ module rv_ooo_core #(
     .XLEN         (XLEN),
     .PADDR_WIDTH  (PADDR_WIDTH),
     .FETCH_BYTES  (FETCH_BYTES),
-    .TARGET_BUFFER_ENTRIES(IF_TARGET_BUFFER_ENTRIES), .ENABLE_TARGET_BUFFER(!HAS_MMU),
+    .TARGET_BUFFER_ENTRIES(HAS_MMU ? 64 : IF_TARGET_BUFFER_ENTRIES),
+    .TARGET_BUFFER_LOOKAHEAD(HAS_MMU),
     .RESET_VECTOR (RESET_VECTOR)
   ) u_frontend (
     .clk_i,
     .rst_ni,
     .redirect_valid_i     (redirect_valid),
+    .target_buffer_enable_i(!HAS_MMU || machine_fetch),
+    .target_buffer_invalidate_i(HAS_MMU ?
+      (architectural_flush || translation_invalidate || debug_halt_req_i || !machine_fetch) :
+      redirect_valid),
     .redirect_pc_i        (redirect_pc),
     .predictor_resolve_valid_i(bp_resolve_valid),
     .predictor_resolve_pc_i(bp_resolve_pc),
@@ -348,7 +356,7 @@ module rv_ooo_core #(
       // after privilege/V/satp/PMP authority has changed. Otherwise a trap
       // handler fetch can inherit the faulting guest's translation context.
       .clk_i,.rst_ni,.invalidate_i(translation_invalidate),
-      .halt_i(debug_halt_req_i || redirect_valid || translation_invalidate),
+      .halt_i(debug_halt_req_i || architectural_flush || translation_invalidate),
       .req_valid_i(fe_imem_req_valid),.req_ready_o(fe_imem_req_ready),.req_address_i(64'(fe_imem_req_addr)),
       .req_id_i(fe_imem_req_id),.req_epoch_i(fe_imem_req_epoch),.privilege_i(current_privilege),
       .virtual_i(current_virtual),.mxr_i(current_virtual?vsstatus[19]:mstatus_o[19]),.hs_mxr_i(mstatus_o[19]),.pbmt_enable_i(menvcfg_o[62]),
@@ -503,7 +511,7 @@ module rv_ooo_core #(
     .RESET_VECTOR    (RESET_VECTOR),
     .TRAP_VECTOR     (TRAP_VECTOR)
   ) u_backend (
-    .cbo_memory_read_o,.cbo_memory_device_o,.cbo_memory_size_o,.cbo_memory_data_o,.cbo_memory_strobe_o,.cbo_memory_response_data_i,
+    .cbo_memory_read_o,.cbo_memory_device_o,.cbo_memory_use_dcache_o,.cbo_memory_size_o,.cbo_memory_data_o,.cbo_memory_strobe_o,.cbo_memory_response_data_i,
     .cbo_write_valid_o,.cbo_write_ready_i,.cbo_write_address_o,.cbo_write_privilege_o,
     .cbo_write_response_valid_i,.cbo_write_response_error_i,.cbo_write_response_ready_o,
     .cbo_cache_invalidate_o,.cbo_cache_invalidate_ready_i,
@@ -525,6 +533,7 @@ module rv_ooo_core #(
     .fetch_fault_cause_i(fe_fetch_fault_cause),.fetch_fault_address_i(fe_fetch_fault_address),
     .fetch_guest_address_i(fe_fetch_guest_address),.fetch_implicit_guest_access_i(fe_fetch_implicit_guest_access),
     .redirect_valid_o    (redirect_valid),
+    .architectural_flush_o(architectural_flush),
     .redirect_pc_o       (redirect_pc),
     .dmem_req_valid_o     (backend_dmem_req_valid),
     .dmem_req_ready_i     (backend_dmem_req_ready),

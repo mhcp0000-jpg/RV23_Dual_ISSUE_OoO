@@ -4,17 +4,41 @@
 
 ## 코어 사양
 
+현재 작업 트리는 벡터 pipeline·공유 D-cache·성능 개선을 통합한 뒤 재검증 중이다.
+마지막 전체 통합 감사 기준은 `802e2e1`이다. 대규모 ACT와 기존 Linux 기록은
+그 시점의 근거이며, 이후 변경의 directed 회귀와 CoreMark는 아래에 소스별로
+구분한다. 최신 RTL의 Linux 재실행도 진행 중이다.
+[변경 내용과 남은 검증](docs/VECTOR_PIPELINE_REWORK.md)
+
 | 항목 | 현재 구성 |
 | --- | --- |
 | 합성 및 통합 | `rv23_soc_top`, 기본 XLEN=64, 구현 물리 주소 폭 32비트 |
 | 파이프라인 | 2-issue out-of-order, ROB 기반 순차 retire |
 | ISA 및 권한 | RV64 정수·단정도/배정도 FP·벡터, M/HS/VS/U/VU, Sv39 및 Sv39x4 |
-| 벡터 | VLEN 128비트, ELEN 64비트 |
-| L1 | I-cache 32 KiB + D-cache 32 KiB, 캐시별 64비트 2뱅크, 64바이트 라인 |
+| 벡터 | VLEN128/ELEN64. 일반 정수 ALU 64비트 lane 2개: SEW64/32/16/8에서 2/4/8/16 원소 배치. 특수·widen/narrow·reduction·DIV·FP는 별도 경로 |
+| L1 | I-cache 32 KiB + D-cache 32 KiB, 캐시별 64비트 2뱅크, 64바이트 라인, AXI64 8-beat burst 리필 |
 | SoC | AXI64 시스템 버스, 기본 1 MiB SRAM, CLINT·PLIC, native halt/drain/resume·AXI·retire trace 디버그 |
 | RTL 파일 목록 | 저장소 루트 기준 `rtl/filelist.f` 또는 `sim/sources.f` |
 
 뱅크가 다른 접근은 캐시 내부에서 두 64비트 뱅크를 함께 사용할 수 있다. SRAM 리필은 AXI64를 사용한다. [SoC 구성, 주소 맵, 부팅 및 디버그](docs/ARCHITECTURE.md)
+
+리필 주소 요청을 라인당 8회→1회로 줄였다. 실제 AXI bridge/SRAM을 연결한
+32개 cold-line 시험은 **1,952→1,344 cycles (31.15% 감소)**다.
+전체 CoreMark 개선율과 구분하며, 동시에 처리하는 refill은 아직 하나다.
+[구현과 측정 범위](docs/CACHE_BURST_REFILL.md)
+
+Bare M-mode/`satp.MODE=0` 명령 fetch는 이미 물리 주소이므로 불필요한
+translation wrapper 단계를 건너뛴다. 같은 burst 기준선보다 저장 RVV
+CoreMark ELF 2회는 **6.81%**, 10회는 **6.832% 적은 cycles**를 사용했다.
+[구현과 측정 근거](docs/FETCH_BARE_FASTPATH.md)
+
+GitHub 피드백을 적용한 O2 스칼라 CoreMark 2회에서 같은 ELF 기준
+**IPC 0.888→1.223**을 기록했다. 명령 수와 CRC는 일치한다.
+[단계별 성능과 검증](docs/SCALAR_COREMARK_FEEDBACK.md)
+
+성공 fetch 응답을 받는 edge에 다음 요청을 함께 수락해 cycle을 추가로
+줄였다. fast-path 단계 대비 RVV CoreMark 2회 **3.631%**, 10회 **3.688%**
+감소했다. [turnover 측정과 남은 fetch 작업](docs/FETCH_RESPONSE_TURNOVER.md)
 
 전체 시스템 합성 TOP은 [`rv23_soc_top`](rtl/soc/rv23_soc_top.sv)이며,
 저장소 루트를 작업 디렉터리로 [rtl/filelist.f](rtl/filelist.f)를 읽는다.
@@ -44,7 +68,7 @@ backend의 등록 경계를 설명한 것이며, 물리적인 9단 또는 모든
 | FP FADD/FSUB/FMUL/FMA, F/D·변환 등 | 현재 RVA23 FP: 입력 등록 → 조합 HardFloat/보조 연산 → 결과 등록. 단일 owner 상태 머신 | fast 경로 모듈 지연 2 cycles, backpressure 없을 때 최소 요청 간격 3 cycles. 다단 arithmetic pipeline과 구분 |
 | FP FDIV.S / FDIV.D | iterative HardFloat, FP owner 공유 | 가변. `1/3` 실측 28/57 cycles, D의 0 나누기 3 cycles |
 | FP FSQRT.S / FSQRT.D | iterative HardFloat, FP owner 공유 | 가변. `sqrt(2)` 실측 26/55 cycles, D의 `sqrt(0)` 3 cycles |
-| 벡터 | VLEN128/ELEN64, ROB head의 원소 단위 상태 머신 | VL·SEW·마스크·메모리·예외에 따라 가변. 현재 scalar/vector 경계 직렬화 |
+| 벡터 | 일반 정수: 2×64 SIMD, operand → result → writeback 등록. 독립 128비트 배치 II=1. DIV/REM은 반복형 unit | 명령당 완료 지연은 VL·SEW·마스크·특수 경로에 따라 가변. Vector owner는 순차 실행. 비메모리 vector와 독립 scalar는 중첩, memory vector는 직렬화 |
 
 지연의 기준은 **모듈 입력 handshake edge부터 결과 handoff edge까지**, 출력 ready=1,
 flush 없음이다. issue→retire 지연은 IQ 대기·결과 중재·선행 명령과 메모리 응답에 따라 달라진다.
@@ -54,21 +78,56 @@ FP slow 경로가 owner를 잡은 동안 새 FP 요청도 기다린다.
 [연산기 지연 실측 근거](docs/evidence/pipeline_latency.json)
 · [측정 재현 스크립트](scripts/run_pipeline_latency.py)
 
-### CoreMark 성능
+### CoreMark 성능과 벡터 개선
 
-RV64·LP64D, 같은 upstream 알고리즘과 2 KiB performance data의 **10회 RTL 실행 결과**다.
-세 빌드 모두 CRC를 통과했다. 실제 합성 clock이나 공식 인증 점수는 아니다.
+RVV 전·후는 **같은 10회 ELF**를 재컴파일하지 않고 실행했다.
+CRC와 retired instruction count **2,762,088개**는 같다.
+스칼라 두 행은 이전 실측 기준이다. 수치는 RTL cycle 기반 CoreMark/MHz
+추정치이며 실제 합성 clock이나 공식 인증 점수는 아니다.
 
-| 빌드 | Cycles | IPC | CoreMark/MHz 추정 |
+| 구성 | Cycles | IPC | CoreMark/MHz 추정 |
 |---|---:|---:|---:|
-| O2 scalar, 10회 완료 | 4,896,919 | 0.612160 | 2.042100 |
-| O3 scalar, 10회 완료 | 4,902,692 | 0.619334 | 2.039696 |
-| O3 auto-RVV, 10회 완료 | 11,396,161 | 0.242370 | 0.877488 |
+| O2 scalar 기준 | 4,896,919 | 0.612160 | 2.042100 |
+| O3 scalar 기준 | 4,902,692 | 0.619334 | 2.039696 |
+| RVV, pipeline/cache 변경 전 `802e2e1` | 11,396,161 | 0.242370 | 0.877488 |
+| RVV, 성능 개선 착수 전 `9332f6c` | 11,525,110 | 0.239658 | 0.867671 |
+| RVV, 반복 preflight/완료 대기 축소 `a49f7a9` | 10,270,851 | 0.268925 | 0.973629 |
+| RVV, 독립 scalar 중첩 `db13e32` | 9,243,916 | 0.298801 | 1.081793 |
+| RVV, 확장 batch·요청 대기 축소 `009b013` | 9,054,053 | 0.305066 | 1.104478 |
+| RVV, 2/4/8-byte load 그룹 `672f061` | 9,049,013 | 0.305236 | 1.105093 |
+| **RVV, host Bare fast path `2d123d4`** | **8,784,522** | **0.314427** | **1.138366** |
 
-auto-RVV는 실제 벡터 명령을 실행했지만 10회 측정도 O3 scalar보다 약 2.32배 많은 cycles를 썼다. 벡터의 원소 처리·
-메모리 경로와 명령 직렬화가 개선 후보이며, IPC만으로 유용 작업량을 비교하지 않는다.
-예전에 언급한 IPC 1.123518은 별도의 고정 RV32 ELF 결과다.
-[컴파일 옵션·CRC·실측 근거·개선 후보](docs/COREMARK_PERFORMANCE.md)
+확장 batch·요청 대기 축소 단계는 이전 단계보다 **2.05% cycle 감소**다.
+Load grouping의 추가 감소는 **0.0557%**, 그 이후 Bare 단계만의 감소는
+**2.9229%**다. 완료된 10회 기준으로 성능 개선 착수 전 대비 **23.78% 감소**,
+최초 `802e2e1` 대비 **22.92% 감소**다. RVV는 O3 scalar 기준보다 여전히 약
+**1.79배 많은 cycles**를 사용한다. 같은 2회 ELF도
+**1,814,469→1,761,562 cycles, 2.92% 감소**, IPC **0.313612**를 확인했다.
+
+비메모리 vector는 독립 scalar와 중첩한다. FP co-retirement 포트와 system
+wakeup data 전달도 수정했다. Vector 자체는 단일 owner로 순차 실행하고,
+vector memory의 ordering barrier는 유지한다. 원소별 indexed data 요청이
+주요 개선 후보로 남는다. 실제 Fmax/STA는 별도 측정이 필요하다.
+
+[현재 구현·회귀·측정](docs/VECTOR_SCALAR_OVERLAP.md)
+· [현재 결과의 해시 근거](docs/evidence/vector_scalar_overlap.json)
+· [이전 pipeline/cache 개선](docs/VECTOR_PIPELINE_REWORK.md)
+· [컴파일 옵션과 과거 측정](docs/COREMARK_PERFORMANCE.md)
+
+후속 성능 변경에서는 `vzext`/`vsext`를 기존 128-bit batch pipeline에 넣고,
+active vector memory element의 요청 전 control bubble을 줄였다.
+같은 128회 진단 ELF에서 load는 **7.64~9.51%**, 확장은 **9.00~40.89%**
+cycle 감소를 확인했다. 이 수치는 위 CoreMark 10회 표와 별도 측정이다.
+같은 CoreMark **2회** ELF는 **1,853,468→1,815,477 cycles, 2.05% 감소**,
+IPC **0.304299**이며 10회도 위 표와 같이 완료했다.
+공유 D-cache의 vector 경로는 단일 outstanding의 <=64-bit 물리 요청을 사용한다.
+일부 연속 load는 여러 원소를 2/4/8-byte 그룹으로 읽는다. 두 뱅크에 걸친
+128-bit vector memory issue는 다음 작업이다.
+[변경 구조·진단·재현 절차](docs/VECTOR_EXTENSION_BATCH.md)
+
+[2/4/8-byte unit-load 그룹](docs/VECTOR_ADAPTIVE_LOAD_GROUPS.md)과
+[host Bare memory-head 최적화](docs/VECTOR_BARE_FASTPATH.md)는 `52e19c4`에서
+주 개발 브랜치에 통합했다. 위 10회 표와 각 단계의 진단·CoreMark 결과를 구분한다.
 
 ## 검증 현황
 

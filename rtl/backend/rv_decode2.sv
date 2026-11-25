@@ -728,7 +728,10 @@ module rv_decode2 #(
       end
       if(HAS_V && vector_decode.valid)begin
         illegal=XLEN!=64 || !vector_state_enabled_i || (vector_decode.fp_operation && !fp_state_enabled_i);
-        uop_fu_o[lane]=FU_CSR;uop_exec_port_mask_o[lane]=0;uop_is_serializing_o[lane]=1;
+        uop_fu_o[lane]=FU_CSR;uop_exec_port_mask_o[lane]=0;uop_is_serializing_o[lane]=vector_decode.memory;
+        // Vector state still executes in order at ROB head. Only memory
+        // vectors block younger scalar dispatch/issue; arithmetic/config
+        // may overlap speculative scalar work whose effects commit in order.
         uop_is_load_o[lane]=0;uop_is_store_o[lane]=0;uop_is_csr_o[lane]=0;
         uop_use_immediate_o[lane]=0;uop_use_pc_o[lane]=0;
         uop_src_used_o[lane]={1'b0,vector_decode.scalar_source_used};

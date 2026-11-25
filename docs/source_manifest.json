@@ -50,7 +50,12 @@
     },
     {
       "path": "rtl/backend/rv_vector_integer_alu.sv",
-      "sha256": "0da6461e681eab7b7fc9b0306b7a2dcb3509132f0cf29f93db87e7e8d1a7b4c5",
+      "sha256": "0f19c63024408c80064feab5fd0801bb594ab4ea70a4c23de6e55c371a654511",
+      "origin": "new"
+    },
+    {
+      "path": "rtl/backend/rv_vector_simd_alu.sv",
+      "sha256": "bd88543682586faa6f1e66a3976c2f3942ac204920ac3214711d459599fb8486",
       "origin": "new"
     },
     {
@@ -60,7 +65,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_register_file.sv",
-      "sha256": "3f00463aeea016222a34d180ca96a5fbf24edb3c21e0389bc4a8c600e4766165",
+      "sha256": "b18e093e84e50fe373ebc72f083f750a6144e537fe26800664cc880dc139cea9",
       "origin": "new"
     },
     {
@@ -80,7 +85,7 @@
     },
     {
       "path": "rtl/backend/rv_vector_engine.sv",
-      "sha256": "29f292e340e79298c1c7b837e21222c9d36fc29f7f1fc3a1987761115b64b906",
+      "sha256": "76b02c58586a272175390f56397f48af291ed96e44f4973922e3db8fcfdffcb7",
       "origin": "new"
     },
     {
@@ -115,7 +120,7 @@
     },
     {
       "path": "rtl/backend/rv_decode2.sv",
-      "sha256": "9c35b317040a1ecf2256f8730e0b50855640a310d6b353825daf25d28050fd81",
+      "sha256": "e19cd0757ce532cbf47f9dc7001037fef3bfeb1c1362bc5d768aef0be8267332",
       "origin": "modified"
     },
     {
@@ -184,6 +189,11 @@
       "origin": "reused"
     },
     {
+      "path": "rtl/backend/rv_vector_divider.sv",
+      "sha256": "d7c26e501ec88b29214f4c25ebd3729b539d02883436efee82c201e4f5da8f4e",
+      "origin": "new"
+    },
+    {
       "path": "rtl/backend/rv_fpu.sv",
       "sha256": "662412cf4ce33033f3c431e76cad0fe964e95449254ce3bf229e35eb76e25dc8",
       "origin": "reused"
@@ -235,27 +245,27 @@
     },
     {
       "path": "rtl/frontend/rv_frontend.sv",
-      "sha256": "79286479bd535a85d4ed420b16601cff86a9a51606604b1b6a057ad899f7d390",
+      "sha256": "27a974f791503557df750de92067ee6cd7181e6a0446ca20b916bb339f048708",
       "origin": "modified"
     },
     {
       "path": "rtl/backend/rv_backend.sv",
-      "sha256": "e6dbacd949d03b1b742d0b532403d7739fad133162874e023f3b304569b75c71",
+      "sha256": "fa65a61130c35ff282e1e2893096d86ae15c9a9b2a906093a8f0a850ef962196",
       "origin": "modified"
     },
     {
       "path": "rtl/rv_ooo_core.sv",
-      "sha256": "257d1e245c5a52b6188e24029db93096d375ddb6766efb90a78e6f7930cac8a8",
+      "sha256": "3e79835024a3e7762e2feb14c3dd507b5b37b43cb0508c46c11c97ee5f30da71",
       "origin": "modified"
     },
     {
       "path": "rtl/soc/rv_local_to_axi_bridge.sv",
-      "sha256": "5932d0c590fc2bd46c7e1e2af6edc02b249a39cc47928b6103e35d79f3bf28c0",
+      "sha256": "9bdf799812184b192602fedd8dabd7074ac353aa721bc3fd5c084c343022b9a4",
       "origin": "modified"
     },
     {
       "path": "rtl/soc/rv_axi_to_local_bridge.sv",
-      "sha256": "ec382a3e925d2b033606a50482daf1fb7401af1be1e16a89400110b185423133",
+      "sha256": "1a42fa5d91aafec08831c4a5f4c7f617176dc2c28c3bb32ac2ad33cda6102689",
       "origin": "modified"
     },
     {
@@ -300,12 +310,17 @@
     },
     {
       "path": "rtl/soc/rv23_cache.sv",
-      "sha256": "b119cb4ed291cd6ba886394c4e90f2d0913a7f30266cae49d90ee5c8756f62d1",
+      "sha256": "f78bb0f0806fbbc5c653fd77621c660e5663030364c46dfd4476878b73007770",
       "origin": "new"
     },
     {
       "path": "rtl/soc/rv23_lsu_arbiter.sv",
       "sha256": "35b152bcb04245148d55a6d309896cf9f9141c3cf8a8ff38d60357778c53276f",
+      "origin": "new"
+    },
+    {
+      "path": "rtl/soc/rv23_head_cache_router.sv",
+      "sha256": "b6346b4c4f0382d4ef7c5b3843ff8fd8e8ead3c326f9858aa1ab722dab5fd3d7",
       "origin": "new"
     },
     {
@@ -320,12 +335,12 @@
     },
     {
       "path": "rtl/soc/rv23_system_bus.sv",
-      "sha256": "6a46632bfd3b468da6e7ede644a9923026422a8900fa34f2f02fbf1b0e859afd",
+      "sha256": "c7a20b64cd3fb7a80a4a4cae6d93dae872ca8a08c04ccb4acfa0b3746a8933d4",
       "origin": "new"
     },
     {
       "path": "rtl/soc/rv23_soc_top.sv",
-      "sha256": "0256739239f11568c7155575d7da5bbfa6b6b6a45fd48367db3cfa1544928f80",
+      "sha256": "a4f576ab35cfe5315b63feac3d9957553f5fd914d112dd09777809c907a05831",
       "origin": "new"
     },
     {
@@ -350,7 +365,7 @@
     },
     {
       "path": "rtl/soc/rv23_if_translate.sv",
-      "sha256": "03dfac3e81370178ea165aedcffda1b7db7a19a8a02d0eed09416a588f146f0d",
+      "sha256": "333331c04bedc30686051aed6305846c9013391a640c4492853dcd21a23cbcea",
       "origin": "new"
     },
     {
@@ -500,7 +515,7 @@
     },
     {
       "path": "rtl/backend/rv23_hypervisor_memory_head.sv",
-      "sha256": "617e67bad436f6e57c398ee07cfeadeb4355c5185a0d2226adca566e9cf12568",
+      "sha256": "de94213715947dadea2bd11a81e8e85043cc5e8d6bfe34a5ab69a9a45efe552c",
       "origin": "new"
     }
   ],
