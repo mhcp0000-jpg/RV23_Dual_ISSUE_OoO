@@ -32,8 +32,9 @@ translation wrapper 단계를 건너뛴다. 같은 burst 기준선보다 저장 
 CoreMark ELF 2회는 **6.81%**, 10회는 **6.832% 적은 cycles**를 사용했다.
 [구현과 측정 근거](docs/FETCH_BARE_FASTPATH.md)
 
-GitHub 피드백을 적용한 O2 스칼라 CoreMark 2회에서 같은 ELF 기준
-**IPC 0.888→1.223**을 기록했다. 명령 수와 CRC는 일치한다.
+GitHub 피드백을 적용한 O2 스칼라 CoreMark에서 같은 ELF 기준
+2회 **IPC 0.888→1.223**, 10회 **0.892→1.230**을 기록했다.
+각 비교에서 명령 수와 CRC는 일치한다.
 [단계별 성능과 검증](docs/SCALAR_COREMARK_FEEDBACK.md)
 
 성공 fetch 응답을 받는 edge에 다음 요청을 함께 수락해 cycle을 추가로
