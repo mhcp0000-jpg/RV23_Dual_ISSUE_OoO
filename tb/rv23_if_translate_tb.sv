@@ -27,7 +27,8 @@ module rv23_if_translate_tb;
   endtask
   initial begin
     repeat(3)@(negedge clk);rst_n=1;
-    start(64'h80001000,4'ha,4'h7);wait(bus_valid);#1;
+    start(64'h80001000,4'ha,4'h7);#1;
+    if(!bus_valid || dut.state_q!=dut.ISSUE)$fatal(1,"Bare fetch did not bypass translation stage");
     if(bus_address!=32'h80001000 || bus_id!=10 || bus_epoch!=7)$fatal(1,"translated request metadata");
     repeat(3)@(negedge clk);bus_ready=1;@(negedge clk);bus_ready=0;
     returned_id=4'h9;returned_epoch=4'h2;data=128'h0123456789abcdef0011223344556677;bus_response=1;#1;
@@ -39,6 +40,13 @@ module rv23_if_translate_tb;
     start(64'h80002000,4'h3,4'hc);wait(bus_valid);@(negedge clk);bus_ready=1;@(negedge clk);bus_ready=0;
     returned_id=3;returned_epoch=4'hb;bus_response=1;#1;
     if(rsp_epoch!=4'hb)$fatal(1,"stale external epoch hidden");consume();
+    // A non-bare virtual request must still pass through translation and
+    // cannot issue a physical bus request before translation completes.
+    force dut.virtual_i=1'b1;
+    start(64'h80003000,4'h5,4'h1);
+    repeat(4) begin @(negedge clk); if(bus_valid || dut.state_q!=dut.TRANSLATE)
+      $fatal(1,"Virtual fetch skipped translation"); end
+    release dut.virtual_i;
     $display("PASS rv23_if_translate_tb checks=%0d actual/stale response identity and local fault ownership",checks);$finish;
   end
   initial begin #100000;$fatal(1,"IF translation protocol timeout");end

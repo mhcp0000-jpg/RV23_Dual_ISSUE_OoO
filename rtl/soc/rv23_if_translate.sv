@@ -47,7 +47,14 @@ module rv23_if_translate #(
   logic [63:0] guest_q,trans_guest,trans_tval;
   logic implicit_q,trans_implicit,trans_fault,trans_ready,trans_rsp_valid,device_q;
   logic [1:0] trans_pbmt;
-  assign req_ready_o=rst_ni && !halt_i && state_q==IDLE && trans_ready;
+  logic bare_request;
+  // Bare M-mode and satp.MODE=0 fetches already have a physical address.
+  // Skip the translation-port RESPONSE and wrapper TRANSLATE cycles, while
+  // retaining the full-width physical-address fault check below.
+  assign bare_request=!virtual_i &&
+    ((privilege_i==2'd3) || (satp_i[63:60]==4'd0));
+  assign req_ready_o=rst_ni && !halt_i && state_q==IDLE &&
+    (bare_request || trans_ready);
   assign idle_o=state_q==IDLE;
   assign physical_address_o=pa_q;
   assign rsp_valid_o=rst_ni && (state_q==FAULT || (state_q==WAIT_DATA && bus_rsp_valid_i));
@@ -61,7 +68,8 @@ module rv23_if_translate #(
   assign bus_address_o=pa_q;assign bus_id_o=id_q;assign bus_epoch_o=epoch_q;assign bus_device_o=device_q;
   assign bus_rsp_ready_o=state_q==WAIT_DATA && rsp_ready_i;
   rv23_translation_port #(.PADDR_WIDTH(PADDR_WIDTH)) u_tlb (
-    .clk_i,.rst_ni,.invalidate_i,.req_valid_i(req_valid_i && req_ready_o),.req_ready_o(trans_ready),
+    .clk_i,.rst_ni,.invalidate_i,
+    .req_valid_i(req_valid_i && req_ready_o && !bare_request),.req_ready_o(trans_ready),
     .req_address_i,.req_access_i(2'd0),.req_privilege_i(privilege_i),.req_virtual_i(virtual_i),
     .req_sum_i(1'b0),.req_mxr_i(mxr_i),.req_hs_mxr_i(hs_mxr_i),.req_pbmt_enable_i(pbmt_enable_i),
     .req_guest_pbmt_enable_i(guest_pbmt_enable_i),.satp_i,.vsatp_i,.hgatp_i,
@@ -74,7 +82,17 @@ module rv23_if_translate #(
     if(!rst_ni) begin
       state_q<=IDLE;id_q<=0;epoch_q<=0;pa_q<=0;cause_q<=0;guest_q<=0;implicit_q<=0;device_q<=0;
     end else case(state_q)
-      IDLE:if(req_valid_i && req_ready_o) begin id_q<=req_id_i;epoch_q<=req_epoch_i;state_q<=TRANSLATE;end
+      IDLE:if(req_valid_i && req_ready_o) begin
+        id_q<=req_id_i;epoch_q<=req_epoch_i;
+        guest_q<=0;implicit_q<=0;device_q<=0;cause_q<=0;
+        if(bare_request) begin
+          pa_q<=PADDR_WIDTH'(req_address_i);
+          if((req_address_i>>PADDR_WIDTH)!=0) begin
+            cause_q<=6'd1;
+            state_q<=FAULT;
+          end else state_q<=ISSUE;
+        end else state_q<=TRANSLATE;
+      end
       TRANSLATE:if(trans_rsp_valid) begin
         pa_q<=trans_pa;cause_q<=trans_cause;guest_q<=trans_guest;implicit_q<=trans_implicit;device_q<=trans_pbmt!=0;
         state_q<=trans_fault ? FAULT:ISSUE;
