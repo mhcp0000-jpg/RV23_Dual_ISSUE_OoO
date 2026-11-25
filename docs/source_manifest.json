@@ -260,12 +260,12 @@
     },
     {
       "path": "rtl/soc/rv_local_to_axi_bridge.sv",
-      "sha256": "95cbe3a261fce50f71ee7ae6ee96f7dd82cabf21fe0fec7fa7586f47a3da1260",
+      "sha256": "79b87082643a9ea49eedce4e88941d0b04854cd4d182439d0563389670eea721",
       "origin": "modified"
     },
     {
       "path": "rtl/soc/rv_axi_to_local_bridge.sv",
-      "sha256": "ec382a3e925d2b033606a50482daf1fb7401af1be1e16a89400110b185423133",
+      "sha256": "8ccbc8ce3cbcd3218978e4c5727345ae4cebedeedd8652cd77057f04374a4669",
       "origin": "modified"
     },
     {
@@ -310,7 +310,7 @@
     },
     {
       "path": "rtl/soc/rv23_cache.sv",
-      "sha256": "99d8346de5e697cd04d3a7f757d28983e4665a6d834cdf36e6902efa310246ba",
+      "sha256": "f78bb0f0806fbbc5c653fd77621c660e5663030364c46dfd4476878b73007770",
       "origin": "new"
     },
     {
@@ -335,12 +335,12 @@
     },
     {
       "path": "rtl/soc/rv23_system_bus.sv",
-      "sha256": "6a46632bfd3b468da6e7ede644a9923026422a8900fa34f2f02fbf1b0e859afd",
+      "sha256": "2be0d159c8a25d61768541f62f7eb65a654798ccdb2f33c484cfbd780bae608a",
       "origin": "new"
     },
     {
       "path": "rtl/soc/rv23_soc_top.sv",
-      "sha256": "ca4d20588cc728522d62fc6221e9eb1c03fcafc988b121e231abc8452e362c27",
+      "sha256": "a4f576ab35cfe5315b63feac3d9957553f5fd914d112dd09777809c907a05831",
       "origin": "new"
     },
     {

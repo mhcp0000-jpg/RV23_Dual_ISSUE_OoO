@@ -43,8 +43,8 @@ module rv32_program_tb #(
     perf_i_miss+=$countones(u_dut.u_icache.miss_accept);
     perf_d_hit+=$countones(u_dut.u_dcache.hit_accept);
     perf_d_miss+=$countones(u_dut.u_dcache.miss_accept);
-    if(u_dut.u_icache.state_q!=u_dut.u_icache.IDLE) perf_i_engine++;
-    if(u_dut.u_dcache.state_q!=u_dut.u_dcache.IDLE) begin
+    if(u_dut.u_icache.state_q!=2'd0) perf_i_engine++;
+    if(u_dut.u_dcache.state_q!=2'd0) begin
       if(u_dut.u_dcache.write_q) perf_d_write++;
       else perf_d_fill++;
     end

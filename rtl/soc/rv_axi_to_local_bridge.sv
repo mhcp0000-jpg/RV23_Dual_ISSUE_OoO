@@ -8,6 +8,7 @@ module rv_axi_to_local_bridge #(
   parameter int unsigned TARGET_SIZE_KB   = 128,
   parameter bit TARGET_IS_DEVICE          = 1'b0,
   parameter bit ENABLE_EXCLUSIVE          = 1'b0,
+  parameter bit FAIR_READ_WRITE           = 1'b0,
   parameter bit SECOND_TARGET_ENABLE      = 1'b0,
   parameter logic [ADDR_WIDTH-1:0] SECOND_TARGET_BASE_ADDR = '0,
   parameter int unsigned SECOND_TARGET_SIZE_KB = 1,
@@ -34,6 +35,7 @@ module rv_axi_to_local_bridge #(
   } inbound_state_e;
 
   inbound_state_e state_q;
+  logic prefer_read_q;
   logic [AXI_ID_WIDTH-1:0] axi_id_q;
   logic [ADDR_WIDTH-1:0] address_q;
   logic [7:0] burst_len_q;
@@ -142,9 +144,11 @@ module rv_axi_to_local_bridge #(
   endfunction
 
   always_comb begin
-    axi_s.aw_ready = (state_q == IN_IDLE);
-    // If both address channels are asserted, accept AW and backpressure AR.
-    axi_s.ar_ready = (state_q == IN_IDLE) && !axi_s.aw_valid;
+    // An uninterrupted store stream must leave a grant for a waiting read.
+    axi_s.aw_ready = (state_q == IN_IDLE) &&
+      !(FAIR_READ_WRITE && prefer_read_q && axi_s.ar_valid);
+    axi_s.ar_ready = (state_q == IN_IDLE) &&
+      (!axi_s.aw_valid || (FAIR_READ_WRITE && prefer_read_q));
     axi_s.w_ready  = (state_q == IN_WRITE_DATA);
     axi_s.b_id     = axi_id_q;
     axi_s.b_resp   = write_response_q;
@@ -175,6 +179,7 @@ module rv_axi_to_local_bridge #(
   always_ff @(posedge clk_i) begin
     if (!rst_ni) begin
       state_q                  <= IN_IDLE;
+      prefer_read_q            <= 1'b0;
       axi_id_q                 <= '0;
       address_q                <= '0;
       burst_len_q              <= '0;
@@ -205,6 +210,7 @@ module rv_axi_to_local_bridge #(
       case (state_q)
         IN_IDLE: begin
           if (axi_s.aw_valid && axi_s.aw_ready) begin
+            prefer_read_q       <= 1'b1;
             axi_id_q            <= axi_s.aw_id;
             address_q           <= axi_s.aw_addr;
             burst_len_q         <= axi_s.aw_len;
@@ -226,6 +232,7 @@ module rv_axi_to_local_bridge #(
             write_protocol_error_q <= 1'b0;
             state_q                <= IN_WRITE_DATA;
           end else if (axi_s.ar_valid && axi_s.ar_ready) begin
+            prefer_read_q       <= 1'b0;
             axi_id_q            <= axi_s.ar_id;
             address_q           <= axi_s.ar_addr;
             burst_len_q         <= axi_s.ar_len;

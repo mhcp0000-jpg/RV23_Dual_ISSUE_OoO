@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-module rv23_cache_fault_tb;
+module rv23_cache_fault_tb #(parameter bit QUEUE_WRITES=0);
   import rv_soc_pkg::*;
   logic clk_i=0,rst_ni=0,invalidate=0,allow_request=1,read_fault=0,write_fault=0;
   logic snoop=0,allow_response=1;
@@ -13,7 +13,7 @@ module rv23_cache_fault_tb;
   assign unused_cpu.req_wdata=0;assign unused_cpu.req_wstrb=0;
   assign unused_cpu.req_priv=PRIV_M;assign unused_cpu.req_rob_seq=0;
   assign unused_cpu.req_committed=0;assign unused_cpu.req_device=0;assign unused_cpu.rsp_ready=1;
-  rv23_cache dut (.clk_i,.rst_ni,.invalidate_i(invalidate),
+  rv23_cache #(.QUEUE_WRITES(QUEUE_WRITES)) dut (.clk_i,.rst_ni,.invalidate_i(invalidate),
     .snoop_valid_i(snoop),.snoop_addr_i(snoop_addr),.snoop_wdata_i(pattern(snoop_addr)),.snoop_wstrb_i(8'hff),
     .idle_o(),.cpu,.cpu_b(unused_cpu),.mem);
   integer requests=0,checks=0;
@@ -141,12 +141,48 @@ module rv23_cache_fault_tb;
     @(negedge clk_i);snoop_addr=address;snoop=1;
     @(negedge clk_i);snoop=0;
   endtask
+  task automatic queued_write_contract;
+    int before_queue;
+    access_cache(32'h80007000,0,0,0);
+    before_queue=requests;
+    @(negedge clk_i);allow_request=0;allow_response=0;
+    cpu.req_valid=1;cpu.req_write=1;cpu.req_committed=1;
+    for(int i=0;i<4;i++) begin
+      cpu.req_addr=32'h80007000+32'(i*8);cpu.req_id=6'(20+i);
+      @(posedge clk_i);
+      if(!cpu.req_ready || cpu.rsp_valid) $fatal(1,"Queued store improperly stalled or completed");
+      @(negedge clk_i);
+    end
+    cpu.req_valid=0;cpu.req_id=37;
+    // Different resident word may complete before the stores reach SRAM.
+    access_cache(32'h80007020,0,0,0);
+    if(requests!=before_queue) $fatal(1,"Resident read used the stalled bus");
+    @(negedge clk_i);allow_request=1;
+    for(int i=0;i<4;i++) begin
+      wait(response_valid);@(negedge clk_i);
+      if(cpu.rsp_valid || response_id!=6'(20+i) ||
+         response_data!=pattern(32'h80007000+32'(i*8)))
+        $fatal(1,"Out-of-order or premature queued store");
+      allow_response=1;
+      do @(negedge clk_i);while(!cpu.rsp_valid);
+      repeat(2) begin
+        if(!cpu.rsp_valid || cpu.rsp_id!=6'(20+i) || cpu.rsp_resp!=AXI_RESP_OKAY)
+          $fatal(1,"Stalled queued completion lost ownership");
+        @(negedge clk_i);
+      end
+      cpu.rsp_ready=1;@(negedge clk_i);cpu.rsp_ready=0;allow_response=0;
+    end
+    allow_response=1;
+    if(requests-before_queue!=4) $fatal(1,"Queued store was repeated or dropped");
+    checks++;
+    $display("WRITE QUEUE PASS four ordered stores, independent resident load, held completions");
+  endtask
   task automatic refill_race(input logic [31:0] address,input logic [31:0] written,
       input bit last_beat,input bit must_cancel);
     fork
       access_cache(address,0,0,0);
       begin
-        if(last_beat) wait(dut.state_q==dut.WAIT_MEM && dut.beat_q==7 && mem.rsp_valid);
+        if(last_beat) wait(dut.state_q==2'd2 && dut.beat_q==7 && mem.rsp_valid);
         else wait(mem.req_valid && mem.req_addr==address+8);
         pulse_snoop(written);
       end
@@ -237,7 +273,7 @@ module rv23_cache_fault_tb;
     fork
       access_cache(32'h80000340,0,0,0);
       begin
-        wait(dut.state_q==dut.WAIT_MEM && dut.beat_q==2 && mem.rsp_valid);
+        wait(dut.state_q==2'd2 && dut.beat_q==2 && mem.rsp_valid);
         @(negedge clk_i);snoop_addr=32'h80000100;snoop=1;
         #1;if(mem.rsp_ready) $fatal(1,"Snoop/refill bank write collision not stalled");
         repeat(3) @(negedge clk_i);snoop=0;
@@ -260,12 +296,15 @@ module rv23_cache_fault_tb;
         allow_request=1;
       end
     join
-    launch_contract(0,1,0);
-    launch_contract(1,1,0);
+    if(QUEUE_WRITES) queued_write_contract();
+    else begin
+      launch_contract(0,1,0);
+      launch_contract(1,1,0);
+      response_ready_contract();
+    end
     launch_contract(0,0,1);
     launch_contract(1,0,1);
     launch_contract(1,0,0);
-    response_ready_contract();
     $display("CACHE LAUNCH PASS same-edge forwarding, captured stall, bus-response completion/hold");
     // Prove actual 32 KiB capacity: every one of the 512 tags can stay live.
     @(negedge clk_i);invalidate=1;@(negedge clk_i);invalidate=0;

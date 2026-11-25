@@ -40,7 +40,7 @@ module rv23_instruction_fetch_atomic_tb;
     return {offset[20],offset[10:1],offset[11],offset[19:12],5'd0,7'h6f};
   endfunction
 
-  wire target_refill = dut.u_icache.state_q != dut.u_icache.IDLE &&
+  wire target_refill = dut.u_icache.state_q != 2'd0 &&
                        dut.u_icache.filling_q && dut.u_icache.addr_q[31:6] == target[31:6];
 
   always @(posedge clk_i) if (rst_ni && run) begin

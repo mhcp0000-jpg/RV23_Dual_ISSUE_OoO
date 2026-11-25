@@ -330,7 +330,7 @@ module rv23_soc_top #(
     .snoop_wdata_i(sram_write_snoop_data),.snoop_wstrb_i(sram_write_snoop_strb),
     .idle_o(i_idle),.refill_o(i_refill),.cpu(i_cpu),.cpu_b(i_cpu_hi),.mem(i_outbound)
   );
-  rv23_cache #(.SIZE_KB(rv23_pkg::DCACHE_KB)) u_dcache (
+  rv23_cache #(.SIZE_KB(rv23_pkg::DCACHE_KB),.QUEUE_WRITES(XLEN==64)) u_dcache (
     .clk_i,.rst_ni,.invalidate_i(cbo_cache_invalidate && cbo_cache_ready),
     .snoop_valid_i(sram_write_snoop),.snoop_addr_i(sram_write_snoop_addr),
     .snoop_wdata_i(sram_write_snoop_data),.snoop_wstrb_i(sram_write_snoop_strb),
@@ -340,7 +340,7 @@ module rv23_soc_top #(
     .CACHE_BASE_ADDR(rv23_pkg::SRAM_BASE),.CACHE_MEMORY_KB(rv23_pkg::SRAM_KB)) u_i_bridge (
     .clk_i,.rst_ni,.refill_i(i_refill),.idle_o(i_bridge_idle),.local_bus(i_outbound),.axi_m(i_axi)
   );
-  rv_local_to_axi_bridge #(.CACHE_BURST(1),
+  rv_local_to_axi_bridge #(.CACHE_BURST(1),.FAST_WRITE(XLEN==64),
     .CACHE_BASE_ADDR(rv23_pkg::SRAM_BASE),.CACHE_MEMORY_KB(rv23_pkg::SRAM_KB)) u_d_bridge (
     .clk_i,.rst_ni,.refill_i(d_refill),.idle_o(d_bridge_idle),.local_bus(d_outbound),.axi_m(d_normal_axi)
   );
